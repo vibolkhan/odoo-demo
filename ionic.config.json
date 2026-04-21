@@ -1,0 +1,8 @@
+{
+  "name": "odoo-demo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite",
+  "id": "2c80d445"
+}
