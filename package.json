@@ -3,15 +3,22 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "engines": {
+    "node": "22.22.1",
+    "npm": "10.9.4"
+  },
+  "packageManager": "npm@10.9.4",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
     "test:unit": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "andriod:live": "npx.cmd cap run android -l --host localhost --port 5173 --forwardPorts 5173:5173"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.1",
     "@capacitor/app": "8.1.0",
     "@capacitor/core": "8.3.1",
     "@capacitor/haptics": "8.0.2",
