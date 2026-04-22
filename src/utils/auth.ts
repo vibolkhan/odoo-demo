@@ -9,6 +9,8 @@ const WEB_PROXY_BASE = '/odoo-api'
 const AUTH_ENDPOINT = '/web/session/authenticate'
 const LOGOUT_ENDPOINT = '/web/session/destroy'
 const ODOO_DATABASE = 'memot_rubber_plantation_staging'
+export const DEFAULT_ALLOWED_COMPANY_IDS = [1]
+export const DEFAULT_COMPANY_ID = 1
 
 type OdooJsonRpcError = {
   data?: {
@@ -42,9 +44,9 @@ const clearStoredAuth = () => {
 const getErrorMessage = (error: OdooJsonRpcError) =>
   error.data?.message || error.message || 'Login failed. Please try again.'
 
-const isNativePlatform = () => Capacitor.isNativePlatform()
+export const isNativePlatform = () => Capacitor.isNativePlatform()
 
-const buildUrl = (path: string) => {
+export const buildUrl = (path: string) => {
   if (isNativePlatform()) {
     return `${ODOO_BASE_URL}${path}`
   }
@@ -56,7 +58,10 @@ const buildUrl = (path: string) => {
   return `${ODOO_BASE_URL}${path}`
 }
 
-const postJsonRpc = async <T>(path: string, params: Record<string, unknown>) => {
+export const postJsonRpc = async <T>(
+  path: string,
+  params: Record<string, unknown>
+) => {
   const payload = {
     jsonrpc: '2.0',
     method: 'call',
