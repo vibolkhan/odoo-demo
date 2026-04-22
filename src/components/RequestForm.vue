@@ -1,6 +1,6 @@
 <template>
   <div class="request-shell">
-    <section class="balance-grid">
+    <!-- <section class="balance-grid">
       <article class="balance-card annual">
         <p class="balance-label">Total Leave</p>
         <p class="balance-value">14</p>
@@ -12,7 +12,7 @@
         <p class="balance-value">08</p>
         <p class="balance-meta">Days</p>
       </article>
-    </section>
+    </section> -->
 
     <section class="form-card">
       <div class="form-header">
@@ -23,19 +23,12 @@
 
       <div class="form-grid">
         <div class="field-block field-block-full">
-          <label
-            class="field-label"
-            for="leave-type"
-            >Leave type</label
-          >
-          <ion-item
-            id="leave-type"
-            lines="none"
-            class="field"
-          >
+          <label class="field-label" for="leave-type">Leave type</label>
+          <ion-item id="leave-type" lines="none" class="field">
             <ion-select
               v-model="leaveType"
-              interface="popover"
+              label-placement="stacked"
+              class="leave-type-select"
             >
               <ion-select-option value="annual">Annual Leave</ion-select-option>
               <ion-select-option value="sick">Sick Leave</ion-select-option>
@@ -45,52 +38,24 @@
         </div>
 
         <div class="field-block">
-          <label
-            class="field-label"
-            for="start-date"
-            >Start date</label
-          >
-          <ion-item
-            id="start-date"
-            lines="none"
-            class="field"
-          >
-            <ion-input
-              v-model="startDate"
-              type="date"
-            />
+          <label class="field-label" for="start-date">Start date</label>
+          <ion-item id="start-date" lines="none" class="field date-field">
+            <ion-input v-model="startDate" type="date" />
+            <span v-if="!startDate" class="date-placeholder">mm/dd/yyyy</span>
           </ion-item>
         </div>
 
         <div class="field-block">
-          <label
-            class="field-label"
-            for="end-date"
-            >End date</label
-          >
-          <ion-item
-            id="end-date"
-            lines="none"
-            class="field"
-          >
-            <ion-input
-              v-model="endDate"
-              type="date"
-            />
+          <label class="field-label" for="end-date">End date</label>
+          <ion-item id="end-date" lines="none" class="field date-field">
+            <ion-input v-model="endDate" type="date" />
+            <span v-if="!endDate" class="date-placeholder">mm/dd/yyyy</span>
           </ion-item>
         </div>
 
         <div class="field-block field-block-full">
-          <label
-            class="field-label"
-            for="reason"
-            >Reason for leave</label
-          >
-          <ion-item
-            id="reason"
-            lines="none"
-            class="field textarea-field"
-          >
+          <label class="field-label" for="reason">Reason for leave</label>
+          <ion-item id="reason" lines="none" class="field textarea-field">
             <ion-textarea
               v-model="reason"
               :auto-grow="true"
@@ -109,22 +74,21 @@
           @change="handleFileChange"
         />
 
-        <label
-          class="upload-label"
-          for="supporting-document"
-        >
-          Upload supporting document
+        <label class="upload-label" for="supporting-document">
+          <span class="upload-label-main">
+            <ion-icon
+              class="upload-icon"
+              :icon="attachOutline"
+              aria-hidden="true"
+            />
+            <span class="upload-copy">
+              {{ selectedFileName || "Upload document if needed" }}
+            </span>
+          </span>
         </label>
-
-        <p class="upload-filename">
-          {{ selectedFileName || 'No file selected yet' }}
-        </p>
       </div>
 
-      <ion-button
-        expand="block"
-        class="submit-button"
-      >
+      <ion-button expand="block" class="submit-button">
         Request Approval
       </ion-button>
     </section>
@@ -134,24 +98,26 @@
 <script setup lang="ts">
 import {
   IonButton,
+  IonIcon,
   IonInput,
   IonItem,
   IonSelect,
   IonSelectOption,
   IonTextarea,
-} from '@ionic/vue'
-import { ref } from 'vue'
+} from "@ionic/vue";
+import { attachOutline } from "ionicons/icons";
+import { ref } from "vue";
 
-const leaveType = ref('annual')
-const startDate = ref('')
-const endDate = ref('')
-const reason = ref('')
-const selectedFileName = ref('')
+const leaveType = ref("annual");
+const startDate = ref("");
+const endDate = ref("");
+const reason = ref("");
+const selectedFileName = ref("");
 
 const handleFileChange = (event: Event) => {
-  const input = event.target as HTMLInputElement
-  selectedFileName.value = input.files?.[0]?.name ?? ''
-}
+  const input = event.target as HTMLInputElement;
+  selectedFileName.value = input.files?.[0]?.name ?? "";
+};
 </script>
 
 <style scoped>
@@ -294,7 +260,31 @@ h2 {
   --padding-start: 14px;
   --inner-padding-end: 14px;
   --min-height: 56px;
-  border: 1px solid #dde6ef;
+}
+
+.date-field {
+  position: relative;
+}
+
+.date-placeholder {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8a97a8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.leave-type-select {
+  width: 100%;
+}
+
+.leave-type-select::part(container) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .textarea-field {
@@ -304,35 +294,48 @@ h2 {
 
 .upload-card {
   margin-top: 18px;
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid #dbe5ef;
-  background: linear-gradient(180deg, #fbfcfe 0%, #f4f7fb 100%);
+  border-radius: 22px;
+  border: 2px dashed #d4dbe4;
+  background: #e7edf4;
+  overflow: hidden;
 }
 
 .upload-label {
-  display: inline-block;
+  display: block;
   cursor: pointer;
-  font-weight: 700;
-  color: #18314b;
+  padding: 22px 24px;
+  color: #5f6e80;
   font-size: 0.95rem;
+}
+
+.upload-label-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+}
+
+.upload-icon {
+  flex: 0 0 auto;
+  font-size: 1.7rem;
+  color: #596879;
 }
 
 .upload-input {
   display: none;
 }
 
-.upload-filename {
-  margin: 8px 0 0;
-  color: #50627a;
-  font-size: 0.9rem;
-  font-weight: 500;
+.upload-copy {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
   word-break: break-word;
 }
 
 .submit-button {
   margin-top: 18px;
-  --background: linear-gradient(135deg, #18314b 0%, #275986 100%);
+  --background: #3b82f6;
   --border-radius: 18px;
   min-height: 54px;
   font-weight: 700;

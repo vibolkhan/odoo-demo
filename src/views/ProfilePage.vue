@@ -15,6 +15,7 @@
       <section class="profile-content">
         <h2>{{ greeting }}</h2>
         <p>You are logged in and can now access all protected pages.</p>
+        <p v-if="userIdLabel" class="user-id">{{ userIdLabel }}</p>
         <ion-button expand="block" color="danger" @click="handleLogout">
           Logout
         </ion-button>
@@ -34,7 +35,7 @@ import {
 } from '@ionic/vue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { getStoredUsername, logout } from '@/utils/auth'
+import { getStoredUserId, getStoredUsername, logout } from '@/utils/auth'
 
 const router = useRouter()
 
@@ -43,8 +44,13 @@ const greeting = computed(() => {
   return username ? `Hello, ${username}` : 'Hello'
 })
 
+const userIdLabel = computed(() => {
+  const userId = getStoredUserId()
+  return userId ? `User ID: ${userId}` : ''
+})
+
 const handleLogout = async () => {
-  logout()
+  await logout()
   await router.replace('/login')
 }
 </script>
@@ -61,5 +67,9 @@ const handleLogout = async () => {
 .profile-content p {
   margin: 0 0 20px;
   color: var(--ion-color-medium);
+}
+
+.user-id {
+  font-size: 0.95rem;
 }
 </style>

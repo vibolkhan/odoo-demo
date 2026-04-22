@@ -65,8 +65,8 @@ import {
   addCircleOutline,
   person,
   personOutline,
-  grid,
-  gridOutline,
+  // grid,
+  // gridOutline,
 } from 'ionicons/icons'
 import { useRoute } from 'vue-router'
 

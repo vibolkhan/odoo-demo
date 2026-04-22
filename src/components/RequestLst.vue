@@ -1,24 +1,5 @@
 <template>
   <ion-page>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button
-            default-href="#"
-            color="primary"
-          ></ion-back-button>
-        </ion-buttons>
-        <ion-title class="ion-text-center">Leave Management</ion-title>
-        <ion-buttons slot="end">
-          <ion-button
-            color="primary"
-            class="header-submit"
-            >Submit</ion-button
-          >
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
     <ion-content class="ion-padding custom-bg">
       <div class="hero-card">
         <p class="hero-label">ACTIVE REQUESTS</p>
@@ -29,19 +10,13 @@
       </div>
 
       <ion-row class="ion-margin-top">
-        <ion-col
-          size="6"
-          class="ion-no-padding-start"
-        >
+        <ion-col size="6" class="ion-no-padding-start">
           <div class="balance-card">
             <p class="balance-label">Annual Balance</p>
             <p class="balance-value blue-text">18d</p>
           </div>
         </ion-col>
-        <ion-col
-          size="6"
-          class="ion-no-padding-end"
-        >
+        <ion-col size="6" class="ion-no-padding-end">
           <div class="balance-card">
             <p class="balance-label">Sick Leave</p>
             <p class="balance-value purple-text">05d</p>
@@ -51,10 +26,7 @@
 
       <div class="section-header ion-margin-top">
         <h2>Recent Requests</h2>
-        <ion-button
-          fill="clear"
-          size="small"
-          class="filter-btn"
+        <ion-button fill="clear" size="small" class="filter-btn"
           >Filter</ion-button
         >
       </div>
@@ -66,26 +38,15 @@
               <p class="leave-type-label">ANNUAL LEAVE</p>
               <h3 class="date-range">
                 Oct 24
-                <ion-icon
-                  :icon="arrowForward"
-                  class="arrow"
-                ></ion-icon>
+                <ion-icon :icon="arrowForward" class="arrow"></ion-icon>
                 Oct 28
               </h3>
             </div>
             <ion-badge class="badge-pending">PENDING</ion-badge>
           </div>
           <div class="action-buttons">
-            <ion-button
-              expand="block"
-              class="btn-modify"
-              >Modify</ion-button
-            >
-            <ion-button
-              expand="block"
-              class="btn-cancel"
-              >Cancel</ion-button
-            >
+            <ion-button expand="block" class="btn-modify">Modify</ion-button>
+            <ion-button expand="block" class="btn-cancel">Cancel</ion-button>
           </div>
         </div>
 
@@ -95,20 +56,14 @@
               <p class="leave-type-label">SICK LEAVE</p>
               <h3 class="date-range">
                 Sep 12
-                <ion-icon
-                  :icon="arrowForward"
-                  class="arrow"
-                ></ion-icon>
+                <ion-icon :icon="arrowForward" class="arrow"></ion-icon>
                 Sep 13
               </h3>
             </div>
             <ion-badge class="badge-approved">APPROVED</ion-badge>
           </div>
           <div class="info-note">
-            <ion-icon
-              :icon="informationCircle"
-              class="info-icon"
-            ></ion-icon>
+            <ion-icon :icon="informationCircle" class="info-icon"></ion-icon>
             <span>Approved by Sarah Connor on Sep 10</span>
           </div>
         </div>
@@ -119,10 +74,7 @@
               <p class="leave-type-label">PERSONAL LEAVE</p>
               <h3 class="date-range">
                 Aug 05
-                <ion-icon
-                  :icon="arrowForward"
-                  class="arrow"
-                ></ion-icon>
+                <ion-icon :icon="arrowForward" class="arrow"></ion-icon>
                 Aug 06
               </h3>
             </div>
@@ -140,26 +92,15 @@
               <p class="leave-type-label">MARRIAGE LEAVE</p>
               <h3 class="date-range">
                 Dec 15
-                <ion-icon
-                  :icon="arrowForward"
-                  class="arrow"
-                ></ion-icon>
+                <ion-icon :icon="arrowForward" class="arrow"></ion-icon>
                 Dec 22
               </h3>
             </div>
             <ion-badge class="badge-pending">PENDING</ion-badge>
           </div>
           <div class="action-buttons">
-            <ion-button
-              expand="block"
-              class="btn-modify"
-              >Modify</ion-button
-            >
-            <ion-button
-              expand="block"
-              class="btn-cancel"
-              >Cancel</ion-button
-            >
+            <ion-button expand="block" class="btn-modify">Modify</ion-button>
+            <ion-button expand="block" class="btn-cancel">Cancel</ion-button>
           </div>
         </div>
       </div>
@@ -175,10 +116,7 @@
           <ion-icon :icon="addCircle" />
           <ion-label>Request</ion-label>
         </ion-tab-button>
-        <ion-tab-button
-          tab="history"
-          class="active-tab"
-        >
+        <ion-tab-button tab="history" class="active-tab">
           <ion-icon :icon="time" />
           <ion-label>History</ion-label>
           <div class="dot"></div>
@@ -210,7 +148,7 @@ import {
   IonTabBar,
   IonTabButton,
   IonLabel,
-} from '@ionic/vue'
+} from "@ionic/vue";
 import {
   arrowForward,
   informationCircle,
@@ -218,7 +156,7 @@ import {
   addCircle,
   time,
   person,
-} from 'ionicons/icons'
+} from "ionicons/icons";
 </script>
 
 <style scoped>

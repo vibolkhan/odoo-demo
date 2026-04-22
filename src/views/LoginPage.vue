@@ -33,10 +33,15 @@
 
             <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-            <ion-button expand="block" type="submit">Login</ion-button>
+            <ion-button expand="block" type="submit" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Signing in...' : 'Login' }}
+            </ion-button>
           </form>
 
-          <p class="hint">Demo credentials: any username with password `1234`</p>
+          <p class="hint">
+            Sign in with your Odoo account for
+            <strong>memot_rubber_plantation_staging</strong>.
+          </p>
         </section>
       </div>
     </ion-content>
@@ -62,6 +67,7 @@ const route = useRoute()
 const username = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const isSubmitting = ref(false)
 
 const redirectPath = computed(() => {
   const redirect = route.query.redirect
@@ -82,13 +88,19 @@ const handleLogin = async () => {
     return
   }
 
-  if (password.value !== '1234') {
-    errorMessage.value = 'Invalid password. Use 1234 for this demo.'
-    return
-  }
+  isSubmitting.value = true
 
-  login(username.value.trim())
-  await router.replace(redirectPath.value)
+  try {
+    await login(username.value.trim(), password.value)
+    await router.replace(redirectPath.value)
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error
+        ? error.message
+        : 'Unable to sign in right now. Please try again.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
