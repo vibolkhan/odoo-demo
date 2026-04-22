@@ -22,6 +22,54 @@
       </div>
 
       <div class="form-grid">
+        <div class="field-block">
+          <label class="field-label" for="employee">Employee</label>
+          <ion-item id="employee" lines="none" class="field">
+            <ion-select
+              v-model="selectedEmployeeId"
+              label-placement="stacked"
+              class="leave-type-select"
+              :disabled="isLoadingEmployees || !employees.length"
+              interface="popover"
+              placeholder="Select employee"
+            >
+              <ion-select-option
+                v-for="employee in employees"
+                :key="employee.id"
+                :value="employee.id"
+              >
+                {{ employee.name }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="field-block">
+          <label class="field-label" for="company">Company</label>
+          <ion-item id="company" lines="none" class="field readonly-field">
+            <ion-input
+              :value="selectedEmployee.company"
+              readonly
+              placeholder="Company will appear here"
+            />
+          </ion-item>
+        </div>
+
+        <div class="field-block field-block-full">
+          <label class="field-label" for="department">Department</label>
+          <ion-item id="department" lines="none" class="field readonly-field">
+            <ion-input
+              :value="selectedEmployee.department"
+              readonly
+              placeholder="Department will appear here"
+            />
+          </ion-item>
+        </div>
+
+        <p v-if="employeeErrorMessage" class="field-message error-message">
+          {{ employeeErrorMessage }}
+        </p>
+
         <div class="field-block field-block-full">
           <label class="field-label" for="leave-type">Leave type</label>
           <ion-item id="leave-type" lines="none" class="field">
@@ -50,6 +98,14 @@
           <ion-item id="end-date" lines="none" class="field date-field">
             <ion-input v-model="endDate" type="date" />
             <span v-if="!endDate" class="date-placeholder">mm/dd/yyyy</span>
+          </ion-item>
+        </div>
+
+        <div class="field-block field-block-full">
+          <ion-item lines="none" class="field checkbox-field">
+            <ion-checkbox v-model="isHalfDay" label-placement="end">
+              Half day
+            </ion-checkbox>
           </ion-item>
         </div>
 
@@ -98,6 +154,7 @@
 <script setup lang="ts">
 import {
   IonButton,
+  IonCheckbox,
   IonIcon,
   IonInput,
   IonItem,
@@ -106,18 +163,56 @@ import {
   IonTextarea,
 } from "@ionic/vue";
 import { attachOutline } from "ionicons/icons";
-import { ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { fetchEmployees, type EmployeeOption } from "@/utils/employees";
 
 const leaveType = ref("annual");
+const employees = ref<EmployeeOption[]>([]);
+const selectedEmployeeId = ref<number | null>(null);
 const startDate = ref("");
 const endDate = ref("");
+const isHalfDay = ref(false);
 const reason = ref("");
 const selectedFileName = ref("");
+const isLoadingEmployees = ref(false);
+const employeeErrorMessage = ref("");
+
+const selectedEmployee = computed(
+  () =>
+    employees.value.find((employee) => employee.id === selectedEmployeeId.value) ?? {
+      id: 0,
+      name: "",
+      company: "",
+      department: "",
+    },
+);
+
+const loadEmployees = async () => {
+  isLoadingEmployees.value = true;
+  employeeErrorMessage.value = "";
+
+  try {
+    const fetchedEmployees = await fetchEmployees();
+    employees.value = fetchedEmployees;
+    selectedEmployeeId.value = fetchedEmployees[0]?.id ?? null;
+  } catch (error) {
+    employees.value = [];
+    selectedEmployeeId.value = null;
+    employeeErrorMessage.value =
+      error instanceof Error ? error.message : "Unable to load employees.";
+  } finally {
+    isLoadingEmployees.value = false;
+  }
+};
 
 const handleFileChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
   selectedFileName.value = input.files?.[0]?.name ?? "";
 };
+
+onMounted(() => {
+  void loadEmployees();
+});
 </script>
 
 <style scoped>
@@ -248,6 +343,15 @@ h2 {
   grid-column: 1 / -1;
 }
 
+.field-message {
+  margin: -4px 0 0;
+  font-size: 0.85rem;
+}
+
+.error-message {
+  color: #b64646;
+}
+
 .field-label {
   font-size: 0.86rem;
   font-weight: 700;
@@ -290,6 +394,20 @@ h2 {
 .textarea-field {
   --padding-top: 10px;
   --padding-bottom: 10px;
+}
+
+.readonly-field {
+  opacity: 0.9;
+}
+
+.checkbox-field {
+  --min-height: 52px;
+}
+
+.checkbox-field ion-checkbox {
+  width: 100%;
+  font-weight: 600;
+  color: #44556c;
 }
 
 .upload-card {
