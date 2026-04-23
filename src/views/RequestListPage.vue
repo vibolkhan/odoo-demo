@@ -26,6 +26,7 @@
 import {
   IonContent,
   IonHeader,
+  onIonViewWillEnter,
   IonPage,
   IonRefresher,
   IonRefresherContent,
@@ -46,6 +47,10 @@ const handleRefresh = async (event: CustomEvent) => {
     (event.target as HTMLIonRefresherElement | null)?.complete();
   }
 };
+
+onIonViewWillEnter(() => {
+  void requestListRef.value?.loadLeaveRequests();
+});
 </script>
 
 <style scoped>

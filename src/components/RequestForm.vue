@@ -57,7 +57,17 @@
         </p>
 
         <div class="field-block field-block-full">
-          <label class="field-label" for="leave-type">Leave type</label>
+          <div class="field-header">
+            <label class="field-label" for="leave-type">Leave type</label>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="browse-types-button"
+              @click="router.push('/tabs/tab1')"
+            >
+              Browse all leave types
+            </ion-button>
+          </div>
           <ion-item id="leave-type" lines="none" class="field">
             <ion-select
               v-model="leaveType"
@@ -242,10 +252,12 @@ import {
 } from "@ionic/vue";
 import { attachOutline } from "ionicons/icons";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { fetchEmployees, type EmployeeOption } from "@/utils/employees";
 import { fetchLeaveTypes, type LeaveTypeOption } from "@/utils/leaveTypes";
 import { saveLeaveRequest } from "@/utils/leaveRequests";
 
+const router = useRouter();
 const leaveType = ref<number | null>(null);
 const leaveTypes = ref<LeaveTypeOption[]>([]);
 const employees = ref<EmployeeOption[]>([]);
@@ -424,6 +436,20 @@ const handleFileChange = (event: Event) => {
   selectedFileName.value = input.files?.[0]?.name ?? "";
 };
 
+const resetForm = () => {
+  leaveType.value = null;
+  selectedEmployeeId.value = null;
+  selectedEmployeeDetails.value = null;
+  startDate.value = "";
+  endDate.value = "";
+  isHalfDay.value = false;
+  reason.value = "";
+  selectedFileName.value = "";
+  employeeSearchQuery.value = "";
+  activeEmployeeQuery.value = "";
+  submitErrorMessage.value = "";
+};
+
 const handleSubmitRequest = async () => {
   submitErrorMessage.value = "";
   submitSuccessMessage.value = "";
@@ -461,10 +487,9 @@ const handleSubmitRequest = async () => {
       reason: reason.value,
     });
 
+    resetForm();
     submitSuccessMessage.value = "Leave request submitted successfully.";
-    reason.value = "";
-    isHalfDay.value = false;
-    selectedFileName.value = "";
+    await router.replace("/tabs/tab4");
   } catch (error) {
     submitErrorMessage.value =
       error instanceof Error
@@ -643,6 +668,22 @@ h2 {
   font-size: 0.86rem;
   font-weight: 700;
   color: #44556c;
+}
+
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.browse-types-button {
+  margin: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --color: #275986;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .field {
@@ -831,6 +872,11 @@ h2 {
 
   .form-header {
     display: grid;
+  }
+
+  .field-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style>

@@ -12,6 +12,17 @@
         </ion-tab-button> -->
 
         <ion-tab-button
+          tab="tab1"
+          href="/tabs/tab1"
+        >
+          <ion-icon
+            aria-hidden="true"
+            :icon="tabIcon('/tabs/tab1', list, listOutline)"
+          />
+          <ion-label>Types</ion-label>
+        </ion-tab-button>
+
+        <ion-tab-button
           tab="tab2"
           href="/tabs/tab2"
         >
@@ -61,12 +72,12 @@ import {
 import {
   receipt,
   receiptOutline,
+  list,
+  listOutline,
   addCircle,
   addCircleOutline,
   person,
   personOutline,
-  // grid,
-  // gridOutline,
 } from 'ionicons/icons'
 import { useRoute } from 'vue-router'
 

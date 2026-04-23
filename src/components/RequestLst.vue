@@ -13,6 +13,72 @@
       </button>
     </section>
 
+    <div class="filter-toggle-row">
+      <button
+        type="button"
+        class="filter-toggle-text"
+        :class="{ active: showAdvancedFilters }"
+        @click="showAdvancedFilters = !showAdvancedFilters"
+      >
+        Filter
+      </button>
+    </div>
+
+    <section
+      v-if="showAdvancedFilters"
+      class="filter-panel"
+      aria-label="Advanced request filters"
+    >
+      <div class="filter-field">
+        <label class="filter-label" for="employee-filter">Employee</label>
+        <ion-item
+          id="employee-filter"
+          lines="none"
+          class="filter-input-shell searchable-trigger"
+          button
+          :detail="false"
+          :disabled="isLoadingEmployees || !employees.length"
+          @click="openEmployeeSearch"
+        >
+          <ion-input
+            :value="selectedEmployeeName"
+            readonly
+            class="searchable-input"
+            :placeholder="
+              isLoadingEmployees ? 'Loading employees...' : 'All employees'
+            "
+          />
+        </ion-item>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="date-from-filter">From</label>
+        <ion-item id="date-from-filter" lines="none" class="filter-input-shell">
+          <ion-input v-model="dateFromFilter" type="date" />
+        </ion-item>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label" for="date-to-filter">To</label>
+        <ion-item id="date-to-filter" lines="none" class="filter-input-shell">
+          <ion-input v-model="dateToFilter" type="date" />
+        </ion-item>
+      </div>
+
+      <ion-button
+        fill="outline"
+        class="clear-filters-button"
+        :disabled="!hasActiveAdvancedFilters"
+        @click="clearAdvancedFilters"
+      >
+        Clear
+      </ion-button>
+    </section>
+
+    <p v-if="employeeErrorMessage" class="filter-message error-message">
+      {{ employeeErrorMessage }}
+    </p>
+
     <div v-if="isLoading" class="state-card">
       <ion-spinner name="crescent" />
       <p>Loading leave requests...</p>
@@ -28,7 +94,7 @@
 
     <div v-else-if="!displayedRequests.length" class="state-card">
       <ion-icon :icon="fileTrayOutline" aria-hidden="true" />
-      <p>No leave requests in this filter.</p>
+      <p>No leave requests match the current filters.</p>
     </div>
 
     <section v-else class="request-list">
@@ -80,11 +146,78 @@
         </div>
       </section>
     </section>
+
+    <ion-modal
+      :is-open="isEmployeeSearchOpen"
+      css-class="employee-search-overlay"
+      @didDismiss="closeEmployeeSearch"
+    >
+      <ion-content class="employee-search-modal" :scroll-y="true">
+        <div class="employee-search-sticky">
+          <div class="employee-search-header">
+            <h3>Select Employee</h3>
+            <ion-button fill="clear" size="small" @click="clearEmployeeFilter">
+              All employees
+            </ion-button>
+          </div>
+
+          <ion-searchbar
+            v-model="employeeSearchQuery"
+            placeholder="Search by name, company, or department"
+          />
+        </div>
+
+        <ion-list v-if="filteredEmployees.length" class="employee-results">
+          <ion-item
+            v-for="employee in filteredEmployees"
+            :key="employee.id"
+            button
+            :detail="false"
+            class="employee-option"
+            @click="selectEmployee(employee.id)"
+          >
+            <ion-label>
+              <p>{{ employee.name }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-infinite-scroll
+          :disabled="!hasMoreEmployees"
+          @ionInfinite="loadMoreEmployees"
+        >
+          <ion-infinite-scroll-content
+            loading-spinner="bubbles"
+            loading-text="Loading more employees..."
+          />
+        </ion-infinite-scroll>
+
+        <div
+          v-if="!filteredEmployees.length && !isLoadingEmployees"
+          class="employee-empty-state"
+        >
+          No employees match your search.
+        </div>
+      </ion-content>
+    </ion-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { IonButton, IonIcon, IonSpinner } from "@ionic/vue";
+import {
+  IonButton,
+  IonContent,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonModal,
+  IonSearchbar,
+  IonSpinner,
+} from "@ionic/vue";
 import {
   alertCircleOutline,
   airplaneOutline,
@@ -94,15 +227,33 @@ import {
   personOutline,
   sparklesOutline,
 } from "ionicons/icons";
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { fetchEmployees, type EmployeeOption } from "@/utils/employees";
 import { fetchLeaveRequests, type LeaveRequest } from "@/utils/leaveRequests";
 
 type FilterId = "all" | "pending" | "review" | "attention";
 
 const leaveRequests = ref<LeaveRequest[]>([]);
+const employees = ref<EmployeeOption[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const activeFilter = ref<FilterId>("all");
+const selectedEmployeeId = ref<number | null>(null);
+const selectedEmployeeDetails = ref<EmployeeOption | null>(null);
+const showAdvancedFilters = ref(true);
+const dateFromFilter = ref("");
+const dateToFilter = ref("");
+const isLoadingEmployees = ref(false);
+const isLoadingMoreEmployees = ref(false);
+const hasMoreEmployees = ref(true);
+const employeeErrorMessage = ref("");
+const isEmployeeSearchOpen = ref(false);
+const employeeSearchQuery = ref("");
+const activeEmployeeQuery = ref("");
+const employeePageSize = 80;
+const nextEmployeePage = ref(1);
+let employeeSearchTimer: ReturnType<typeof setTimeout> | null = null;
+let employeeLoadRequestId = 0;
 
 const filters: Array<{ id: FilterId; label: string }> = [
   { id: "all", label: "All History" },
@@ -111,7 +262,30 @@ const filters: Array<{ id: FilterId; label: string }> = [
   { id: "attention", label: "Need Action" },
 ];
 
-const displayedRequests = computed(() => {
+const selectedEmployee = computed(
+  () =>
+    selectedEmployeeDetails.value ??
+    employees.value.find(
+      (employee) => employee.id === selectedEmployeeId.value,
+    ) ?? {
+      id: 0,
+      name: "",
+      company: "",
+      department: "",
+    },
+);
+
+const selectedEmployeeName = computed(() => selectedEmployee.value.name);
+const filteredEmployees = computed(() => employees.value);
+
+const hasActiveAdvancedFilters = computed(
+  () =>
+    Boolean(selectedEmployeeId.value) ||
+    Boolean(dateFromFilter.value) ||
+    Boolean(dateToFilter.value),
+);
+
+const statusFilteredRequests = computed(() => {
   switch (activeFilter.value) {
     case "pending":
       return leaveRequests.value.filter(
@@ -126,6 +300,38 @@ const displayedRequests = computed(() => {
     default:
       return leaveRequests.value;
   }
+});
+
+const displayedRequests = computed(() => {
+  const startBoundary = parseFilterDate(dateFromFilter.value);
+  const endBoundary = parseFilterDate(dateToFilter.value);
+
+  return statusFilteredRequests.value.filter((request) => {
+    const matchesEmployee =
+      !selectedEmployeeName.value ||
+      request.employeeName === selectedEmployeeName.value;
+
+    if (!matchesEmployee) {
+      return false;
+    }
+
+    const requestStart = parseRequestDate(request.dateFrom);
+    const requestEnd = parseRequestDate(request.dateTo) ?? requestStart;
+
+    if ((startBoundary || endBoundary) && (!requestStart || !requestEnd)) {
+      return false;
+    }
+
+    if (startBoundary && requestEnd && requestEnd < startBoundary) {
+      return false;
+    }
+
+    if (endBoundary && requestStart && requestStart > endBoundary) {
+      return false;
+    }
+
+    return true;
+  });
 });
 
 const groupedRequests = computed(() => {
@@ -190,6 +396,116 @@ const loadLeaveRequests = async () => {
   }
 };
 
+const loadEmployees = async (reset = false) => {
+  if (reset) {
+    isLoadingEmployees.value = true;
+    employeeErrorMessage.value = "";
+    hasMoreEmployees.value = true;
+    nextEmployeePage.value = 1;
+  } else {
+    if (isLoadingMoreEmployees.value || !hasMoreEmployees.value) {
+      return;
+    }
+
+    isLoadingMoreEmployees.value = true;
+  }
+
+  const requestQuery = activeEmployeeQuery.value;
+  const requestPage = reset ? 1 : nextEmployeePage.value;
+  const requestOffset = (requestPage - 1) * employeePageSize;
+  const requestId = ++employeeLoadRequestId;
+
+  try {
+    const result = await fetchEmployees({
+      offset: requestOffset,
+      limit: employeePageSize,
+      query: requestQuery,
+    });
+
+    if (
+      requestId !== employeeLoadRequestId ||
+      requestQuery !== activeEmployeeQuery.value
+    ) {
+      return;
+    }
+
+    employees.value = reset
+      ? result.records
+      : [...employees.value, ...result.records];
+    hasMoreEmployees.value = result.hasMore;
+    nextEmployeePage.value = requestPage + 1;
+
+    if (selectedEmployeeId.value != null) {
+      const matchingEmployee = employees.value.find(
+        (employee) => employee.id === selectedEmployeeId.value,
+      );
+
+      if (matchingEmployee) {
+        selectedEmployeeDetails.value = matchingEmployee;
+      }
+    }
+  } catch (error) {
+    if (requestId !== employeeLoadRequestId) {
+      return;
+    }
+
+    if (reset) {
+      employees.value = [];
+      hasMoreEmployees.value = false;
+    }
+
+    employeeErrorMessage.value =
+      error instanceof Error ? error.message : "Unable to load employees.";
+  } finally {
+    if (reset) {
+      isLoadingEmployees.value = false;
+    } else {
+      isLoadingMoreEmployees.value = false;
+    }
+  }
+};
+
+const loadMoreEmployees = async (event: CustomEvent) => {
+  const infiniteScroll = event.target as HTMLIonInfiniteScrollElement | null;
+
+  await loadEmployees(false);
+  await infiniteScroll?.complete();
+
+  if (infiniteScroll) {
+    infiniteScroll.disabled = !hasMoreEmployees.value;
+  }
+};
+
+const openEmployeeSearch = () => {
+  employeeSearchQuery.value = "";
+  activeEmployeeQuery.value = "";
+  isEmployeeSearchOpen.value = true;
+  void loadEmployees(true);
+};
+
+const closeEmployeeSearch = () => {
+  isEmployeeSearchOpen.value = false;
+};
+
+const selectEmployee = (employeeId: number) => {
+  selectedEmployeeId.value = employeeId;
+  selectedEmployeeDetails.value =
+    employees.value.find((employee) => employee.id === employeeId) ?? null;
+  closeEmployeeSearch();
+};
+
+const clearEmployeeFilter = () => {
+  selectedEmployeeId.value = null;
+  selectedEmployeeDetails.value = null;
+  closeEmployeeSearch();
+};
+
+const clearAdvancedFilters = () => {
+  clearEmployeeFilter();
+  dateFromFilter.value = "";
+  dateToFilter.value = "";
+};
+
 const formatDate = (value: string) => {
   const date = parseRequestDate(value);
 
@@ -234,6 +550,20 @@ const parseRequestDate = (value: string) => {
   const date = new Date(normalizedValue);
 
   return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const parseFilterDate = (value: string) => {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
 };
 
 const getRequestSortValue = (request: LeaveRequest) =>
@@ -322,7 +652,25 @@ const tileTone = (leaveType: string) => {
 };
 
 onMounted(() => {
+  void loadEmployees(true);
   void loadLeaveRequests();
+});
+
+watch(employeeSearchQuery, (value) => {
+  if (employeeSearchTimer) {
+    clearTimeout(employeeSearchTimer);
+  }
+
+  employeeSearchTimer = setTimeout(() => {
+    activeEmployeeQuery.value = value.trim();
+    void loadEmployees(true);
+  }, 250);
+});
+
+onBeforeUnmount(() => {
+  if (employeeSearchTimer) {
+    clearTimeout(employeeSearchTimer);
+  }
 });
 
 defineExpose({
@@ -385,6 +733,81 @@ h1 {
 
 .filter-strip::-webkit-scrollbar {
   display: none;
+}
+
+.filter-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filter-toggle-text {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #7a8697;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filter-toggle-text.active {
+  color: #355fc3;
+}
+
+.filter-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.filter-field {
+  display: grid;
+  gap: 8px;
+}
+
+.filter-message {
+  margin: -6px 0 0;
+  font-size: 0.88rem;
+}
+
+.filter-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7a8697;
+}
+
+.filter-input-shell {
+  --background: rgba(255, 255, 255, 0.96);
+  --border-radius: 18px;
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  --min-height: 54px;
+  box-shadow: 0 10px 28px rgba(31, 58, 97, 0.05);
+}
+
+.filter-input-shell ion-select,
+.filter-input-shell ion-input {
+  width: 100%;
+}
+
+.searchable-trigger {
+  cursor: pointer;
+}
+
+.searchable-input {
+  pointer-events: none;
+}
+
+.clear-filters-button {
+  min-height: 54px;
+  --border-radius: 18px;
+  --border-color: #cad5e4;
+  --color: #4f6178;
+  font-weight: 700;
+  text-transform: none;
 }
 
 .filter-chip {
@@ -599,9 +1022,73 @@ h1 {
   font-size: 1.8rem;
 }
 
+.employee-search-modal {
+  --padding-top: 18px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+}
+
+:global(.employee-search-overlay) {
+  --width: 100vw;
+  --height: 100vh;
+  --max-width: 100vw;
+  --max-height: 100vh;
+  --border-radius: 0;
+}
+
+.employee-search-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.employee-search-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: 4px;
+  background: var(--ion-background-color, #fff);
+}
+
+.employee-search-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #152437;
+}
+
+.employee-results {
+  margin-top: 10px;
+  background: transparent;
+  padding-bottom: 28px;
+}
+
+.employee-option {
+  --border-radius: 16px;
+  --background: #f7f9fc;
+  margin-bottom: 10px;
+}
+
+.employee-option p {
+  margin: 4px 0 0;
+  color: #5b6c81;
+  font-size: 0.9rem;
+}
+
+.employee-empty-state {
+  padding: 24px 6px 8px;
+  text-align: center;
+  color: #6c7b8d;
+}
+
 @media (max-width: 640px) {
   h1 {
     font-size: 1.65rem;
+  }
+
+  .filter-panel {
+    grid-template-columns: 1fr;
   }
 
   .page-head {

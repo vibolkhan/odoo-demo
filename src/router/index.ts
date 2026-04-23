@@ -6,7 +6,7 @@ import { isAuthenticated } from '@/utils/auth'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/tabs/tab2'
+    redirect: '/tabs/tab1'
   },
   {
     path: '/login',
@@ -24,11 +24,11 @@ const routes: Array<RouteRecordRaw> = [
     children: [
       {
         path: '',
-        redirect: '/tabs/tab2'
+        redirect: '/tabs/tab1'
       },
       {
         path: 'tab1',
-        component: () => import('@/views/Tab1Page.vue')
+        component: () => import('@/views/LeaveTypesPage.vue')
       },
       {
         path: 'tab2',
@@ -64,7 +64,7 @@ router.beforeEach((to) => {
   }
 
   if (to.meta.guestOnly && loggedIn) {
-    return '/tabs/tab2'
+    return '/tabs/tab1'
   }
 
   return true
