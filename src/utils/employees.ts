@@ -29,6 +29,17 @@ export type EmployeeOption = {
   department: string
 }
 
+export type FetchEmployeesOptions = {
+  offset?: number
+  limit?: number
+  query?: string
+}
+
+export type FetchEmployeesResult = {
+  records: EmployeeOption[]
+  hasMore: boolean
+}
+
 const employeeSpecification = {
   name: {},
   work_phone: {},
@@ -139,8 +150,41 @@ const mapEmployeeRecord = (record: OdooEmployeeRecord): EmployeeOption => ({
   department: getDisplayName(record.department_id),
 })
 
-export const fetchEmployees = async () => {
+const buildEmployeeDomain = (query?: string) => {
+  const normalizedQuery = query?.trim()
+  const baseFilters: unknown[] = [
+    ['active', '=', true],
+    ['company_id', 'in', DEFAULT_ALLOWED_COMPANY_IDS],
+  ]
+
+  if (!normalizedQuery) {
+    return baseFilters
+  }
+
+  return [
+    '&',
+    '&',
+    ['active', '=', true],
+    ['company_id', 'in', DEFAULT_ALLOWED_COMPANY_IDS],
+    '|',
+    '|',
+    '|',
+    '|',
+    ['name', 'ilike', normalizedQuery],
+    ['company_id', 'ilike', normalizedQuery],
+    ['department_id', 'ilike', normalizedQuery],
+    ['work_email', 'ilike', normalizedQuery],
+    ['work_phone', 'ilike', normalizedQuery],
+  ]
+}
+
+export const fetchEmployees = async (
+  options: FetchEmployeesOptions = {},
+): Promise<FetchEmployeesResult> => {
   const storedUserId = Number(getStoredUserId())
+  const offset = options.offset ?? 0
+  const limit = options.limit ?? 80
+  const query = options.query?.trim() ?? ''
 
   if (!Number.isFinite(storedUserId) || storedUserId <= 0) {
     throw new Error('Missing user session. Please log in again.')
@@ -154,9 +198,9 @@ export const fetchEmployees = async () => {
       args: [],
       kwargs: {
         specification: employeeSpecification,
-        offset: 0,
+        offset,
         order: 'department_id DESC',
-        limit: 80,
+        limit,
         context: {
           lang: 'en_US',
           tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Bangkok',
@@ -167,7 +211,7 @@ export const fetchEmployees = async () => {
           current_company_id: DEFAULT_COMPANY_ID,
         },
         count_limit: 10001,
-        domain: ['&', ['active', '=', true], ['company_id', 'in', DEFAULT_ALLOWED_COMPANY_IDS]],
+        domain: buildEmployeeDomain(query),
       },
     },
   )
@@ -180,5 +224,10 @@ export const fetchEmployees = async () => {
     )
   }
 
-  return (response.result?.records ?? []).map(mapEmployeeRecord)
+  const records = (response.result?.records ?? []).map(mapEmployeeRecord)
+
+  return {
+    records,
+    hasMore: records.length === limit,
+  }
 }

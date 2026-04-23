@@ -10,6 +10,7 @@
   "packageManager": "npm@10.9.4",
   "scripts": {
     "dev": "vite",
+    "dev:host": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
