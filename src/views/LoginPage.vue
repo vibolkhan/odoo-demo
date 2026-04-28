@@ -10,26 +10,29 @@
           </p>
 
           <form class="login-form" @submit.prevent="handleLogin">
-            <ion-item class="field" lines="none">
-              <ion-label position="stacked">Username</ion-label>
-              <ion-input
+            <label class="field">
+              <span class="field-label">Username</span>
+              <input
                 v-model="username"
+                class="text-input"
+                type="text"
                 autocomplete="username"
                 placeholder="Enter your username"
                 required
               />
-            </ion-item>
+            </label>
 
-            <ion-item class="field" lines="none">
-              <ion-label position="stacked">Password</ion-label>
-              <ion-input
+            <label class="field">
+              <span class="field-label">Password</span>
+              <input
                 v-model="password"
+                class="text-input"
                 type="password"
                 autocomplete="current-password"
                 placeholder="Enter your password"
                 required
               />
-            </ion-item>
+            </label>
 
             <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
@@ -52,9 +55,6 @@
 import {
   IonButton,
   IonContent,
-  IonInput,
-  IonItem,
-  IonLabel,
   IonPage,
 } from '@ionic/vue'
 import { computed, ref } from 'vue'
@@ -64,8 +64,8 @@ import { login, isAuthenticated } from '@/utils/auth'
 const router = useRouter()
 const route = useRoute()
 
-const username = ref('')
-const password = ref('')
+const username = ref('vibol.khan@axivit.com')
+const password = ref('Admin@2026')
 const errorMessage = ref('')
 const isSubmitting = ref(false)
 
@@ -152,8 +152,36 @@ h1 {
 }
 
 .field {
-  --background: #f6f8fc;
-  --border-radius: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #344054;
+}
+
+.text-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 18px;
+  border: 0;
+  outline: none;
+  border-radius: 16px;
+  background: #f6f8fc;
+  color: #142033;
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.text-input::placeholder {
+  color: #98a2b3;
+}
+
+.text-input:focus {
+  box-shadow: 0 0 0 2px rgba(46, 102, 219, 0.2);
 }
 
 .error-message {

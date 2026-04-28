@@ -14,7 +14,9 @@ export const DEFAULT_COMPANY_ID = 1
 
 type OdooJsonRpcError = {
   data?: {
+    name?: string
     message?: string
+    debug?: string
   }
   message?: string
 }
@@ -41,6 +43,63 @@ const clearStoredAuth = () => {
   localStorage.removeItem(AUTH_UID_KEY)
 }
 
+const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Please log in again.'
+
+const isSessionExpiredText = (value?: string) => {
+  if (!value) {
+    return false
+  }
+
+  const normalizedValue = value.toLowerCase()
+
+  return (
+    normalizedValue.includes('session expired') ||
+    normalizedValue.includes('session has expired') ||
+    normalizedValue.includes('invalid session') ||
+    normalizedValue.includes('session is invalid') ||
+    normalizedValue.includes('authentication required') ||
+    normalizedValue.includes('access denied')
+  )
+}
+
+const isSessionExpiredError = (error?: OdooJsonRpcError) => {
+  if (!error) {
+    return false
+  }
+
+  return (
+    isSessionExpiredText(error.message) ||
+    isSessionExpiredText(error.data?.message) ||
+    isSessionExpiredText(error.data?.debug) ||
+    error.data?.name === 'odoo.http.SessionExpiredException'
+  )
+}
+
+const redirectToLogin = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+
+  if (window.location.pathname === '/login') {
+    return
+  }
+
+  const loginUrl = new URL('/login', window.location.origin)
+
+  if (currentPath.startsWith('/')) {
+    loginUrl.searchParams.set('redirect', currentPath)
+  }
+
+  window.location.replace(loginUrl.toString())
+}
+
+const handleSessionExpired = () => {
+  clearStoredAuth()
+  redirectToLogin()
+}
+
 const getErrorMessage = (error: OdooJsonRpcError) =>
   error.data?.message || error.message || 'Login failed. Please try again.'
 
@@ -62,7 +121,7 @@ export const postJsonRpc = async <T>(
   path: string,
   params: Record<string, unknown>
 ) => {
-  const payload = {
+  const requestBody = {
     jsonrpc: '2.0',
     method: 'call',
     params,
@@ -76,14 +135,20 @@ export const postJsonRpc = async <T>(
         headers: {
           'Content-Type': 'application/json',
         },
-        data: payload,
+        data: requestBody,
       })
 
       if (response.status < 200 || response.status >= 300) {
         throw new Error(`Request failed with status ${response.status}.`)
       }
 
-      return response.data as OdooJsonRpcResponse<T>
+      const payload = response.data as OdooJsonRpcResponse<T>
+
+      if (path !== AUTH_ENDPOINT && path !== LOGOUT_ENDPOINT && isSessionExpiredError(payload.error)) {
+        handleSessionExpired()
+      }
+
+      return payload
     }
 
     const response = await fetch(buildUrl(path), {
@@ -92,15 +157,31 @@ export const postJsonRpc = async <T>(
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}.`)
     }
 
-    return (await response.json()) as OdooJsonRpcResponse<T>
+    const payload = (await response.json()) as OdooJsonRpcResponse<T>
+
+    if (path !== AUTH_ENDPOINT && path !== LOGOUT_ENDPOINT && isSessionExpiredError(payload.error)) {
+      handleSessionExpired()
+    }
+
+    return payload
   } catch (error) {
+    if (
+      path !== AUTH_ENDPOINT &&
+      path !== LOGOUT_ENDPOINT &&
+      error instanceof Error &&
+      isSessionExpiredText(error.message)
+    ) {
+      handleSessionExpired()
+      throw new Error(SESSION_EXPIRED_MESSAGE)
+    }
+
     if (error instanceof Error && error.message === 'Failed to fetch') {
       throw new Error(
         'Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.'

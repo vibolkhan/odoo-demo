@@ -1,4 +1,6 @@
 import { createApp } from 'vue'
+import { Capacitor } from '@capacitor/core'
+import { Keyboard } from '@capacitor/keyboard'
 import App from './App.vue'
 import router from './router';
 
@@ -33,6 +35,26 @@ import '@ionic/vue/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+
+const isAndroidNative = Capacitor.getPlatform() === 'android';
+
+if (isAndroidNative && Capacitor.isPluginAvailable('Keyboard')) {
+  window.addEventListener('focusin', (event) => {
+    const target = event.target;
+
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable)
+    ) {
+      window.setTimeout(() => {
+        void Keyboard.show().catch(() => {
+          // Ignore failures so focus still works on fields that do not need manual keyboard control.
+        });
+      }, 50);
+    }
+  });
+}
 
 const app = createApp(App)
   .use(IonicVue)

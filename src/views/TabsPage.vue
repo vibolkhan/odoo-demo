@@ -23,17 +23,6 @@
         </ion-tab-button>
 
         <ion-tab-button
-          tab="tab2"
-          href="/tabs/tab2"
-        >
-          <ion-icon
-            aria-hidden="true"
-            :icon="tabIcon('/tabs/tab2', addCircle, addCircleOutline)"
-          />
-          <ion-label>Requests</ion-label>
-        </ion-tab-button>
-
-        <ion-tab-button
           tab="tab4"
           href="/tabs/tab4"
         >
@@ -74,8 +63,6 @@ import {
   receiptOutline,
   list,
   listOutline,
-  addCircle,
-  addCircleOutline,
   person,
   personOutline,
 } from 'ionicons/icons'

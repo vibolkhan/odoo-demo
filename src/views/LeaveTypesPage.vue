@@ -1,33 +1,70 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>All Leave Types</ion-title>
-      </ion-toolbar>
-    </ion-header>
-
     <ion-content :fullscreen="true" class="leave-types-page">
       <ion-refresher slot="fixed" @ionRefresh="handleRefresh">
         <ion-refresher-content />
       </ion-refresher>
 
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">All Leave Types</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
       <section class="catalog-shell">
-        <div class="catalog-toolbar">
-          <ion-searchbar
-            v-model="searchQuery"
-            class="catalog-search"
-            placeholder="Search leave types"
-          />
-
-          <ion-button class="create-button" @click="openCreateModal">
-            Create
+        <div class="top-action-bar">
+          <ion-button fill="clear" class="utility-button notification-button">
+            <ion-icon :icon="notificationsOutline" size="large" />
           </ion-button>
+        </div>
+
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Leave Management</p>
+            <h1>Leave Types</h1>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>Total</span>
+            <strong>{{ leaveTypes.length }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Core</span>
+            <strong>{{ coreCount }}</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Special</span>
+            <strong>{{ specialCount }}</strong>
+          </div>
+        </div>
+
+        <ion-searchbar
+          v-model="searchQuery"
+          class="catalog-search"
+          placeholder="Search leave types..."
+          show-clear-button="focus"
+          :animated="true"
+        />
+
+        <div class="filter-tabs">
+          <button
+            :class="{ active: activeFilter === 'all' }"
+            @click="activeFilter = 'all'"
+          >
+            All
+          </button>
+
+          <button
+            :class="{ active: activeFilter === 'core' }"
+            @click="activeFilter = 'core'"
+          >
+            Core
+          </button>
+
+          <button
+            :class="{ active: activeFilter === 'special' }"
+            @click="activeFilter = 'special'"
+          >
+            Special
+          </button>
         </div>
 
         <p v-if="errorMessage" class="state-message error-message">
@@ -38,42 +75,79 @@
           {{ actionMessage }}
         </p>
 
-        <div v-else-if="!isLoading && !leaveTypes.length" class="empty-state">
-          No leave types found.
+        <div
+          v-else-if="!isLoading && !filteredLeaveTypes.length"
+          class="empty-state"
+        >
+          <div class="empty-icon">🌿</div>
+          <h3>No leave types found</h3>
+          <p v-if="searchQuery">No result for "{{ searchQuery }}"</p>
+          <p v-else>Create your first leave type to get started.</p>
+
+          <ion-button class="empty-button" @click="openCreateModal">
+            Add Leave Type
+          </ion-button>
         </div>
 
         <ion-list v-else class="type-list">
-          <ion-item
-            v-for="leaveType in leaveTypes"
+          <ion-item-sliding
+            v-for="leaveType in filteredLeaveTypes"
             :key="leaveType.id"
-            lines="none"
-            class="type-card"
           >
-            <ion-label>
-              <div class="type-card-header">
-                <h3>{{ leaveType.name }}</h3>
+            <ion-item lines="none" class="type-card">
+              <div class="type-card-shell">
+                <div class="type-card-main">
+                  <div class="badge-row">
+                    <span
+                      class="type-badge"
+                      :class="getLeaveTypeCategory(leaveType.name)"
+                    >
+                      {{ getLeaveTypeCategory(leaveType.name) }}
+                    </span>
+                  </div>
+
+                  <h3>{{ getEnglishName(leaveType.name) }}</h3>
+
+                  <p v-if="getKhmerName(leaveType.name)">
+                    {{ getKhmerName(leaveType.name) }}
+                  </p>
+                </div>
+
                 <div class="type-actions">
                   <ion-button
                     fill="clear"
                     size="small"
-                    class="icon-action-button"
+                    class="edit-button"
                     @click="openEditModal(leaveType)"
                   >
-                    <ion-icon :icon="createOutline" aria-hidden="true" />
+                    <ion-icon :icon="pencil" />
                   </ion-button>
+
                   <ion-button
                     fill="clear"
-                    color="danger"
                     size="small"
-                    class="icon-action-button"
+                    class="delete-button"
                     @click="promptDelete(leaveType)"
                   >
-                    <ion-icon :icon="trashOutline" aria-hidden="true" />
+                    <ion-icon :icon="trashOutline" />
                   </ion-button>
                 </div>
               </div>
-            </ion-label>
-          </ion-item>
+            </ion-item>
+
+            <ion-item-options side="end">
+              <ion-item-option
+                color="primary"
+                @click="openEditModal(leaveType)"
+              >
+                Edit
+              </ion-item-option>
+
+              <ion-item-option color="danger" @click="promptDelete(leaveType)">
+                Delete
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
         </ion-list>
 
         <ion-infinite-scroll
@@ -87,41 +161,80 @@
         </ion-infinite-scroll>
       </section>
 
-      <ion-modal :is-open="isFormOpen" @didDismiss="closeFormModal">
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button class="fab-create" @click="openCreateModal">
+          <ion-icon :icon="addOutline" size="large" />
+        </ion-fab-button>
+      </ion-fab>
+
+      <ion-modal
+        :is-open="isFormOpen"
+        :breakpoints="[0, 0.65, 0.92]"
+        :initial-breakpoint="0.65"
+        handle="true"
+        @didDismiss="closeFormModal"
+      >
         <ion-content class="leave-type-modal">
           <section class="modal-shell">
             <div class="modal-header">
               <div>
                 <p class="modal-eyebrow">Leave Type</p>
-                <h2>{{ editingLeaveTypeId ? "Edit Leave Type" : "Create Leave Type" }}</h2>
+                <h2>
+                  {{
+                    editingLeaveTypeId ? "Edit Leave Type" : "Create Leave Type"
+                  }}
+                </h2>
+                <p class="modal-subtitle">
+                  Add the English and Khmer display name for this leave type.
+                </p>
               </div>
 
-              <ion-button fill="clear" @click="closeFormModal">Close</ion-button>
+              <ion-button
+                fill="clear"
+                class="close-button"
+                @click="closeFormModal"
+              >
+                Close
+              </ion-button>
             </div>
 
             <p v-if="formErrorMessage" class="state-message error-message">
               {{ formErrorMessage }}
             </p>
 
-            <div class="form-grid">
-              <div class="field-block field-block-full">
-                <label class="field-label" for="leave-type-name">Display name</label>
+            <div class="form-card">
+              <div class="field-block">
+                <label class="field-label" for="leave-type-name">
+                  Display Name
+                </label>
+
                 <ion-item id="leave-type-name" lines="none" class="field">
                   <ion-input
                     v-model="formState.name"
-                    placeholder="Annual Leave"
+                    placeholder="Annual Leave - សម្រាកប្រចាំឆ្នាំ"
+                    clear-input
                   />
                 </ion-item>
+
+                <p class="field-hint">
+                  Example: Annual Leave - សម្រាកប្រចាំឆ្នាំ
+                </p>
               </div>
             </div>
 
             <ion-button
               expand="block"
               class="save-button"
-              :disabled="isSaving"
+              :disabled="isSaving || !formState.name.trim()"
               @click="handleSave"
             >
-              {{ isSaving ? "Saving..." : editingLeaveTypeId ? "Save Changes" : "Create Leave Type" }}
+              {{
+                isSaving
+                  ? "Saving..."
+                  : editingLeaveTypeId
+                    ? "Save Changes"
+                    : "Create Leave Type"
+              }}
             </ion-button>
           </section>
         </ion-content>
@@ -147,25 +260,34 @@ import {
   IonAlert,
   IonButton,
   IonContent,
-  IonHeader,
+  IonFab,
+  IonFabButton,
   IonIcon,
-  IonInput,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
+  IonInput,
   IonItem,
-  IonLabel,
+  IonItemOption,
+  IonItemOptions,
+  IonItemSliding,
   IonList,
   IonModal,
   IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
-  IonTitle,
-  IonToolbar,
   onIonViewWillEnter,
 } from "@ionic/vue";
-import { createOutline, trashOutline } from "ionicons/icons";
-import { onBeforeUnmount, ref, watch } from "vue";
+
+import {
+  addOutline,
+  notificationsOutline,
+  pencil,
+  trashOutline,
+} from "ionicons/icons";
+
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+
 import {
   createLeaveType,
   deleteLeaveType,
@@ -175,29 +297,75 @@ import {
 } from "@/utils/leaveTypes";
 
 const pageSize = 20;
+
 const leaveTypes = ref<LeaveTypeCatalogItem[]>([]);
 const searchQuery = ref("");
 const activeQuery = ref("");
+const activeFilter = ref<"all" | "core" | "special">("all");
+
 const isLoading = ref(false);
 const hasMore = ref(true);
+
 const errorMessage = ref("");
 const actionMessage = ref("");
 const formErrorMessage = ref("");
+
 const isFormOpen = ref(false);
 const isSaving = ref(false);
 const editingLeaveTypeId = ref<number | null>(null);
+
 const isDeleteAlertOpen = ref(false);
 const isDeleting = ref(false);
 const pendingDeleteLeaveType = ref<LeaveTypeCatalogItem | null>(null);
+
 const formState = ref({
   name: "",
 });
+
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
-const loadLeaveTypes = async (reset = false) => {
-  if (isLoading.value) {
-    return;
+const getEnglishName = (name: string) => {
+  return name.split("-")[0];
+};
+
+const getKhmerName = (name: string) => {
+  return name.includes(" - ") ? name.split(" - ").slice(1).join(" - ") : "";
+};
+
+const getLeaveTypeCategory = (name: string): "core" | "special" => {
+  const n = name.toLowerCase();
+
+  if (n.includes("annual") || n.includes("sick") || n.includes("unpaid")) {
+    return "core";
   }
+
+  return "special";
+};
+
+const coreCount = computed(() => {
+  return leaveTypes.value.filter(
+    (item) => getLeaveTypeCategory(item.name) === "core",
+  ).length;
+});
+
+const specialCount = computed(() => {
+  return leaveTypes.value.filter(
+    (item) => getLeaveTypeCategory(item.name) === "special",
+  ).length;
+});
+
+const filteredLeaveTypes = computed(() => {
+  if (activeFilter.value === "all") {
+    return leaveTypes.value;
+  }
+
+  return leaveTypes.value.filter((leaveType) => {
+    return getLeaveTypeCategory(leaveType.name) === activeFilter.value;
+  });
+});
+
+const loadLeaveTypes = async (reset = false) => {
+  if (isLoading.value) return;
 
   isLoading.value = true;
 
@@ -217,9 +385,7 @@ const loadLeaveTypes = async (reset = false) => {
     leaveTypes.value = reset ? result : [...leaveTypes.value, ...result];
     hasMore.value = result.length === pageSize;
   } catch (error) {
-    if (reset) {
-      leaveTypes.value = [];
-    }
+    if (reset) leaveTypes.value = [];
 
     hasMore.value = false;
     errorMessage.value =
@@ -233,6 +399,7 @@ const resetForm = () => {
   formState.value = {
     name: "",
   };
+
   editingLeaveTypeId.value = null;
   formErrorMessage.value = "";
 };
@@ -246,6 +413,7 @@ const openEditModal = (leaveType: LeaveTypeCatalogItem) => {
   formState.value = {
     name: leaveType.name,
   };
+
   editingLeaveTypeId.value = leaveType.id;
   formErrorMessage.value = "";
   isFormOpen.value = true;
@@ -297,9 +465,7 @@ const closeDeleteAlert = () => {
 };
 
 const confirmDelete = async () => {
-  if (!pendingDeleteLeaveType.value || isDeleting.value) {
-    return;
-  }
+  if (!pendingDeleteLeaveType.value || isDeleting.value) return;
 
   isDeleting.value = true;
   errorMessage.value = "";
@@ -367,7 +533,7 @@ watch(searchQuery, (value) => {
   searchTimer = setTimeout(() => {
     activeQuery.value = value.trim();
     void loadLeaveTypes(true);
-  }, 250);
+  }, 300);
 });
 
 onBeforeUnmount(() => {
@@ -379,11 +545,18 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .leave-types-page {
-  --background: linear-gradient(180deg, #f5f8fc 0%, #eef4fb 100%);
-  --padding-top: 24px;
+  --background:
+    radial-gradient(
+      circle at top left,
+      rgba(46, 102, 219, 0.16),
+      transparent 34%
+    ),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 55%, #e8f0f8 100%);
+
+  --padding-top: calc(env(safe-area-inset-top) + 18px);
   --padding-start: 16px;
   --padding-end: 16px;
-  --padding-bottom: calc(env(safe-area-inset-bottom) + 96px);
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 110px);
 }
 
 .catalog-shell {
@@ -391,88 +564,251 @@ onBeforeUnmount(() => {
   gap: 16px;
 }
 
-.catalog-toolbar {
+.top-action-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.utility-button {
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  --background: rgba(255, 255, 255, 0.9);
+  --border-radius: 20px;
+  --color: #16243a;
+  --box-shadow: 0 10px 24px rgba(45, 67, 100, 0.08);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #5b6b82;
+  letter-spacing: 0.04em;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.15rem;
+  line-height: 1.1;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.stats-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-card {
+  padding: 14px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 8px 22px rgba(55, 75, 105, 0.08);
+}
+
+.stat-card span {
+  display: block;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 650;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.35rem;
+  color: #0f172a;
 }
 
 .catalog-search {
   padding: 0;
 }
 
-.create-button {
-  margin: 0;
-  --border-radius: 16px;
-  min-height: 48px;
+.catalog-search::part(container) {
+  min-height: 54px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #dfe7f2;
+  box-shadow: 0 8px 20px rgba(56, 76, 106, 0.08);
+}
+
+.catalog-search:focus-within::part(container) {
+  border-color: #2e66db;
+  box-shadow: 0 0 0 3px rgba(46, 102, 219, 0.14);
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.filter-tabs button {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #526173;
   font-weight: 700;
 }
 
+.filter-tabs button.active {
+  background: #2e66db;
+  color: white;
+  box-shadow: 0 10px 18px rgba(46, 102, 219, 0.24);
+}
+
 .type-list {
+  display: grid;
+  gap: 14px;
   background: transparent;
+  padding: 0;
 }
 
 .type-card {
   --background: rgba(255, 255, 255, 0.96);
-  --border-radius: 22px;
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  --inner-padding-top: 16px;
-  --inner-padding-bottom: 16px;
-  margin-bottom: 12px;
+  --border-radius: 26px;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --inner-padding-top: 0;
+  --inner-padding-bottom: 0;
+  box-shadow: 0 10px 26px rgba(55, 75, 105, 0.08);
+  overflow: hidden;
 }
 
-.type-card-header {
+.type-card:active {
+  transform: scale(0.985);
+}
+
+.type-card-shell {
   display: flex;
-  align-items: flex-start;
+  width: 100%;
+  padding: 18px 14px 18px 20px;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
+}
+
+.type-card-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.badge-row {
+  margin-bottom: 8px;
+}
+
+.type-badge {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.type-badge.core {
+  background: #e7f0ff;
+  color: #1d4ed8;
+}
+
+.type-badge.special {
+  background: #fff3db;
+  color: #b45309;
+}
+
+.type-card h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #152437;
+}
+
+.type-card p {
+  margin: 6px 0 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #26384d;
 }
 
 .type-actions {
   display: flex;
-  align-items: center;
-  gap: 4px;
+  flex-shrink: 0;
 }
 
-.icon-action-button {
-  --padding-start: 8px;
-  --padding-end: 8px;
+.type-actions ion-button {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  --padding-start: 0;
+  --padding-end: 0;
 }
 
-.icon-action-button ion-icon {
-  font-size: 1.05rem;
+.edit-button {
+  --color: #0969da;
 }
 
-.type-card h3 {
+.delete-button {
+  --color: #c81e3a;
+}
+
+.fab-create {
+  --background: #2e66db;
+  --box-shadow: 0 16px 30px rgba(46, 102, 219, 0.36);
+}
+
+.state-message,
+.empty-state {
+  padding: 22px 16px;
+  border-radius: 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.error-message {
+  color: #b42318;
+}
+
+.success-message {
+  color: #067647;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.empty-state h3 {
   margin: 0;
   font-size: 1.05rem;
   color: #152437;
 }
 
-.state-message,
-.empty-state {
-  padding: 24px 12px;
-  text-align: center;
+.empty-state p {
+  margin: 6px 0 16px;
+  font-size: 0.92rem;
+  color: #64748b;
 }
 
-.error-message {
-  color: #b64646;
+.empty-button {
+  --border-radius: 16px;
 }
-
-.success-message {
-  color: #18794e;
-}
-
-.empty-state {
-  color: #6c7b8d;
-}
-
 .leave-type-modal {
-  --padding-top: 20px;
-  --padding-start: 16px;
-  --padding-end: 16px;
+  --background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  --padding-top: 22px;
+  --padding-start: 18px;
+  --padding-end: 18px;
   --padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
 }
 
@@ -483,80 +819,108 @@ onBeforeUnmount(() => {
 
 .modal-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
+  align-items: flex-start;
 }
 
 .modal-eyebrow {
   margin: 0;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #7b8898;
+  color: #64748b;
 }
 
 .modal-header h2 {
   margin: 8px 0 0;
-  font-size: 1.4rem;
-  color: #152437;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  font-weight: 850;
+  color: #0f172a;
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+.modal-subtitle {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.close-button {
+  height: 40px;
+  margin: 0;
+  font-weight: 800;
+  --color: #1d4ed8;
+  --border-radius: 14px;
+}
+
+.form-card {
+  padding: 16px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 28px rgba(55, 75, 105, 0.08);
 }
 
 .field-block {
   display: grid;
-  gap: 8px;
-}
-
-.field-block-full {
-  grid-column: 1 / -1;
+  gap: 9px;
 }
 
 .field-label {
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #44556c;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #334155;
 }
 
 .field {
-  --background: #f7f9fc;
-  --border-radius: 18px;
-  --padding-start: 14px;
+  --background: #f4f7fb;
+  --border-radius: 20px;
+  --padding-start: 16px;
   --inner-padding-end: 14px;
-  --min-height: 56px;
+  --min-height: 60px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+}
+
+.field:focus-within {
+  border-color: #2e66db;
+  box-shadow: 0 0 0 3px rgba(46, 102, 219, 0.14);
+}
+
+.field ion-input {
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
 }
 
 .save-button {
-  margin: 0;
-  --border-radius: 18px;
-  min-height: 52px;
-  font-weight: 700;
+  min-height: 56px;
+  margin: 4px 0 0;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  --border-radius: 20px;
+  --background: #145ee8;
+  --box-shadow: 0 14px 26px rgba(20, 94, 232, 0.26);
+}
+
+.save-button[disabled] {
+  opacity: 0.55;
 }
 
 @media (max-width: 640px) {
-  .leave-types-page {
-    --padding-top: 28px;
-    --padding-end: 14px;
-    --padding-start: 14px;
-    --padding-bottom: calc(env(safe-area-inset-bottom) + 112px);
+  .modal-header h2 {
+    font-size: 1.55rem;
   }
 
-  .catalog-toolbar,
-  .form-grid,
-  .type-card-header,
-  .modal-header {
-    grid-template-columns: 1fr;
-    display: grid;
-  }
-
-  .type-actions {
-    justify-content: flex-start;
+  .modal-subtitle {
+    font-size: 0.86rem;
   }
 }
 </style>

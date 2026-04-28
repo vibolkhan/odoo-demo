@@ -1,15 +1,10 @@
 <template>
   <div class="request-shell">
     <section class="form-card">
-      <div class="form-header">
-        <div>
-          <h2>Request Details</h2>
-        </div>
-      </div>
-
       <div class="form-grid">
-        <div class="field-block">
+        <div class="field-block field-block-full">
           <label class="field-label" for="employee">Employee</label>
+
           <ion-item
             id="employee"
             lines="none"
@@ -24,32 +19,25 @@
               readonly
               class="searchable-input"
               :placeholder="
-                isLoadingEmployees ? 'Loading employees...' : 'Search employee'
+                isLoadingEmployees ? 'Loading employees...' : 'Select employee'
               "
             />
           </ion-item>
         </div>
 
-        <div class="field-block">
-          <label class="field-label" for="company">Company</label>
-          <ion-item id="company" lines="none" class="field readonly-field">
-            <ion-input
-              :value="selectedEmployee.company"
-              readonly
-              placeholder="Company will appear here"
-            />
-          </ion-item>
-        </div>
+        <div
+          v-if="selectedEmployeeName"
+          class="employee-summary field-block-full"
+        >
+          <div>
+            <span>Company</span>
+            <strong>{{ selectedEmployee.company || "-" }}</strong>
+          </div>
 
-        <div class="field-block field-block-full">
-          <label class="field-label" for="department">Department</label>
-          <ion-item id="department" lines="none" class="field readonly-field">
-            <ion-input
-              :value="selectedEmployee.department"
-              readonly
-              placeholder="Department will appear here"
-            />
-          </ion-item>
+          <div>
+            <span>Department</span>
+            <strong>{{ selectedEmployee.department || "-" }}</strong>
+          </div>
         </div>
 
         <p v-if="employeeErrorMessage" class="field-message error-message">
@@ -57,21 +45,18 @@
         </p>
 
         <div class="field-block field-block-full">
-          <div class="field-header">
-            <label class="field-label" for="leave-type">Leave type</label>
-            <ion-button
-              fill="clear"
-              size="small"
-              class="browse-types-button"
-              @click="router.push('/tabs/tab1')"
-            >
-              Browse all leave types
-            </ion-button>
-          </div>
-          <ion-item id="leave-type" lines="none" class="field">
+          <label class="field-label" for="leave-type">Leave Type</label>
+
+          <ion-item
+            id="leave-type"
+            lines="none"
+            class="field leave-type-field"
+            :class="{ 'has-value': Boolean(selectedLeaveTypeName) }"
+          >
             <ion-select
               v-model="leaveType"
-              label-placement="stacked"
+              interface="modal"
+              :interface-options="leaveTypeSelectInterfaceOptions"
               class="leave-type-select"
               :disabled="isLoadingLeaveTypes || !leaveTypes.length"
               :placeholder="
@@ -95,43 +80,86 @@
           {{ leaveTypeErrorMessage }}
         </p>
 
-        <div class="field-block">
-          <label class="field-label" for="start-date">Start date</label>
-          <ion-item id="start-date" lines="none" class="field date-field">
-            <ion-input v-model="startDate" type="date" />
-            <span v-if="!startDate" class="date-placeholder">mm/dd/yyyy</span>
-          </ion-item>
-        </div>
+        <div class="date-grid field-block-full">
+          <div class="field-block">
+            <label class="field-label" for="start-date">Start Date</label>
 
-        <div class="field-block">
-          <label class="field-label" for="end-date">End date</label>
-          <ion-item id="end-date" lines="none" class="field date-field">
-            <ion-input v-model="endDate" type="date" />
-            <span v-if="!endDate" class="date-placeholder">mm/dd/yyyy</span>
-          </ion-item>
+            <div class="date-field-block">
+              <ion-item
+                id="start-date"
+                lines="none"
+                class="field date-field date-trigger"
+                button
+                :detail="false"
+                @click="openDatePicker('start')"
+              >
+                <div
+                  class="date-display"
+                  :class="{ 'date-display-placeholder': !startDate }"
+                >
+                  {{ startDate || localizedDatePlaceholder }}
+                </div>
+                <ion-icon
+                  slot="end"
+                  :icon="calendarOutline"
+                  aria-hidden="true"
+                  class="date-field-icon"
+                />
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label" for="end-date">End Date</label>
+
+            <div class="date-field-block">
+              <ion-item
+                id="end-date"
+                lines="none"
+                class="field date-field date-trigger"
+                button
+                :detail="false"
+                @click="openDatePicker('end')"
+              >
+                <div
+                  class="date-display"
+                  :class="{ 'date-display-placeholder': !endDate }"
+                >
+                  {{ endDate || localizedDatePlaceholder }}
+                </div>
+                <ion-icon
+                  slot="end"
+                  :icon="calendarOutline"
+                  aria-hidden="true"
+                  class="date-field-icon"
+                />
+              </ion-item>
+            </div>
+          </div>
         </div>
 
         <div class="field-block field-block-full">
           <ion-item lines="none" class="field checkbox-field">
             <ion-checkbox v-model="isHalfDay" label-placement="end">
-              Half day
+              Half day request
             </ion-checkbox>
           </ion-item>
         </div>
 
         <div class="field-block field-block-full">
-          <label class="field-label" for="reason">Reason for leave</label>
+          <label class="field-label" for="reason">Reason</label>
+
           <ion-item id="reason" lines="none" class="field textarea-field">
             <ion-textarea
               v-model="reason"
               :auto-grow="true"
-              placeholder="Share a short note for your manager or team."
+              placeholder="Write a short reason for your manager."
             />
           </ion-item>
         </div>
       </div>
 
-      <div class="upload-card">
+      <!-- <div class="upload-card">
         <input
           id="supporting-document"
           class="upload-input"
@@ -141,18 +169,10 @@
         />
 
         <label class="upload-label" for="supporting-document">
-          <span class="upload-label-main">
-            <ion-icon
-              class="upload-icon"
-              :icon="attachOutline"
-              aria-hidden="true"
-            />
-            <span class="upload-copy">
-              {{ selectedFileName || "Upload document if needed" }}
-            </span>
-          </span>
+          <ion-icon :icon="attachOutline" aria-hidden="true" />
+          <span>{{ selectedFileName || "Attach document optional" }}</span>
         </label>
-      </div>
+      </div> -->
 
       <p v-if="submitErrorMessage" class="submit-message error-message">
         {{ submitErrorMessage }}
@@ -168,67 +188,110 @@
         :disabled="isSubmittingRequest"
         @click="handleSubmitRequest"
       >
-        {{ isSubmittingRequest ? "Submitting..." : "Request Approval" }}
+        {{ isSubmittingRequest ? "Submitting..." : "Submit Request" }}
       </ion-button>
+    </section>
 
-      <ion-modal
-        :is-open="isEmployeeSearchOpen"
-        css-class="employee-search-overlay"
-        @didDismiss="closeEmployeeSearch"
-      >
-        <ion-content class="employee-search-modal" :scroll-y="true">
-          <div class="employee-search-sticky">
-            <div class="employee-search-header">
-              <h3>Select Employee</h3>
-              <ion-button
-                fill="clear"
-                size="small"
-                @click="closeEmployeeSearch"
-              >
-                Close
-              </ion-button>
+    <ion-modal
+      :is-open="isDatePickerOpen"
+      :breakpoints="[0, 0.72, 0.9]"
+      :initial-breakpoint="0.72"
+      :backdrop-breakpoint="0"
+      handle="true"
+      @didDismiss="closeDatePicker"
+    >
+      <ion-content class="date-picker-modal">
+        <section class="date-picker-shell">
+          <div class="date-picker-header">
+            <div>
+              <p class="date-picker-eyebrow">Select</p>
+              <h3>
+                {{ activeDateField === "start" ? "Start Date" : "End Date" }}
+              </h3>
             </div>
 
-            <ion-searchbar
-              v-model="employeeSearchQuery"
-              placeholder="Search by name, company, or department"
-            />
+            <ion-button fill="clear" size="small" @click="closeDatePicker">
+              Cancel
+            </ion-button>
           </div>
 
-          <ion-list v-if="filteredEmployees.length" class="employee-results">
-            <ion-item
-              v-for="employee in filteredEmployees"
-              :key="employee.id"
-              button
-              :detail="false"
-              class="employee-option"
-              @click="selectEmployee(employee.id)"
-            >
-              <ion-label>
-                <p>{{ employee.name }}</p>
-              </ion-label>
-            </ion-item>
-          </ion-list>
+          <ion-datetime
+            v-model="draftDateValue"
+            presentation="date"
+            prefer-wheel="false"
+            class="date-picker-calendar"
+            :min="datePickerMin"
+            :max="datePickerMax"
+          />
 
-          <ion-infinite-scroll
-            :disabled="!hasMoreEmployees"
-            @ionInfinite="loadMoreEmployees"
-          >
-            <ion-infinite-scroll-content
-              loading-spinner="bubbles"
-              loading-text="Loading more employees..."
-            />
-          </ion-infinite-scroll>
+          <ion-button expand="block" class="date-picker-confirm" @click="applyDateSelection">
+            Done
+          </ion-button>
+        </section>
+      </ion-content>
+    </ion-modal>
 
-          <div
-            v-if="!filteredEmployees.length && !isLoadingEmployees"
-            class="employee-empty-state"
-          >
-            No employees match your search.
+    <ion-modal
+      :is-open="isEmployeeSearchOpen"
+      css-class="employee-search-overlay"
+      @didDismiss="closeEmployeeSearch"
+    >
+      <ion-content class="employee-search-modal" :scroll-y="true">
+        <div class="employee-search-sticky">
+          <div class="employee-search-header">
+            <div>
+              <p>Select</p>
+              <h3>Employee</h3>
+            </div>
+
+            <ion-button fill="clear" size="small" @click="closeEmployeeSearch">
+              Close
+            </ion-button>
           </div>
-        </ion-content>
-      </ion-modal>
-    </section>
+
+          <ion-searchbar
+            v-model="employeeSearchQuery"
+            class="employee-searchbar"
+            placeholder="Search employee..."
+          />
+        </div>
+
+        <ion-list v-if="filteredEmployees.length" class="employee-results">
+          <ion-item
+            v-for="employee in filteredEmployees"
+            :key="employee.id"
+            button
+            :detail="false"
+            class="employee-option"
+            @click="selectEmployee(employee.id)"
+          >
+            <ion-label>
+              <h3>{{ employee.name }}</h3>
+              <p v-if="employee.department || employee.company">
+                {{ employee.department || employee.company }}
+              </p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-infinite-scroll
+          :disabled="!hasMoreEmployees"
+          @ionInfinite="loadMoreEmployees"
+        >
+          <ion-infinite-scroll-content
+            loading-spinner="bubbles"
+            loading-text="Loading more employees..."
+          />
+        </ion-infinite-scroll>
+
+        <div
+          v-if="!filteredEmployees.length && !isLoadingEmployees"
+          class="employee-empty-state"
+        >
+          No employees match your search.
+        </div>
+      </ion-content>
+    </ion-modal>
   </div>
 </template>
 
@@ -237,10 +300,10 @@ import {
   IonButton,
   IonCheckbox,
   IonContent,
+  IonDatetime,
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-  IonInput,
   IonItem,
   IonLabel,
   IonList,
@@ -250,38 +313,67 @@ import {
   IonSelectOption,
   IonTextarea,
 } from "@ionic/vue";
-import { attachOutline } from "ionicons/icons";
+
+import { attachOutline, calendarOutline } from "ionicons/icons";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+
 import { fetchEmployees, type EmployeeOption } from "@/utils/employees";
 import { fetchLeaveTypes, type LeaveTypeOption } from "@/utils/leaveTypes";
 import { saveLeaveRequest } from "@/utils/leaveRequests";
 
+const props = withDefaults(
+  defineProps<{
+    navigateAfterSubmit?: boolean;
+    showHeader?: boolean;
+  }>(),
+  {
+    navigateAfterSubmit: true,
+    showHeader: true,
+  },
+);
+
+const emit = defineEmits<{
+  submitted: [];
+}>();
+
 const router = useRouter();
+
 const leaveType = ref<number | null>(null);
 const leaveTypes = ref<LeaveTypeOption[]>([]);
 const employees = ref<EmployeeOption[]>([]);
+
 const selectedEmployeeId = ref<number | null>(null);
 const selectedEmployeeDetails = ref<EmployeeOption | null>(null);
+
 const startDate = ref("");
 const endDate = ref("");
 const isHalfDay = ref(false);
 const reason = ref("");
 const selectedFileName = ref("");
+const isDatePickerOpen = ref(false);
+const activeDateField = ref<"start" | "end">("start");
+const draftDateValue = ref("");
+
 const isLoadingEmployees = ref(false);
 const isLoadingMoreEmployees = ref(false);
 const hasMoreEmployees = ref(true);
 const employeeErrorMessage = ref("");
+
 const isLoadingLeaveTypes = ref(false);
 const leaveTypeErrorMessage = ref("");
+
 const submitErrorMessage = ref("");
 const submitSuccessMessage = ref("");
 const isSubmittingRequest = ref(false);
+
 const isEmployeeSearchOpen = ref(false);
 const employeeSearchQuery = ref("");
 const activeEmployeeQuery = ref("");
+
 const employeePageSize = 80;
 const nextEmployeePage = ref(1);
+
 let employeeSearchTimer: ReturnType<typeof setTimeout> | null = null;
 let employeeLoadRequestId = 0;
 
@@ -300,6 +392,53 @@ const selectedEmployee = computed(
 
 const selectedEmployeeName = computed(() => selectedEmployee.value.name);
 const filteredEmployees = computed(() => employees.value);
+const localizedDatePlaceholder = computed(() => {
+  try {
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(new Date(2001, 10, 22));
+
+    return parts
+      .map((part) => {
+        if (part.type === "day") return "DD";
+        if (part.type === "month") return "MM";
+        if (part.type === "year") return "YYYY";
+        return part.value;
+      })
+      .join("");
+  } catch {
+    return "YYYY-MM-DD";
+  }
+});
+
+const selectedLeaveTypeName = computed(
+  () =>
+    leaveTypes.value.find((option) => option.id === leaveType.value)?.name ??
+    "",
+);
+const datePickerMin = computed(() => {
+  if (activeDateField.value === "end" && startDate.value) {
+    return startDate.value;
+  }
+
+  return undefined;
+});
+
+const datePickerMax = computed(() => {
+  if (activeDateField.value === "start" && endDate.value) {
+    return endDate.value;
+  }
+
+  return undefined;
+});
+
+const leaveTypeSelectInterfaceOptions = {
+  header: "Select Leave Type",
+  subHeader: "Choose the leave type for this request.",
+};
 
 const loadLeaveTypes = async () => {
   isLoadingLeaveTypes.value = true;
@@ -314,14 +453,11 @@ const loadLeaveTypes = async () => {
 
     leaveTypes.value = options;
 
-    if (leaveType.value != null) {
-      const hasSelectedOption = options.some(
-        (option) => option.id === leaveType.value,
-      );
-
-      if (!hasSelectedOption) {
-        leaveType.value = null;
-      }
+    if (
+      leaveType.value != null &&
+      !options.some((option) => option.id === leaveType.value)
+    ) {
+      leaveType.value = null;
     }
   } catch (error) {
     leaveTypes.value = [];
@@ -340,10 +476,7 @@ const loadEmployees = async (reset = false) => {
     hasMoreEmployees.value = true;
     nextEmployeePage.value = 1;
   } else {
-    if (isLoadingMoreEmployees.value || !hasMoreEmployees.value) {
-      return;
-    }
-
+    if (isLoadingMoreEmployees.value || !hasMoreEmployees.value) return;
     isLoadingMoreEmployees.value = true;
   }
 
@@ -369,6 +502,7 @@ const loadEmployees = async (reset = false) => {
     employees.value = reset
       ? result.records
       : [...employees.value, ...result.records];
+
     hasMoreEmployees.value = result.hasMore;
     nextEmployeePage.value = requestPage + 1;
 
@@ -382,9 +516,7 @@ const loadEmployees = async (reset = false) => {
       }
     }
   } catch (error) {
-    if (requestId !== employeeLoadRequestId) {
-      return;
-    }
+    if (requestId !== employeeLoadRequestId) return;
 
     if (reset) {
       employees.value = [];
@@ -428,12 +560,64 @@ const selectEmployee = (employeeId: number) => {
   selectedEmployeeId.value = employeeId;
   selectedEmployeeDetails.value =
     employees.value.find((employee) => employee.id === employeeId) ?? null;
+
   closeEmployeeSearch();
 };
 
 const handleFileChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
   selectedFileName.value = input.files?.[0]?.name ?? "";
+};
+
+const openDatePicker = (field: "start" | "end") => {
+  activeDateField.value = field;
+  const currentValue = field === "start" ? startDate.value : endDate.value;
+
+  if (currentValue) {
+    draftDateValue.value = currentValue;
+  } else if (field === "end" && startDate.value) {
+    draftDateValue.value = startDate.value;
+  } else if (field === "start" && endDate.value) {
+    draftDateValue.value = endDate.value;
+  } else {
+    draftDateValue.value = new Date().toISOString().slice(0, 10);
+  }
+
+  isDatePickerOpen.value = true;
+};
+
+const closeDatePicker = () => {
+  isDatePickerOpen.value = false;
+  draftDateValue.value = "";
+};
+
+const normalizeDateValue = (value: string) => value.slice(0, 10);
+
+const applyDateSelection = () => {
+  if (draftDateValue.value) {
+    const normalizedDate = normalizeDateValue(draftDateValue.value);
+
+    if (activeDateField.value === "start") {
+      if (endDate.value && normalizedDate > endDate.value) {
+        submitErrorMessage.value =
+          "Start date must be the same as or before end date.";
+        return;
+      }
+
+      startDate.value = normalizedDate;
+    } else {
+      if (startDate.value && normalizedDate < startDate.value) {
+        submitErrorMessage.value =
+          "End date must be the same as or after start date.";
+        return;
+      }
+
+      endDate.value = normalizedDate;
+    }
+  }
+
+  submitErrorMessage.value = "";
+  closeDatePicker();
 };
 
 const resetForm = () => {
@@ -445,9 +629,12 @@ const resetForm = () => {
   isHalfDay.value = false;
   reason.value = "";
   selectedFileName.value = "";
+  isDatePickerOpen.value = false;
+  draftDateValue.value = "";
   employeeSearchQuery.value = "";
   activeEmployeeQuery.value = "";
   submitErrorMessage.value = "";
+  submitSuccessMessage.value = "";
 };
 
 const handleSubmitRequest = async () => {
@@ -489,7 +676,11 @@ const handleSubmitRequest = async () => {
 
     resetForm();
     submitSuccessMessage.value = "Leave request submitted successfully.";
-    await router.replace("/tabs/tab4");
+    emit("submitted");
+
+    if (props.navigateAfterSubmit) {
+      await router.replace("/tabs/tab4");
+    }
   } catch (error) {
     submitErrorMessage.value =
       error instanceof Error
@@ -530,160 +721,61 @@ onBeforeUnmount(() => {
 <style scoped>
 .request-shell {
   display: grid;
-  gap: 18px;
-}
-
-.hero-card,
-.balance-card,
-.form-card {
-  border-radius: 24px;
-  box-shadow: 0 16px 36px rgba(24, 41, 67, 0.08);
-}
-
-.hero-card {
-  padding: 24px;
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(255, 255, 255, 0.18),
-      transparent 28%
-    ),
-    linear-gradient(135deg, #18314b 0%, #275986 58%, #d68c4b 100%);
-  color: #fff;
-}
-
-.eyebrow,
-.section-label,
-.balance-label {
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 12px 0 10px;
-  font-size: 2.1rem;
-  line-height: 1.05;
-}
-
-.hero-copy {
-  margin: 0;
-  max-width: 32ch;
-  color: rgba(255, 255, 255, 0.84);
-  line-height: 1.5;
-}
-
-.balance-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.balance-card {
-  padding: 18px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(20, 40, 64, 0.08);
-}
-
-.balance-card.annual {
-  background: linear-gradient(180deg, #fff7ea 0%, #ffffff 100%);
-}
-
-.balance-card.sick {
-  background: linear-gradient(180deg, #eef6ff 0%, #ffffff 100%);
-}
-
-.balance-value {
-  margin: 10px 0 6px;
-  font-size: 2.3rem;
-  font-weight: 800;
-  line-height: 1;
-  color: #16273b;
-}
-
-.balance-meta {
-  margin: 0;
-  color: #5b6c81;
+  gap: 12px;
 }
 
 .form-card {
-  padding: 20px 16px 16px;
-  background: rgba(255, 255, 255, 0.97);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .form-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
-.section-label {
-  color: #ba7228;
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 h2 {
-  margin: 8px 0 0;
-  font-size: 1.45rem;
-  color: #152437;
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 850;
+  color: #0f172a;
 }
 
-.status-pill {
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: #eef3f8;
-  color: #50627a;
-  font-size: 0.82rem;
-  font-weight: 700;
+.subtitle {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: #64748b;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .field-block {
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 
 .field-block-full {
   grid-column: 1 / -1;
 }
 
-.field-message {
-  margin: -4px 0 0;
-  font-size: 0.85rem;
-}
-
-.error-message {
-  color: #b64646;
-}
-
 .field-label {
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #44556c;
-}
-
-.field-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.browse-types-button {
-  margin: 0;
-  --padding-start: 0;
-  --padding-end: 0;
-  --color: #275986;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: #334155;
 }
 
 .field {
@@ -691,32 +783,14 @@ h2 {
   --border-radius: 18px;
   --padding-start: 14px;
   --inner-padding-end: 14px;
-  --min-height: 56px;
+  --min-height: 50px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
 }
 
-.date-field {
-  position: relative;
-}
-
-.date-placeholder {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #8a97a8;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.leave-type-select {
-  width: 100%;
-}
-
-.leave-type-select::part(container) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+.field:focus-within {
+  border-color: #2e66db;
+  box-shadow: 0 0 0 3px rgba(46, 102, 219, 0.14);
 }
 
 .searchable-trigger {
@@ -727,7 +801,218 @@ h2 {
   pointer-events: none;
 }
 
+.employee-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.employee-summary div {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: #f1f5f9;
+}
+
+.employee-summary span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.employee-summary strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.84rem;
+  color: #0f172a;
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.date-field {
+  position: relative;
+  --inner-padding-end: 10px;
+}
+
+.date-trigger {
+  cursor: pointer;
+}
+
+.date-field-icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+.date-display {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.date-display-placeholder {
+  color: #94a3b8;
+}
+
+.leave-type-select {
+  width: 100%;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: #0f172a;
+}
+
+.leave-type-select::part(placeholder) {
+  color: #7b8aa0;
+  font-weight: 650;
+}
+
+.checkbox-field {
+  --min-height: 48px;
+}
+
+.checkbox-field ion-checkbox {
+  width: 100%;
+  font-weight: 700;
+  color: #334155;
+}
+
+.textarea-field {
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+}
+
+.field-message,
+.submit-message {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.error-message {
+  color: #b42318;
+}
+
+.success-message {
+  color: #067647;
+}
+
+.upload-card {
+  margin-top: 12px;
+  border-radius: 18px;
+  border: 1.5px dashed #cbd5e1;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.upload-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 14px;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.upload-label ion-icon {
+  font-size: 1.3rem;
+  color: #2563eb;
+}
+
+.upload-input {
+  display: none;
+}
+
+.submit-button {
+  margin-top: 14px;
+  min-height: 52px;
+  font-weight: 850;
+  --background: #2e66db;
+  --border-radius: 18px;
+  --box-shadow: 0 12px 24px rgba(46, 102, 219, 0.26);
+}
+
+.date-picker-modal {
+  --background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  --padding-top: 14px;
+  --padding-start: 18px;
+  --padding-end: 18px;
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 18px);
+}
+
+:global(.date-picker-modal .modal-wrapper),
+:global(.date-picker-modal .modal-shadow) {
+  border-radius: 28px 28px 0 0;
+}
+
+.date-picker-shell {
+  display: grid;
+  gap: 14px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.date-picker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.date-picker-eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.date-picker-header h3 {
+  margin: 6px 0 0;
+  font-size: 1.45rem;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.date-picker-calendar {
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 28px rgba(55, 75, 105, 0.08);
+}
+
+.date-picker-calendar::part(content) {
+  height: auto;
+}
+
+@media (max-width: 480px) {
+  .date-picker-modal {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+
+  .date-picker-shell {
+    max-width: none;
+  }
+}
+
+.date-picker-confirm {
+  min-height: 50px;
+  font-weight: 850;
+  --background: #2e66db;
+  --border-radius: 18px;
+}
+
 .employee-search-modal {
+  --background: #f8fbff;
   --padding-top: 18px;
   --padding-start: 16px;
   --padding-end: 16px;
@@ -742,25 +1027,46 @@ h2 {
   --border-radius: 0;
 }
 
-.employee-search-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .employee-search-sticky {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding-top: 4px;
-  background: var(--ion-background-color, #fff);
+  padding-bottom: 12px;
+  background: #f8fbff;
+}
+
+.employee-search-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.employee-search-header p {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .employee-search-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #152437;
+  margin: 6px 0 0;
+  font-size: 1.45rem;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.employee-searchbar {
+  padding: 12px 0 0;
+}
+
+.employee-searchbar::part(container) {
+  min-height: 52px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
 }
 
 .employee-results {
@@ -770,15 +1076,23 @@ h2 {
 }
 
 .employee-option {
-  --border-radius: 16px;
-  --background: #f7f9fc;
+  --border-radius: 18px;
+  --background: #ffffff;
   margin-bottom: 10px;
+  box-shadow: 0 8px 20px rgba(55, 75, 105, 0.06);
+}
+
+.employee-option h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1e293b;
 }
 
 .employee-option p {
   margin: 4px 0 0;
-  color: #5b6c81;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.88rem;
 }
 
 .employee-empty-state {
@@ -787,96 +1101,10 @@ h2 {
   color: #6c7b8d;
 }
 
-.textarea-field {
-  --padding-top: 10px;
-  --padding-bottom: 10px;
-}
-
-.readonly-field {
-  opacity: 0.9;
-}
-
-.checkbox-field {
-  --min-height: 52px;
-}
-
-.checkbox-field ion-checkbox {
-  width: 100%;
-  font-weight: 600;
-  color: #44556c;
-}
-
-.upload-card {
-  margin-top: 18px;
-  border-radius: 22px;
-  border: 2px dashed #d4dbe4;
-  background: #e7edf4;
-  overflow: hidden;
-}
-
-.upload-label {
-  display: block;
-  cursor: pointer;
-  padding: 22px 24px;
-  color: #5f6e80;
-  font-size: 0.95rem;
-}
-
-.upload-label-main {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 58px;
-}
-
-.upload-icon {
-  flex: 0 0 auto;
-  font-size: 1.7rem;
-  color: #596879;
-}
-
-.upload-input {
-  display: none;
-}
-
-.upload-copy {
-  display: block;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.submit-button {
-  margin-top: 18px;
-  --background: #3b82f6;
-  --border-radius: 18px;
-  min-height: 54px;
-  font-weight: 700;
-}
-
-.submit-message {
-  margin: 18px 0 0;
-  font-size: 0.92rem;
-}
-
-.success-message {
-  color: #18794e;
-}
-
-@media (max-width: 640px) {
-  .balance-grid,
-  .form-grid {
+@media (max-width: 380px) {
+  .employee-summary,
+  .date-grid {
     grid-template-columns: 1fr;
-  }
-
-  .form-header {
-    display: grid;
-  }
-
-  .field-header {
-    align-items: flex-start;
-    flex-direction: column;
   }
 }
 </style>

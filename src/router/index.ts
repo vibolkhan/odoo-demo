@@ -32,7 +32,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'tab2',
-        component: () => import('@/views/RequestFormPage.vue')
+        redirect: '/tabs/tab4'
       },
       {
         path: 'tab3',
