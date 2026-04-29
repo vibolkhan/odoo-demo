@@ -74,11 +74,16 @@
 
               <ion-button
                 fill="clear"
-                class="close-button"
+                class="detail-close-button"
                 aria-label="Close create request form"
                 @click="closeCreateModal"
               >
-                <ion-icon :icon="closeOutline" size="large" aria-hidden="true" />
+                <ion-icon
+                  :icon="close"
+                  size="large"
+                  aria-hidden="true"
+                  class="close-icon"
+                />
               </ion-button>
             </div>
 
@@ -106,13 +111,16 @@ import {
   IonRefresherContent,
   onIonViewWillEnter,
 } from "@ionic/vue";
-import { addOutline, closeOutline, notificationsOutline } from "ionicons/icons";
+import { addOutline, close, notificationsOutline } from "ionicons/icons";
 import { ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import RequestForm from "@/components/RequestForm.vue";
 import RequestLst from "@/components/RequestLst.vue";
 
 type RequestListInstance = InstanceType<typeof RequestLst>;
 
+const route = useRoute();
+const router = useRouter();
 const requestListRef = ref<RequestListInstance | null>(null);
 const isCreateModalOpen = ref(false);
 const actionMessage = ref("");
@@ -149,8 +157,35 @@ const handleRefresh = async (event: CustomEvent) => {
   }
 };
 
+const openRequestedDetailFromQuery = async () => {
+  const requestIdParam = route.query.requestId;
+  const requestIdValue = Array.isArray(requestIdParam) ? requestIdParam[0] : requestIdParam;
+  const requestId = Number(requestIdValue);
+
+  if (!requestId) {
+    return;
+  }
+
+  const opened = requestListRef.value?.openRequestDetailById?.(requestId);
+
+  if (!opened) {
+    return;
+  }
+
+  const nextQuery = { ...route.query };
+  delete nextQuery.requestId;
+
+  await router.replace({
+    path: route.path,
+    query: nextQuery,
+  });
+};
+
 onIonViewWillEnter(() => {
-  void requestListRef.value?.loadLeaveRequests();
+  void (async () => {
+    await requestListRef.value?.loadLeaveRequests();
+    await openRequestedDetailFromQuery();
+  })();
 });
 </script>
 
@@ -298,18 +333,22 @@ h1 {
   color: #64748b;
 }
 
-.close-button {
-  width: 40px;
-  height: 40px;
+.detail-close-button {
+  width: 48px;
+  height: 48px;
   margin: 0;
   --color: #1d4ed8;
-  --border-radius: 14px;
-  --background: rgba(255, 255, 255, 0.88);
-  --box-shadow: 0 8px 20px rgba(55, 75, 105, 0.08);
+  --border-radius: 16px;
+  --background: rgba(255, 255, 255, 0.95);
+  --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
 }
 
-.close-button ion-icon {
-  font-size: 1.1rem;
+.detail-close-button ion-icon {
+  font-size: 1.6rem;
+}
+
+.close-icon {
+  font-size: 1.6rem;
 }
 
 @media (max-width: 640px) {

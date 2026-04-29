@@ -16,6 +16,8 @@ type OdooEmployeeRecord = {
   name?: string
   company_id?: OdooDisplayRecord | false
   department_id?: OdooDisplayRecord | false
+  attendance_state?: string
+  last_check_in?: string | false
 }
 
 type OdooSearchReadResult = {
@@ -27,6 +29,8 @@ export type EmployeeOption = {
   name: string
   company: string
   department: string
+  attendanceState: string
+  lastCheckIn: string | null
 }
 
 export type FetchEmployeesOptions = {
@@ -138,6 +142,8 @@ const employeeSpecification = {
       display_name: {},
     },
   },
+  attendance_state: {},
+  last_check_in: {},
 } as const
 
 const getDisplayName = (value?: OdooDisplayRecord | false) =>
@@ -148,6 +154,8 @@ const mapEmployeeRecord = (record: OdooEmployeeRecord): EmployeeOption => ({
   name: record.name ?? '',
   company: getDisplayName(record.company_id),
   department: getDisplayName(record.department_id),
+  attendanceState: record.attendance_state ?? 'checked_out',
+  lastCheckIn: record.last_check_in || null,
 })
 
 const buildEmployeeDomain = (query?: string) => {
@@ -230,4 +238,40 @@ export const fetchEmployees = async (
     records,
     hasMore: records.length === limit,
   }
+}
+
+export const fetchCurrentUserEmployee = async (): Promise<EmployeeOption | null> => {
+  const storedUserId = Number(getStoredUserId())
+
+  if (!Number.isFinite(storedUserId) || storedUserId <= 0) {
+    return null
+  }
+
+  const response = await postJsonRpc<OdooSearchReadResult>(
+    EMPLOYEE_LIST_ENDPOINT,
+    {
+      model: 'hr.employee',
+      method: 'web_search_read',
+      args: [],
+      kwargs: {
+        specification: employeeSpecification,
+        offset: 0,
+        limit: 1,
+        context: {
+          lang: 'en_US',
+          tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Bangkok',
+          uid: storedUserId,
+          allowed_company_ids: DEFAULT_ALLOWED_COMPANY_IDS,
+          current_company_id: DEFAULT_COMPANY_ID,
+        },
+        domain: [['user_id', '=', storedUserId]],
+      },
+    },
+  )
+
+  if (response.error || !response.result?.records?.length) {
+    return null
+  }
+
+  return mapEmployeeRecord(response.result.records[0])
 }

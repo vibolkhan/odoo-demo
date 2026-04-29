@@ -2,49 +2,64 @@
   <ion-page>
     <ion-content class="login-content" :fullscreen="true">
       <div class="login-shell">
+        <div class="background-orbs">
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2"></div>
+          <div class="orb orb-3"></div>
+        </div>
+        
         <section class="login-card">
-          <p class="eyebrow">Odoo Demo</p>
-          <h1>Sign in to continue</h1>
-          <p class="intro">
-            Please log in before accessing requests, history, or profile pages.
-          </p>
+          <div class="card-header">
+            <p class="eyebrow">Odoo Demo</p>
+            <h1>Welcome Back</h1>
+            <p class="intro">
+              Sign in to manage your leave requests and profile.
+            </p>
+          </div>
 
           <form class="login-form" @submit.prevent="handleLogin">
             <label class="field">
-              <span class="field-label">Username</span>
-              <input
-                v-model="username"
-                class="text-input"
-                type="text"
-                autocomplete="username"
-                placeholder="Enter your username"
-                required
-              />
+              <span class="field-label">Email Address</span>
+              <div class="input-wrapper">
+                <input
+                  v-model="username"
+                  class="text-input"
+                  type="email"
+                  autocomplete="username"
+                  placeholder="vibol.khan@axivit.com"
+                  required
+                />
+              </div>
             </label>
 
             <label class="field">
               <span class="field-label">Password</span>
-              <input
-                v-model="password"
-                class="text-input"
-                type="password"
-                autocomplete="current-password"
-                placeholder="Enter your password"
-                required
-              />
+              <div class="input-wrapper">
+                <input
+                  v-model="password"
+                  class="text-input"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </label>
 
-            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+            <div v-if="errorMessage" class="error-container">
+              <p class="error-message">{{ errorMessage }}</p>
+            </div>
 
-            <ion-button expand="block" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Signing in...' : 'Login' }}
+            <ion-button class="submit-button" expand="block" type="submit" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Authenticating...' : 'Sign In' }}
             </ion-button>
           </form>
 
-          <p class="hint">
-            Sign in with your Odoo account for
-            <strong>memot_rubber_plantation_staging</strong>.
-          </p>
+          <div class="card-footer">
+            <p class="hint">
+              Connected to <strong>memot_rubber_plantation_staging</strong>
+            </p>
+          </div>
         </section>
       </div>
     </ion-content>
@@ -84,7 +99,7 @@ const handleLogin = async () => {
   errorMessage.value = ''
 
   if (!username.value.trim() || !password.value.trim()) {
-    errorMessage.value = 'Please enter both username and password.'
+    errorMessage.value = 'Please enter both email and password.'
     return
   }
 
@@ -106,49 +121,124 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-content {
-  --background: linear-gradient(180deg, #f4efe7 0%, #ffffff 55%, #eef4ff 100%);
+  --background: #f1f5f9;
 }
 
 .login-shell {
+  position: relative;
   min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overflow: hidden;
 }
 
+/* Background animated orbs for depth */
+.background-orbs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.6;
+  animation: float 20s infinite ease-in-out alternate;
+}
+
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: #3b82f6; /* Blue */
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: #8b5cf6; /* Purple */
+  bottom: -150px;
+  right: -100px;
+  animation-delay: -5s;
+}
+
+.orb-3 {
+  width: 250px;
+  height: 250px;
+  background: #0ea5e9; /* Sky Blue */
+  top: 40%;
+  left: 60%;
+  animation-delay: -10s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Glassmorphism Card */
 .login-card {
+  position: relative;
+  z-index: 10;
   width: min(100%, 420px);
-  padding: 28px 24px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 50px rgba(21, 35, 56, 0.12);
+  padding: 40px 32px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 
+    0 24px 48px -12px rgba(15, 23, 42, 0.15),
+    0 4px 24px rgba(15, 23, 42, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.card-header {
+  text-align: center;
 }
 
 .eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #7b5b2e;
+  color: #4338ca;
 }
 
 h1 {
   margin: 0;
-  font-size: 2rem;
-  line-height: 1.1;
-  color: #142033;
+  font-size: 2.25rem;
+  line-height: 1.15;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .intro {
-  margin: 12px 0 24px;
-  color: #4c5b70;
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .login-form {
   display: grid;
-  gap: 14px;
+  gap: 20px;
 }
 
 .field {
@@ -158,41 +248,101 @@ h1 {
 
 .field-label {
   font-size: 0.9rem;
-  font-weight: 600;
-  color: #344054;
+  font-weight: 650;
+  color: #334155;
+  margin-left: 4px;
+}
+
+.input-wrapper {
+  position: relative;
 }
 
 .text-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 16px 18px;
-  border: 0;
+  padding: 16px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
   outline: none;
   border-radius: 16px;
-  background: #f6f8fc;
-  color: #142033;
-  font: inherit;
-  appearance: none;
-  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .text-input::placeholder {
-  color: #98a2b3;
+  color: #94a3b8;
+  font-weight: 400;
 }
 
 .text-input:focus {
-  box-shadow: 0 0 0 2px rgba(46, 102, 219, 0.2);
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.error-container {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border-radius: 12px;
+  border-left: 4px solid #ef4444;
 }
 
 .error-message {
   margin: 0;
-  color: #b42318;
-  font-size: 0.95rem;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.submit-button {
+  margin-top: 8px;
+  height: 56px;
+  --border-radius: 16px;
+  --background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  --background-hover: linear-gradient(135deg, #1d4ed8 0%, #4338ca 100%);
+  --color: white;
+  --box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  transition: transform 0.2s ease;
+}
+
+.submit-button:active {
+  transform: scale(0.98);
+}
+
+.card-footer {
+  text-align: center;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  padding-top: 24px;
 }
 
 .hint {
-  margin: 18px 0 0;
-  color: #667085;
-  font-size: 0.9rem;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.hint strong {
+  color: #334155;
+  font-weight: 650;
+}
+
+@media (max-height: 700px) {
+  .login-card {
+    padding: 32px 24px;
+    gap: 24px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
 }
 </style>

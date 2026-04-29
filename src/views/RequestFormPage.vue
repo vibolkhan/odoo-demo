@@ -2,14 +2,14 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Leave Management</ion-title>
+        <ion-title>Create My Leave Request</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="request-page">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Leave Management</ion-title>
+          <ion-title size="large">Create My Leave Request</ion-title>
         </ion-toolbar>
       </ion-header>
 

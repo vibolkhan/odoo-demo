@@ -33,54 +33,24 @@
       class="filter-panel"
       aria-label="Advanced request filters"
     >
-      <div class="filter-field">
-        <label class="filter-label" for="employee-filter">Employee</label>
-
-        <ion-item
-          id="employee-filter"
-          lines="none"
-          class="filter-input-shell searchable-trigger"
-          button
-          :detail="false"
-          :disabled="isLoadingEmployees || !employees.length"
-          @click="openEmployeeSearch"
-        >
-          <ion-input
-            :value="selectedEmployeeName"
-            readonly
-            class="searchable-input"
-            :placeholder="
-              isLoadingEmployees ? 'Loading employees...' : 'All employees'
-            "
-          />
-        </ion-item>
-      </div>
-
       <div class="date-grid">
-        <div class="filter-field">
-          <label class="filter-label" for="date-from-filter">From</label>
+        <DateInput
+          v-model="dateFromFilter"
+          label="From"
+          :placeholder="localizedDatePlaceholder"
+          :max="dateToFilter || undefined"
+        />
 
-          <ion-item
-            id="date-from-filter"
-            lines="none"
-            class="filter-input-shell"
-          >
-            <ion-input v-model="dateFromFilter" type="date" />
-          </ion-item>
-        </div>
-
-        <div class="filter-field">
-          <label class="filter-label" for="date-to-filter">To</label>
-
-          <ion-item id="date-to-filter" lines="none" class="filter-input-shell">
-            <ion-input v-model="dateToFilter" type="date" />
-          </ion-item>
-        </div>
+        <DateInput
+          v-model="dateToFilter"
+          label="To"
+          :placeholder="localizedDatePlaceholder"
+          :min="dateFromFilter || undefined"
+        />
       </div>
 
       <ion-button
         expand="block"
-        fill="outline"
         class="clear-filters-button"
         :disabled="!hasActiveAdvancedFilters"
         @click="clearAdvancedFilters"
@@ -143,7 +113,14 @@
 
               <div class="request-copy">
                 <div class="request-topline">
-                  <h5>{{ getLeaveTypeEnglishName(request.leaveType) }}</h5>
+                  <div class="type-name-group">
+                    <h5>{{ getLeaveTypeEnglishName(request.leaveType) }}</h5>
+                    <span
+                      v-if="getLeaveTypeKhmerName(request.leaveType)"
+                      class="khmer-type"
+                      >{{ getLeaveTypeKhmerName(request.leaveType) }}</span
+                    >
+                  </div>
 
                   <span class="status-pill" :class="badgeClass(request.state)">
                     {{ formatStateLabel(request.state) }}
@@ -170,127 +147,13 @@
       </section>
     </section>
 
-    <ion-modal
+    <LeaveRequestDetailModal
       :is-open="isDetailModalOpen"
-      :breakpoints="[0, 0.65, 0.92]"
-      :initial-breakpoint="0.65"
-      :backdrop-breakpoint="0"
-      :expand-to-scroll="false"
-      handle="true"
-      @didDismiss="closeRequestDetail"
-    >
-      <ion-content class="request-detail-modal" :scroll-y="true">
-        <section v-if="selectedRequest" class="request-detail-shell">
-          <div class="request-detail-header">
-            <div>
-              <p class="detail-eyebrow">Leave Request</p>
-              <h2>{{ selectedRequest.leaveType }}</h2>
-              <p class="detail-subtitle">
-                {{
-                  formatDateRange(
-                    selectedRequest.dateFrom,
-                    selectedRequest.dateTo,
-                  )
-                }}
-              </p>
-            </div>
-
-            <ion-button
-              fill="clear"
-              class="detail-close-button"
-              aria-label="Close request details"
-              @click="closeRequestDetail"
-            >
-              <ion-icon :icon="closeOutline" size="large" aria-hidden="true" />
-            </ion-button>
-          </div>
-
-          <div class="detail-hero-card">
-            <div class="detail-hero-main">
-              <div
-                class="type-tile detail-type-tile"
-                :class="tileTone(selectedRequest.leaveType)"
-              >
-                <ion-icon
-                  :icon="requestTypeIcon(selectedRequest.leaveType)"
-                  aria-hidden="true"
-                />
-              </div>
-
-              <div class="detail-hero-copy">
-                <span
-                  class="status-pill"
-                  :class="badgeClass(selectedRequest.state)"
-                >
-                  {{ formatStateLabel(selectedRequest.state) }}
-                </span>
-
-                <p class="detail-duration">
-                  {{
-                    selectedRequest.durationDisplay || "Duration not provided"
-                  }}
-                </p>
-
-                <p v-if="selectedRequest.needsAction" class="detail-attention">
-                  This request needs action.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="detail-grid">
-            <div class="detail-card">
-              <span>Employee</span>
-              <strong>{{ selectedRequest.employeeName || "-" }}</strong>
-            </div>
-
-            <div class="detail-card">
-              <span>Department</span>
-              <strong>{{ selectedRequest.departmentName || "-" }}</strong>
-            </div>
-
-            <div class="detail-card">
-              <span>Company</span>
-              <strong>{{ selectedRequest.companyName || "-" }}</strong>
-            </div>
-
-            <div class="detail-card">
-              <span>Request ID</span>
-              <strong>#{{ selectedRequest.id }}</strong>
-            </div>
-          </div>
-
-          <div class="detail-section-card">
-            <span class="detail-section-label">Schedule</span>
-            <h3>
-              {{
-                formatDateRange(
-                  selectedRequest.dateFrom,
-                  selectedRequest.dateTo,
-                )
-              }}
-            </h3>
-            <p>
-              {{
-                selectedRequest.durationDisplay ||
-                "No duration summary available."
-              }}
-            </p>
-          </div>
-
-          <div class="detail-section-card">
-            <span class="detail-section-label">Reason</span>
-            <h3>Notes</h3>
-            <p>
-              {{
-                selectedRequest.reason ||
-                "No reason was provided for this leave request."
-              }}
-            </p>
-          </div>
-        </section>
-      </ion-content>
-    </ion-modal>
+      :request="selectedRequest"
+      :fallback-employee-name="currentUserEmployee?.name"
+      @close="closeRequestDetail"
+      @updated="loadLeaveRequests"
+    />
 
     <ion-modal
       :is-open="isEmployeeSearchOpen"
@@ -363,7 +226,6 @@ import {
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-  IonInput,
   IonItem,
   IonLabel,
   IonList,
@@ -385,12 +247,27 @@ import {
   sparklesOutline,
 } from "ionicons/icons";
 
+import DateInput from "./DateInput.vue";
+
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
 
-import { fetchEmployees, type EmployeeOption } from "@/utils/employees";
-import { fetchLeaveRequests, type LeaveRequest } from "@/utils/leaveRequests";
+import {
+  fetchEmployees,
+  fetchCurrentUserEmployee,
+  type EmployeeOption,
+} from "@/utils/employees";
+import {
+  fetchLeaveRequests,
+  fetchAllEmployeesLeaveRequests,
+  type LeaveRequest,
+} from "@/utils/leaveRequests";
 
-type FilterId = "all" | "pending" | "review" | "attention";
+type FilterId = "all" | "pending" | "approved" | "rejected";
+
+const props = defineProps<{
+  isManagerMode?: boolean;
+}>();
 
 const emit = defineEmits<{
   summaryChange: [
@@ -404,11 +281,12 @@ const emit = defineEmits<{
 
 const leaveRequests = ref<LeaveRequest[]>([]);
 const employees = ref<EmployeeOption[]>([]);
+const currentUserEmployee = ref<EmployeeOption | null>(null);
 
 const isLoading = ref(false);
 const errorMessage = ref("");
 
-const activeFilter = ref<FilterId>("all");
+const activeFilter = ref<FilterId>(props.isManagerMode ? "pending" : "all");
 const showAdvancedFilters = ref(false);
 
 const selectedEmployeeId = ref<number | null>(null);
@@ -435,12 +313,36 @@ const nextEmployeePage = ref(1);
 let employeeSearchTimer: ReturnType<typeof setTimeout> | null = null;
 let employeeLoadRequestId = 0;
 
-const filters: Array<{ id: FilterId; label: string }> = [
-  { id: "all", label: "All History" },
-  { id: "pending", label: "Pending" },
-  { id: "review", label: "Review" },
-  { id: "attention", label: "Need Action" },
-];
+const filters = computed(
+  (): Array<{ id: FilterId; label: string }> => [
+    { id: "all", label: props.isManagerMode ? "All Employee" : "All History" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+  ],
+);
+
+const localizedDatePlaceholder = computed(() => {
+  try {
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(new Date(2001, 10, 22));
+
+    return parts
+      .map((part) => {
+        if (part.type === "day") return "DD";
+        if (part.type === "month") return "MM";
+        if (part.type === "year") return "YYYY";
+        return part.value;
+      })
+      .join("");
+  } catch {
+    return "YYYY-MM-DD";
+  }
+});
 
 const selectedEmployee = computed(
   () =>
@@ -469,16 +371,18 @@ const statusFilteredRequests = computed(() => {
   switch (activeFilter.value) {
     case "pending":
       return leaveRequests.value.filter(
-        (request) => request.state === "confirm",
+        (request) => request.state === "confirm" || request.state === "validate1",
       );
 
-    case "review":
+    case "approved":
       return leaveRequests.value.filter(
-        (request) => request.state === "validate1",
+        (request) => request.state === "validate",
       );
 
-    case "attention":
-      return leaveRequests.value.filter((request) => request.needsAction);
+    case "rejected":
+      return leaveRequests.value.filter(
+        (request) => request.state === "refuse",
+      );
 
     default:
       return leaveRequests.value;
@@ -579,7 +483,11 @@ const loadLeaveRequests = async () => {
   errorMessage.value = "";
 
   try {
-    leaveRequests.value = await fetchLeaveRequests();
+    if (props.isManagerMode) {
+      leaveRequests.value = await fetchAllEmployeesLeaveRequests();
+    } else {
+      leaveRequests.value = await fetchLeaveRequests();
+    }
   } catch (error) {
     errorMessage.value =
       error instanceof Error ? error.message : "Unable to load leave requests.";
@@ -589,6 +497,7 @@ const loadLeaveRequests = async () => {
 };
 
 const loadEmployees = async (reset = false) => {
+  if (!props.isManagerMode) return;
   if (reset) {
     isLoadingEmployees.value = true;
     employeeErrorMessage.value = "";
@@ -669,6 +578,19 @@ const openRequestDetail = (request: LeaveRequest) => {
   isDetailModalOpen.value = true;
 };
 
+const openRequestDetailById = (requestId: number) => {
+  const matchedRequest = leaveRequests.value.find(
+    (request) => request.id === requestId,
+  );
+
+  if (!matchedRequest) {
+    return false;
+  }
+
+  openRequestDetail(matchedRequest);
+  return true;
+};
+
 const closeRequestDetail = () => {
   isDetailModalOpen.value = false;
   selectedRequest.value = null;
@@ -710,6 +632,10 @@ const getLeaveTypeEnglishName = (name: string) => {
   return name.split(" - ")[0] || name;
 };
 
+const getLeaveTypeKhmerName = (name: string) => {
+  return name.split(" - ")[1] || "";
+};
+
 const formatDate = (value: string) => {
   const date = parseRequestDate(value);
 
@@ -737,13 +663,36 @@ const formatStateLabel = (state: string) => {
     case "validate1":
       return "Review";
 
+    case "validate":
+      return "Approved";
+
+    case "refuse":
+      return "Refused";
+
+    case "cancel":
+      return "Cancelled";
+
+    case "draft":
+      return "Draft";
+
     default:
-      return "Unknown";
+      return state.charAt(0).toUpperCase() + state.slice(1);
   }
 };
 
-const badgeClass = (state: string) =>
-  state === "validate1" ? "status-review" : "status-pending";
+const badgeClass = (state: string) => {
+  switch (state) {
+    case "validate1":
+      return "status-review";
+    case "validate":
+      return "status-approved";
+    case "refuse":
+    case "cancel":
+      return "status-refused";
+    default:
+      return "status-pending";
+  }
+};
 
 const parseRequestDate = (value: string) => {
   if (!value) return null;
@@ -786,9 +735,12 @@ const tileTone = (leaveType: string) => {
   return "tone-sand";
 };
 
-onMounted(() => {
-  void loadEmployees(true);
+onMounted(async () => {
+  if (props.isManagerMode) {
+    void loadEmployees(true);
+  }
   void loadLeaveRequests();
+  currentUserEmployee.value = await fetchCurrentUserEmployee();
 });
 
 watch(
@@ -818,22 +770,24 @@ onBeforeUnmount(() => {
 
 defineExpose({
   loadLeaveRequests,
+  openRequestDetailById,
 });
 </script>
 
 <style scoped>
 .request-list-shell {
   display: grid;
-  gap: 16px;
+  gap: 20px;
   padding-bottom: 84px;
 }
 
 .filter-strip {
   display: flex;
   gap: 8px;
-  padding: 4px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.68);
+  padding: 6px;
+  border-radius: 20px;
+  background: rgba(241, 245, 249, 0.8);
+  backdrop-filter: blur(8px);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -845,67 +799,57 @@ defineExpose({
 .filter-segment {
   flex: 1 0 auto;
   min-width: max-content;
-  min-height: 40px;
+  min-height: 42px;
   border: 0;
   border-radius: 14px;
-  padding: 0 16px;
+  padding: 0 18px;
   background: transparent;
-  color: #526173;
-  font-size: 0.92rem;
-  font-weight: 700;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 750;
   white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .filter-segment.active {
-  background: #2e66db;
-  color: #ffffff;
-  box-shadow: 0 10px 18px rgba(46, 102, 219, 0.24);
-}
-
-.filter-segment:active {
-  transform: scale(0.97);
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
 }
 
 .filter-toggle-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: -4px;
+  margin-top: -8px;
 }
 
 .filter-toggle-button {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 0;
-  border-radius: 14px;
-  padding: 0;
-  background: rgba(255, 255, 255, 0.88);
-  color: #2e66db;
-  box-shadow: 0 8px 20px rgba(55, 75, 105, 0.08);
+  width: 44px;
+  height: 44px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #64748b;
+  transition: all 0.2s ease;
 }
 
 .filter-toggle-button.active {
-  background: #2e66db;
+  background: #2563eb;
   color: #ffffff;
-  box-shadow: 0 10px 18px rgba(46, 102, 219, 0.24);
-}
-
-.filter-toggle-button ion-icon {
-  font-size: 1.1rem;
-}
-
-.filter-toggle-button:active {
-  transform: scale(0.97);
+  border-color: #2563eb;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
 }
 
 .filter-panel {
   display: grid;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 12px 28px rgba(55, 75, 105, 0.08);
+  gap: 16px;
+  padding: 20px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 .date-grid {
@@ -914,482 +858,228 @@ defineExpose({
   gap: 12px;
 }
 
-.filter-field {
-  display: grid;
-  gap: 8px;
-}
-
-.filter-label {
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.filter-input-shell {
-  --background: #f7f9fc;
-  --border-radius: 18px;
-  --padding-start: 14px;
-  --inner-padding-end: 14px;
-  --min-height: 54px;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-}
-
-.searchable-input {
-  pointer-events: none;
+@media (max-width: 380px) {
+  .date-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .clear-filters-button {
-  min-height: 50px;
+  margin-top: 8px;
+  min-height: 52px;
+  font-weight: 850;
   --border-radius: 18px;
-  --border-color: #d5dfeb;
+  --background: #f1f5f9;
   --color: #475569;
-  font-weight: 800;
-  text-transform: none;
+  --box-shadow: none;
 }
 
-.filter-message {
-  margin: -6px 0 0;
-  font-size: 0.88rem;
+@media (max-width: 480px) {
+  .date-picker-modal {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+
+  .date-picker-shell {
+    max-width: none;
+  }
 }
 
-.error-message {
-  color: #b42318;
-}
-
-.request-list {
-  display: grid;
-  gap: 22px;
+@media (max-width: 380px) {
+  .date-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .month-group {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .month-head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  padding: 0 4px;
 }
 
-.month-head h4 {
+.month-head p:first-child {
   margin: 0;
-  font-size: 1.45rem;
-  font-weight: 850;
+  font-size: 1.25rem;
+  font-weight: 900;
   color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
-.month-head p {
+.month-head p:last-child {
   margin: 0;
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.14em;
-  color: #7f8a99;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  padding-bottom: 3px;
 }
 
 .month-stack {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .request-card {
   position: relative;
-  overflow: hidden;
-  border-radius: 22px;
+  border-radius: 24px;
   background: #ffffff;
-  box-shadow: 0 10px 24px rgba(55, 75, 105, 0.08);
-  cursor: pointer;
-  transition: transform 120ms ease;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .request-card:active {
-  transform: scale(0.98);
-}
-
-.request-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 6px;
-  background: linear-gradient(180deg, #2e66db, #4f8cff);
+  transform: scale(0.97);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .card-main {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) auto;
+  grid-template-columns: 52px 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px 12px 16px;
+  gap: 14px;
+  padding: 16px;
 }
 
 .type-tile {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  font-size: 1.25rem;
-  background: #eaf1fb;
-  color: #2e66db;
-}
-
-.tone-lilac {
-  background: #eaf1fb;
-  color: #2e66db;
+  font-size: 1.4rem;
 }
 
 .tone-blue {
-  background: #edf6ff;
+  background: #eff6ff;
   color: #2563eb;
 }
-
 .tone-coral {
   background: #fff1f2;
   color: #e11d48;
 }
-
+.tone-lilac {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
 .tone-sand {
   background: #fff7ed;
   color: #ea580c;
 }
 
 .request-copy {
-  min-width: 0;
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .request-topline {
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 8px;
 }
 
-.request-copy h5 {
-  flex: 1;
-  min-width: 0;
+.type-name-group h5 {
   margin: 0;
   font-size: 0.95rem;
-  line-height: 1.2;
   font-weight: 850;
   color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.khmer-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
 .request-dates {
-  margin: 0;
-  font-size: 0.84rem;
-  font-weight: 800;
-  color: #334155;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
 }
 
 .employee-name {
-  margin: 0;
+  margin: 4px 0 0;
   font-size: 0.78rem;
-  font-weight: 700;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 600;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .status-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  min-height: 22px;
-  padding: 0 8px;
-  border-radius: 999px;
-  font-size: 0.64rem;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.65rem;
   font-weight: 900;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
-  white-space: nowrap;
+  letter-spacing: 0.05em;
 }
 
 .status-pending {
-  background: #ddd6fe;
-  color: #6d5b96;
+  background: #fef3c7;
+  color: #92400e;
 }
-
 .status-review {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #e0f2fe;
+  color: #075985;
+}
+.status-approved {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-refused {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .card-chevron {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
 }
 
 .state-card {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  padding: 32px 20px;
-  border-radius: 24px;
-  background: #ffffff;
+  padding: 48px 24px;
   text-align: center;
-  color: #657285;
-  box-shadow: 0 18px 34px rgba(25, 40, 67, 0.06);
-}
-
-.state-card.error {
-  color: #a13f3f;
-  background: #fff5f5;
+  background: #ffffff;
+  border-radius: 32px;
+  color: #94a3b8;
 }
 
 .state-card ion-icon {
-  font-size: 1.8rem;
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
 }
 
-.request-detail-modal {
-  --background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
-  --padding-top: 22px;
-  --padding-start: 18px;
-  --padding-end: 18px;
-  --padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
-}
-
-.request-detail-shell {
-  display: grid;
-  gap: 18px;
-}
-
-.request-detail-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.detail-eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.request-detail-header h2 {
-  margin: 8px 0 0;
-  font-size: 1.55rem;
-  line-height: 1.2;
-  font-weight: 850;
-  color: #0f172a;
-}
-
-.detail-subtitle {
-  margin: 8px 0 0;
-  font-size: 0.92rem;
-  color: #64748b;
-}
-
-.detail-close-button {
-  width: 40px;
-  height: 40px;
-  margin: 0;
-  --color: #1d4ed8;
-  --border-radius: 14px;
-  --background: rgba(255, 255, 255, 0.88);
-  --box-shadow: 0 8px 20px rgba(55, 75, 105, 0.08);
-}
-
-.detail-close-button ion-icon {
-  font-size: 1.1rem;
-}
-
-.detail-hero-card,
-.detail-section-card {
-  padding: 18px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 12px 28px rgba(55, 75, 105, 0.08);
-}
-
-.detail-hero-main {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
-}
-
-.detail-type-tile {
-  width: 58px;
-  height: 58px;
-  font-size: 1.5rem;
-}
-
-.detail-duration {
-  margin: 10px 0 0;
+.state-card p {
   font-size: 1rem;
-  font-weight: 800;
-  color: #1e293b;
-}
-
-.detail-attention {
-  margin: 8px 0 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #c2410c;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.detail-card {
-  padding: 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.88);
-}
-
-.detail-card span,
-.detail-section-label {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.detail-card strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.95rem;
-  color: #0f172a;
-}
-
-.detail-section-card h3 {
-  margin: 10px 0 0;
-  font-size: 1.05rem;
-  font-weight: 850;
-  color: #0f172a;
-}
-
-.detail-section-card p {
-  margin: 8px 0 0;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: #526173;
+  font-weight: 600;
 }
 
 .employee-search-modal {
-  --background: #f8fbff;
-  --padding-top: 18px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
-}
-
-:global(.employee-search-overlay) {
-  --width: 100vw;
-  --height: 100vh;
-  --max-width: 100vw;
-  --max-height: 100vh;
-  --border-radius: 0;
-}
-
-.employee-search-sticky {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  padding-bottom: 12px;
-  background: #f8fbff;
-}
-
-.employee-search-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.employee-search-header p {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.employee-search-header h3 {
-  margin: 6px 0 0;
-  font-size: 1.45rem;
-  font-weight: 850;
-  color: #0f172a;
-}
-
-.employee-searchbar {
-  padding: 12px 0 0;
-}
-
-.employee-searchbar::part(container) {
-  min-height: 52px;
-  border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-}
-
-.employee-results {
-  margin-top: 10px;
-  background: transparent;
-  padding-bottom: 28px;
+  --background: #f8fafc;
 }
 
 .employee-option {
-  --border-radius: 18px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 0;
   --background: #ffffff;
-  margin-bottom: 10px;
-  box-shadow: 0 8px 20px rgba(55, 75, 105, 0.06);
-}
-
-.employee-option h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #1e293b;
-}
-
-.employee-option p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 0.88rem;
-}
-
-.employee-empty-state {
-  padding: 24px 6px 8px;
-  text-align: center;
-  color: #6c7b8d;
-}
-
-@media (max-width: 640px) {
-  .date-grid,
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .month-head h4 {
-    font-size: 1.4rem;
-  }
-
-  .month-head p {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-  }
+  margin-bottom: 12px;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
 }
 </style>

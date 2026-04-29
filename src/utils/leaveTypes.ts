@@ -92,42 +92,62 @@ export const fetchLeaveTypes = async (
   options: FetchLeaveTypesOptions = {},
 ): Promise<LeaveTypeOption[]> => {
   const storedUserId = getStoredUid()
-  const query = options.query?.trim() ?? ''
-  const limit = options.limit ?? 8
+  const limit = options.limit ?? 200
 
-  const response = await postJsonRpc<OdooNameSearchResult>(LEAVE_TYPE_ENDPOINT, {
-    model: 'hr.leave.type',
-    method: 'name_search',
-    args: [],
-    kwargs: {
-      name: query,
-      operator: 'ilike',
-      args: [
-        '|',
-        ['requires_allocation', '=', 'no'],
-        '&',
-        ['has_valid_allocation', '=', true],
-        '|',
-        ['allows_negative', '=', true],
-        '&',
-        ['virtual_remaining_leaves', '>', 0],
-        ['allows_negative', '=', false],
-      ],
-      limit,
-      context: getLeaveTypeContext(storedUserId, {
-        hide_employee_name: 1,
-        employee_id: options.employeeId ?? false,
-        default_date_from: buildOdooDateTime(
-          options.dateFrom,
-          DEFAULT_DATE_FROM_TIME,
-        ),
-        default_date_to: buildOdooDateTime(
-          options.dateTo,
-          DEFAULT_DATE_TO_TIME,
-        ),
-      }),
+  const response = await postJsonRpc<OdooLeaveTypeSearchReadResult>(
+    LEAVE_TYPE_CATALOG_ENDPOINT,
+    {
+      model: 'hr.leave.type',
+      method: 'web_search_read',
+      args: [],
+      kwargs: {
+        specification: {
+          sequence: {},
+          display_name: {},
+          code: {},
+          leave_validation_type: {},
+          responsible_ids: {
+            fields: {
+              display_name: {},
+            },
+          },
+          requires_allocation: {},
+          allocation_validation_type: {},
+          employee_requests: {},
+          color: {},
+        },
+        offset: 0,
+        order: 'sequence ASC, id ASC',
+        limit,
+        context: getLeaveTypeContext(storedUserId, {
+          hide_employee_name: 1,
+          employee_id: options.employeeId ?? false,
+          default_date_from: buildOdooDateTime(
+            options.dateFrom,
+            DEFAULT_DATE_FROM_TIME,
+          ),
+          default_date_to: buildOdooDateTime(
+            options.dateTo,
+            DEFAULT_DATE_TO_TIME,
+          ),
+          current_company_id: DEFAULT_COMPANY_ID,
+          bin_size: true,
+        }),
+        count_limit: 10001,
+        domain: [
+          '|',
+          ['requires_allocation', '=', 'no'],
+          '&',
+          ['has_valid_allocation', '=', true],
+          '|',
+          ['allows_negative', '=', true],
+          '&',
+          ['virtual_remaining_leaves', '>', 0],
+          ['allows_negative', '=', false],
+        ],
+      },
     },
-  })
+  )
 
   if (response.error) {
     throw new Error(
@@ -137,9 +157,9 @@ export const fetchLeaveTypes = async (
     )
   }
 
-  return (response.result ?? []).map(([id, name]) => ({
-    id,
-    name,
+  return (response.result?.records ?? []).map((record) => ({
+    id: record.id,
+    name: record.display_name ?? '',
   }))
 }
 

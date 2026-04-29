@@ -191,10 +191,16 @@
 
               <ion-button
                 fill="clear"
-                class="close-button"
+                class="detail-close-button"
+                aria-label="Close leave type form"
                 @click="closeFormModal"
               >
-                Close
+                <ion-icon
+                  :icon="close"
+                  size="large"
+                  aria-hidden="true"
+                  class="close-icon"
+                />
               </ion-button>
             </div>
 
@@ -281,6 +287,7 @@ import {
 
 import {
   addOutline,
+  close,
   notificationsOutline,
   pencil,
   trashOutline,
@@ -922,5 +929,22 @@ h1 {
   .modal-subtitle {
     font-size: 0.86rem;
   }
+}
+.detail-close-button {
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  --color: #1d4ed8;
+  --border-radius: 16px;
+  --background: rgba(255, 255, 255, 0.95);
+  --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
+}
+
+.detail-close-button ion-icon {
+  font-size: 1.6rem;
+}
+
+.close-icon {
+  font-size: 1.6rem;
 }
 </style>
