@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core'
 import { Keyboard } from '@capacitor/keyboard'
 import App from './App.vue'
 import router from './router';
+import { pinia } from './stores';
 
 import { IonicVue } from '@ionic/vue';
 
@@ -58,6 +59,7 @@ if (isAndroidNative && Capacitor.isPluginAvailable('Keyboard')) {
 
 const app = createApp(App)
   .use(IonicVue)
+  .use(pinia)
   .use(router);
 
 router.isReady().then(() => {

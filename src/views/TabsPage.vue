@@ -3,13 +3,13 @@
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
-        <ion-tab-button tab="tab1" href="/tabs/tab1">
+        <!-- <ion-tab-button tab="tab1" href="/tabs/tab1">
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/tab1', list, listOutline)"
           />
           <ion-label>Types</ion-label>
-        </ion-tab-button>
+        </ion-tab-button> -->
 
         <ion-tab-button tab="leave-calendar" href="/tabs/leave-calendar">
           <ion-icon
@@ -17,6 +17,14 @@
             :icon="tabIcon('/tabs/leave-calendar', calendar, calendarOutline)"
           />
           <ion-label>Calendar</ion-label>
+        </ion-tab-button>
+
+        <ion-tab-button tab="my-attendance" href="/tabs/my-attendance">
+          <ion-icon
+            aria-hidden="true"
+            :icon="tabIcon('/tabs/my-attendance', time, timeOutline)"
+          />
+          <ion-label>Attendance</ion-label>
         </ion-tab-button>
 
         <ion-tab-button tab="tab4" href="/tabs/tab4">
@@ -47,7 +55,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonTabBar,
   IonTabButton,
@@ -68,12 +76,14 @@ import {
   walletOutline,
   calendar,
   calendarOutline,
+  time,
+  timeOutline,
 } from "ionicons/icons";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 
-const tabIcon = (path: string, activeIcon: string, inactiveIcon: string) =>
+const tabIcon = (path, activeIcon, inactiveIcon) =>
   route.path === path || route.path.startsWith(`${path}/`)
     ? activeIcon
     : inactiveIcon;

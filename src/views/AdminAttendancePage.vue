@@ -6,6 +6,11 @@
           <ion-back-button default-href="/tabs/tab3"></ion-back-button>
         </ion-buttons>
         <ion-title>All Attendances</ion-title>
+        <ion-buttons slot="end">
+          <ion-button @click="toggleFilters">
+            <ion-icon slot="icon-only" :icon="filterOutline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
@@ -13,6 +18,80 @@
       <ion-refresher slot="fixed" @ionRefresh="handleRefresh">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
+
+      <!-- Filter Panel -->
+      <div v-if="showFilters" class="filter-panel">
+        <div class="filter-item full">
+          <label>Employee</label>
+          <ion-searchbar
+            v-model="employeeSearch"
+            placeholder="Search employee..."
+            @ionInput="onEmployeeSearch"
+            @ionFocus="onEmployeeFocus"
+            @ionBlur="onEmployeeBlur"
+            class="custom-searchbar"
+          ></ion-searchbar>
+          <div
+            v-if="
+              employeeOptions.length > 0 &&
+              (employeeSearch || showAllEmployees)
+            "
+            class="employee-suggestions"
+            @scroll="onEmployeeScroll"
+          >
+            <div
+              v-for="emp in employeeOptions"
+              :key="emp.id"
+              class="suggestion-item"
+              @click="selectEmployee(emp)"
+            >
+              {{ emp.name }}
+            </div>
+            <div v-if="loadingEmployees" class="suggestion-loading">
+              <ion-spinner name="dots"></ion-spinner>
+            </div>
+          </div>
+          <div
+            v-if="selectedEmployees.length > 0"
+            class="selected-tags-container"
+          >
+            <div
+              v-for="emp in selectedEmployees"
+              :key="emp.id"
+              class="selected-tag"
+            >
+              <span>{{ emp.name }}</span>
+              <ion-icon
+                :icon="closeCircle"
+                @click="removeEmployee(emp.id)"
+              ></ion-icon>
+            </div>
+          </div>
+        </div>
+
+        <div class="date-grid">
+          <DateInput v-model="dateFrom" placeholder="From" />
+          <DateInput v-model="dateTo" placeholder="To" />
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div v-if="records.length > 0 && !loading" class="stats-summary">
+        <div class="stat-item">
+          <span class="stat-value">{{ totalWorkedHours.toFixed(1) }}</span>
+          <span class="stat-label">Total Hours</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ records.length }}</span>
+          <span class="stat-label">Records</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ totalOvertimeHours.toFixed(1) }}</span>
+          <span class="stat-label">OT Hours</span>
+        </div>
+      </div>
 
       <div class="attendance-list">
         <div v-if="loading" class="loading-state">
@@ -26,26 +105,38 @@
         </div>
 
         <div v-else class="record-grid">
-          <div v-for="record in records" :key="record.id" class="record-card" @click="openDetail(record.id)">
+          <div
+            v-for="record in records"
+            :key="record.id"
+            class="record-card"
+            @click="openDetail(record.id)"
+          >
             <div class="card-header">
               <h3>{{ getEmployeeName(record) }}</h3>
-              <span class="status-badge" :class="record.check_out ? 'checked-out' : 'checked-in'">
-                {{ record.check_out ? 'Completed' : 'Working' }}
+              <span
+                class="status-badge"
+                :class="record.check_out ? 'checked-out' : 'checked-in'"
+              >
+                {{ record.check_out ? "Completed" : "Working" }}
               </span>
             </div>
-            
+
             <div class="card-body">
               <div class="time-row">
                 <div class="time-col">
                   <span class="label">Check In</span>
-                  <span class="value">{{ formatDateTime(record.check_in) }}</span>
+                  <span class="value">{{
+                    formatDateTime(record.check_in)
+                  }}</span>
                 </div>
                 <div class="time-col" v-if="record.check_out">
                   <span class="label">Check Out</span>
-                  <span class="value">{{ formatDateTime(record.check_out) }}</span>
+                  <span class="value">{{
+                    formatDateTime(record.check_out)
+                  }}</span>
                 </div>
               </div>
-              
+
               <div class="stats-row" v-if="record.worked_hours">
                 <span class="worked-hours">
                   <ion-icon :icon="timeOutline"></ion-icon>
@@ -63,7 +154,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonPage,
   IonHeader,
@@ -76,21 +167,150 @@ import {
   IonRefresherContent,
   IonSpinner,
   IonIcon,
+  IonButton,
+  IonSearchbar,
+  IonToggle,
+  IonLabel,
   modalController,
 } from "@ionic/vue";
-import { timeOutline, listOutline } from "ionicons/icons";
-import { ref, onMounted } from "vue";
-import { postJsonRpc, getStoredUserId, DEFAULT_ALLOWED_COMPANY_IDS } from "@/utils/auth";
+import {
+  timeOutline,
+  listOutline,
+  filterOutline,
+  closeCircle,
+  chevronDownOutline,
+} from "ionicons/icons";
+import { ref, onMounted, watch, computed } from "vue";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUserStore } from "@/stores/user.store";
 import AttendanceDetailModal from "@/components/AttendanceDetailModal.vue";
+import DateInput from "@/components/DateInput.vue";
 
-const records = ref<any[]>([]);
+const authStore = useAuthStore();
+const userStore = useUserStore();
+const records = ref([]);
 const loading = ref(true);
+
+// Computed Totals
+const totalWorkedHours = computed(() =>
+  records.value.reduce((sum, r) => sum + (r.worked_hours || 0), 0),
+);
+
+const totalOvertimeHours = computed(() =>
+  records.value.reduce((sum, r) => sum + (r.overtime_hours || 0), 0),
+);
+
+// Filter State
+const showFilters = ref(false);
+const dateFrom = ref("");
+const dateTo = ref("");
+const isMyTeam = ref(false);
+const employeeSearch = ref("");
+const employeeOptions = ref([]);
+const selectedEmployees = ref([]);
+
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value;
+};
+
+const onEmployeeFocus = () => {
+  if (employeeOptions.value.length === 0) {
+    loadEmployees(true);
+  } else {
+    showAllEmployees.value = true;
+  }
+};
+
+const onEmployeeBlur = () => {
+  // Delay hiding to allow click event on suggestions to fire
+  setTimeout(() => {
+    showAllEmployees.value = false;
+  }, 200);
+};
+
+const employeeOffset = ref(0);
+const hasMoreEmployees = ref(true);
+const loadingEmployees = ref(false);
+const showAllEmployees = ref(false);
+
+const loadEmployees = async (reset = false) => {
+  if (loadingEmployees.value) return;
+  if (!reset && !hasMoreEmployees.value) return;
+
+  loadingEmployees.value = true;
+  if (reset) {
+    employeeOffset.value = 0;
+    employeeOptions.value = [];
+  }
+
+  try {
+    const result = await userStore.fetchEmployees({
+      query: employeeSearch.value,
+      offset: employeeOffset.value,
+      limit: 10,
+    });
+
+    employeeOptions.value = [...employeeOptions.value, ...result.records];
+    hasMoreEmployees.value = result.hasMore;
+    employeeOffset.value += 10;
+    showAllEmployees.value = !employeeSearch.value;
+  } catch (error) {
+    console.error("Error loading employees:", error);
+  } finally {
+    loadingEmployees.value = false;
+  }
+};
+
+const onEmployeeSearch = async (event) => {
+  employeeSearch.value = event.target.value;
+  loadEmployees(true);
+};
+
+const onEmployeeScroll = (event) => {
+  const target = event.target;
+  if (target.scrollTop + target.clientHeight >= target.scrollHeight - 20) {
+    loadEmployees();
+  }
+};
+
+const selectEmployee = (emp) => {
+  if (!selectedEmployees.value.find((e) => e.id === emp.id)) {
+    selectedEmployees.value.push(emp);
+  }
+  employeeSearch.value = "";
+  employeeOptions.value = [];
+  showAllEmployees.value = false;
+};
+
+const removeEmployee = (empId) => {
+  selectedEmployees.value = selectedEmployees.value.filter(
+    (e) => e.id !== empId,
+  );
+};
+
+const resetFilters = () => {
+  dateFrom.value = "";
+  dateTo.value = "";
+  isMyTeam.value = false;
+  selectedEmployees.value = [];
+  employeeSearch.value = "";
+  loadEmployees(true);
+};
+
+// Automatic filter application
+watch(
+  [selectedEmployees, dateFrom, dateTo, isMyTeam],
+  () => {
+    fetchAttendances();
+  },
+  { deep: true },
+);
 
 onMounted(() => {
   fetchAttendances();
 });
 
-const handleRefresh = async (event: CustomEvent) => {
+const handleRefresh = async (event) => {
   await fetchAttendances();
   event.target.complete();
 };
@@ -98,39 +318,33 @@ const handleRefresh = async (event: CustomEvent) => {
 async function fetchAttendances() {
   loading.value = true;
   try {
-    const uid = Number(getStoredUserId());
-    const response = await postJsonRpc("/web/dataset/call_kw/hr.attendance/web_search_read", {
-      model: "hr.attendance",
-      method: "web_search_read",
-      args: [],
-      kwargs: {
-        specification: {
-          employee_id: { fields: { display_name: {} } },
-          check_in: {},
-          check_out: {},
-          worked_hours: {},
-          overtime_hours: {},
-          validated_overtime_hours: {},
-          overtime_status: {},
-        },
-        offset: 0,
-        order: "check_in DESC",
-        limit: 80,
-        context: {
-          lang: "en_US",
-          tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Bangkok",
-          uid,
-          allowed_company_ids: DEFAULT_ALLOWED_COMPANY_IDS,
-          bin_size: true,
-        },
-        count_limit: 10001,
-        domain: [["employee_id.active", "=", true]],
-      },
-    });
+    const uid = Number(authStore.userId);
 
-    if (response.result && response.result.records) {
-      records.value = response.result.records;
+    // Build dynamic domain
+    const domain = [["employee_id.active", "=", true]];
+
+    if (selectedEmployees.value.length > 0) {
+      domain.push([
+        "employee_id",
+        "in",
+        selectedEmployees.value.map((e) => e.id),
+      ]);
     }
+
+    if (isMyTeam.value) {
+      domain.push(["employee_id.parent_id.user_id", "=", uid]);
+    }
+
+    if (dateFrom.value) {
+      domain.push(["check_in", ">=", dateFrom.value + " 00:00:00"]);
+    }
+
+    if (dateTo.value) {
+      domain.push(["check_in", "<=", dateTo.value + " 23:59:59"]);
+    }
+
+    const result = await userStore.fetchAllAttendances(domain);
+    records.value = result;
   } catch (error) {
     console.error("Error fetching attendances:", error);
   } finally {
@@ -138,7 +352,7 @@ async function fetchAttendances() {
   }
 }
 
-async function openDetail(recordId: number) {
+async function openDetail(recordId) {
   const modal = await modalController.create({
     component: AttendanceDetailModal,
     componentProps: {
@@ -148,16 +362,20 @@ async function openDetail(recordId: number) {
   await modal.present();
 }
 
-function getEmployeeName(record: any) {
-  if (record.employee_id && typeof record.employee_id === 'object' && record.employee_id.display_name) {
+function getEmployeeName(record) {
+  if (
+    record.employee_id &&
+    typeof record.employee_id === "object" &&
+    record.employee_id.display_name
+  ) {
     return record.employee_id.display_name;
   }
   return "Unknown Employee";
 }
 
-function formatDateTime(dateStr: string | null | false) {
+function formatDateTime(dateStr) {
   if (!dateStr) return "N/A";
-  
+
   // Odoo returns UTC times without 'Z'. We append 'Z' to parse it correctly as UTC.
   const date = new Date(dateStr + "Z");
   if (isNaN(date.getTime())) return dateStr;
@@ -170,7 +388,7 @@ function formatDateTime(dateStr: string | null | false) {
   });
 }
 
-function formatHours(hours: number | null | false) {
+function formatHours(hours) {
   if (!hours) return "0.0";
   return hours.toFixed(2);
 }
@@ -181,7 +399,8 @@ function formatHours(hours: number | null | false) {
   padding-bottom: 20px;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -240,8 +459,8 @@ function formatHours(hours: number | null | false) {
 }
 
 .status-badge.checked-in {
-  background: #ecfdf5;
-  color: #059669;
+  background: #eff6ff;
+  color: #3b82f6;
 }
 
 .status-badge.checked-out {
@@ -307,5 +526,190 @@ function formatHours(hours: number | null | false) {
   background: #fffbeb;
   padding: 4px 10px;
   border-radius: 8px;
+}
+
+/* Filter Styles */
+.filter-panel {
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filter-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.filter-item.full {
+  flex: 1 1 100%;
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 380px) {
+  .date-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-item label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 4px;
+}
+
+.custom-searchbar {
+  --background: #f8fafc;
+  --border-radius: 12px;
+  padding: 0;
+  height: 44px;
+}
+
+.employee-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  z-index: 100;
+  margin-top: 4px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:active {
+  background: #f1f5f9;
+}
+
+.suggestion-loading {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+
+.selected-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.selected-tag ion-icon {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.team-toggle {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+}
+
+.team-toggle ion-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+ion-button {
+  --border-radius: 10px;
+  font-weight: 700;
+}
+
+/* Stats Summary */
+.stats-summary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  color: white;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.2);
 }
 </style>

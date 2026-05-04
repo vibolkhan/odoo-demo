@@ -1,15 +1,39 @@
 <template>
   <ion-modal
     :is-open="isOpen"
-    :breakpoints="[0, 0.65, 0.92]"
-    :initial-breakpoint="0.65"
+    :breakpoints="[0, 1]"
+    :initial-breakpoint="1"
     :backdrop-breakpoint="0"
     :expand-to-scroll="false"
-    handle="true"
     @didDismiss="$emit('close')"
   >
     <ion-content class="request-detail-modal" :scroll-y="true">
-      <section v-if="request" class="request-detail-shell">
+      <section v-if="request && isEditing" class="request-detail-shell">
+        <div class="request-detail-header">
+          <div>
+            <p class="detail-eyebrow">Modify Request</p>
+            <div class="detail-title-group">
+              <h2>Edit Leave</h2>
+            </div>
+          </div>
+
+          <ion-button
+            fill="clear"
+            class="detail-close-button"
+            @click="$emit('close')"
+          >
+            <ion-icon :icon="close" size="large" />
+          </ion-button>
+        </div>
+
+        <RequestForm
+          :initial-data="request"
+          :navigate-after-submit="false"
+          @submitted="handleEditSubmitted"
+        />
+      </section>
+
+      <section v-else-if="request && (request.state !== 'confirm' || request.needsAction || managerMode)" class="request-detail-shell">
         <div class="request-detail-header">
           <div>
             <p class="detail-eyebrow">Leave Request</p>
@@ -88,7 +112,8 @@
           <p>{{ request.reason || "No reason was provided for this leave request." }}</p>
         </div>
 
-        <div v-if="request.needsAction" class="detail-actions-tray">
+        <!-- Manager mode: show Approve/Refuse for pending requests -->
+        <div v-if="managerMode && (request.state === 'confirm' || request.state === 'validate1')" class="detail-actions-tray">
           <ion-button
             expand="block"
             fill="outline"
@@ -113,12 +138,52 @@
             {{ isApproving ? "Approving..." : "Approve" }}
           </ion-button>
         </div>
+
+        <!-- Employee mode: needsAction shows approve/refuse, confirm shows edit -->
+        <div v-else-if="!managerMode && request.needsAction" class="detail-actions-tray">
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="danger"
+            class="action-button reject-button"
+            :disabled="isProcessing"
+            @click="handleRefuse"
+          >
+            <ion-icon slot="start" :icon="closeCircleOutline" />
+            {{ isRefusing ? "Refusing..." : "Refuse" }}
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="solid"
+            color="primary"
+            class="action-button approve-button"
+            :disabled="isProcessing"
+            @click="handleApprove"
+          >
+            <ion-icon slot="start" :icon="checkmarkCircleOutline" />
+            {{ isApproving ? "Approving..." : "Approve" }}
+          </ion-button>
+        </div>
+
+        <div v-else-if="!managerMode && request.state === 'confirm'" class="detail-actions-tray">
+          <ion-button
+            expand="block"
+            fill="solid"
+            color="primary"
+            class="action-button edit-button"
+            @click="isEditing = true"
+          >
+            <ion-icon slot="start" :icon="createOutline" />
+            Edit Request
+          </ion-button>
+        </div>
       </section>
     </ion-content>
   </ion-modal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { IonButton, IonContent, IonIcon, IonModal } from "@ionic/vue";
 import {
   airplaneOutline,
@@ -126,34 +191,47 @@ import {
   checkmarkCircleOutline,
   close,
   closeCircleOutline,
+  createOutline,
   medkitOutline,
   personOutline,
   sparklesOutline,
 } from "ionicons/icons";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { toastController } from "@ionic/vue";
-import {
-  approveLeaveRequest,
-  refuseLeaveRequest,
-  type LeaveRequest,
-} from "@/utils/leaveRequests";
+import RequestForm from "@/components/RequestForm.vue";
+import { useTimeoffStore } from "@/stores/timeoff.store";
 
-defineProps<{
-  isOpen: boolean;
-  request: LeaveRequest | null;
-  fallbackEmployeeName?: string;
-}>();
+const props = defineProps({
+  isOpen: Boolean,
+  request: Object,
+  fallbackEmployeeName: String,
+  managerMode: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-const emit = defineEmits<{
-  close: [];
-  updated: [];
-}>();
+const emit = defineEmits(['close', 'updated']);
+const timeoffStore = useTimeoffStore();
 
 const isApproving = ref(false);
 const isRefusing = ref(false);
+const isEditing = ref(false);
 const isProcessing = computed(() => isApproving.value || isRefusing.value);
 
-const showToast = async (message: string, color: "success" | "danger") => {
+watch(
+  () => props.isOpen,
+  (val) => {
+    if (!val) {
+      isEditing.value = false;
+    } else if (!props.managerMode && props.request?.state === "confirm" && !props.request?.needsAction) {
+      // Only auto-open edit form in employee mode for their own pending requests
+      isEditing.value = true;
+    }
+  }
+);
+
+const showToast = async (message, color) => {
   const toast = await toastController.create({
     message,
     duration: 3000,
@@ -164,12 +242,18 @@ const showToast = async (message: string, color: "success" | "danger") => {
   await toast.present();
 };
 
+const handleEditSubmitted = () => {
+  isEditing.value = false;
+  emit("updated");
+  emit("close");
+};
+
 const handleApprove = async () => {
   if (!props.request || isProcessing.value) return;
 
   isApproving.value = true;
   try {
-    await approveLeaveRequest(props.request.id);
+    await timeoffStore.approveLeaveRequest(props.request.id);
     await showToast("Leave request approved successfully.", "success");
     emit("updated");
     emit("close");
@@ -188,7 +272,7 @@ const handleRefuse = async () => {
 
   isRefusing.value = true;
   try {
-    await refuseLeaveRequest(props.request.id);
+    await timeoffStore.refuseLeaveRequest(props.request.id);
     await showToast("Leave request refused.", "success");
     emit("updated");
     emit("close");
@@ -202,15 +286,15 @@ const handleRefuse = async () => {
   }
 };
 
-const getLeaveTypeEnglishName = (name: string) => {
+const getLeaveTypeEnglishName = (name) => {
   return name.split(" - ")[0] || name;
 };
 
-const getLeaveTypeKhmerName = (name: string) => {
+const getLeaveTypeKhmerName = (name) => {
   return name.split(" - ")[1] || "";
 };
 
-const parseRequestDate = (value: string) => {
+const parseRequestDate = (value) => {
   if (!value) return null;
 
   const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
@@ -219,7 +303,7 @@ const parseRequestDate = (value: string) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const formatDate = (value: string) => {
+const formatDate = (value) => {
   const date = parseRequestDate(value);
 
   if (!date) return value || "-";
@@ -231,14 +315,14 @@ const formatDate = (value: string) => {
   }).format(date);
 };
 
-const formatDateRange = (start: string, end: string) => {
+const formatDateRange = (start, end) => {
   const startLabel = formatDate(start);
   const endLabel = formatDate(end);
 
   return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
-const formatStateLabel = (state: string) => {
+const formatStateLabel = (state) => {
   switch (state) {
     case "confirm":
       return "Pending";
@@ -257,7 +341,7 @@ const formatStateLabel = (state: string) => {
   }
 };
 
-const badgeClass = (state: string) => {
+const badgeClass = (state) => {
   switch (state) {
     case "validate1":
       return "status-review";
@@ -271,7 +355,7 @@ const badgeClass = (state: string) => {
   }
 };
 
-const requestTypeIcon = (leaveType: string) => {
+const requestTypeIcon = (leaveType) => {
   const normalizedType = leaveType.toLowerCase();
 
   if (normalizedType.includes("sick")) return medkitOutline;
@@ -282,7 +366,7 @@ const requestTypeIcon = (leaveType: string) => {
   return sparklesOutline;
 };
 
-const tileTone = (leaveType: string) => {
+const tileTone = (leaveType) => {
   const normalizedType = leaveType.toLowerCase();
 
   if (normalizedType.includes("sick")) return "tone-blue";

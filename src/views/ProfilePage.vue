@@ -26,26 +26,43 @@
       <div class="attendance-section" v-if="employeeId">
         <div class="attendance-card" :class="{ 'is-checked-in': isCheckedIn }">
           <div class="attendance-info">
-            <h3>{{ isCheckedIn ? 'Currently Working' : 'Not Checked In' }}</h3>
+            <h3>{{ isCheckedIn ? "Currently Working" : "Not Checked In" }}</h3>
             <p v-if="isCheckedIn && checkInTime">
-              Since: {{ formatDisplayTime(checkInTime) }} 
+              Since: {{ formatDisplayTime(checkInTime) }}
               <span class="live-timer">({{ workingDuration }})</span>
             </p>
             <p v-else>Ready to start your day?</p>
           </div>
-          <button v-if="!isCheckedIn" class="attendance-btn check-in" @click="toggleAttendance" :disabled="isToggling">
-            <ion-spinner v-if="isToggling" name="crescent" class="btn-spinner"></ion-spinner>
+          <button
+            v-if="!isCheckedIn"
+            class="attendance-btn check-in"
+            @click="toggleAttendance"
+            :disabled="isToggling"
+          >
+            <ion-spinner
+              v-if="isToggling"
+              name="crescent"
+              class="btn-spinner"
+            ></ion-spinner>
             <ion-icon v-else :icon="logInOutline" />
             Check In
           </button>
-          <button v-else class="attendance-btn check-out" @click="toggleAttendance" :disabled="isToggling">
-            <ion-spinner v-if="isToggling" name="crescent" class="btn-spinner"></ion-spinner>
+          <button
+            v-else
+            class="attendance-btn check-out"
+            @click="toggleAttendance"
+            :disabled="isToggling"
+          >
+            <ion-spinner
+              v-if="isToggling"
+              name="crescent"
+              class="btn-spinner"
+            ></ion-spinner>
             <ion-icon v-else :icon="logOutOutline" />
             Check Out
           </button>
         </div>
       </div>
-
 
       <div class="profile-actions">
         <section v-if="isManager" class="action-section">
@@ -91,6 +108,20 @@
               <div class="card-copy">
                 <h4>My Requests</h4>
                 <p>View your leave history</p>
+              </div>
+              <ion-icon :icon="chevronForwardOutline" class="chevron" />
+            </button>
+
+            <button
+              class="action-card"
+              @click="router.push('/tabs/my-attendance')"
+            >
+              <div class="icon-box blue">
+                <ion-icon :icon="timeOutline" />
+              </div>
+              <div class="card-copy">
+                <h4>My Attendances</h4>
+                <p>Check your work history</p>
               </div>
               <ion-icon :icon="chevronForwardOutline" class="chevron" />
             </button>
@@ -144,13 +175,14 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonContent,
   IonPage,
   IonIcon,
   IonRefresher,
   IonRefresherContent,
+  IonSpinner,
 } from "@ionic/vue";
 import {
   checkmarkDoneOutline,
@@ -162,21 +194,17 @@ import {
   calendarOutline,
   timeOutline,
 } from "ionicons/icons";
-import { computed, ref, onMounted, watch, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import {
-  getStoredUserId,
-  getStoredUsername,
-  logout,
-  postJsonRpc,
-} from "@/utils/auth";
-import { fetchCurrentUserEmployee } from "@/utils/employees";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUserStore } from "@/stores/user.store";
 
 const router = useRouter();
-
-const username = computed(() => getStoredUsername() || "Guest User");
-const userId = computed(() => getStoredUserId());
-const groups = ref<string[]>([]);
+const authStore = useAuthStore();
+const userStore = useUserStore();
+const { displayName: username, userId } = storeToRefs(authStore);
+const { currentEmployee, isManager } = storeToRefs(userStore);
 
 const userInitials = computed(() => {
   const name = username.value;
@@ -184,149 +212,111 @@ const userInitials = computed(() => {
   return name.charAt(0).toUpperCase();
 });
 
-// We consider someone a manager if they have the holidays manager group
-const isManager = computed(() => {
-  return groups.value.includes("hr_holidays.group_hr_holidays_manager");
-});
+const employeeId = computed(() => currentEmployee.value?.id ?? null);
+const isCheckedIn = computed(
+  () => currentEmployee.value?.attendanceState === "checked_in",
+);
+const checkInTime = computed(() => {
+  if (!isCheckedIn.value || !currentEmployee.value?.lastCheckIn) {
+    return null;
+  }
 
-const employeeId = ref<number | null>(null);
-const isCheckedIn = ref(false);
-const checkInTime = ref<Date | null>(null);
-
-onMounted(async () => {
-  await Promise.all([fetchUserGroups(), fetchEmployeeData()]);
+  return new Date(`${currentEmployee.value.lastCheckIn}Z`);
 });
 
 const isToggling = ref(false);
 const workingDuration = ref("00:00:00");
-let timerInterval: any = null;
+let timerInterval = null;
 
 const updateTimer = () => {
   if (isCheckedIn.value && checkInTime.value) {
-    const diff = Math.floor((new Date().getTime() - checkInTime.value.getTime()) / 1000);
-    const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-    const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-    const s = Math.floor(diff % 60).toString().padStart(2, '0');
+    const diff = Math.floor(
+      (new Date().getTime() - checkInTime.value.getTime()) / 1000,
+    );
+    const h = Math.floor(diff / 3600)
+      .toString()
+      .padStart(2, "0");
+    const m = Math.floor((diff % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = Math.floor(diff % 60)
+      .toString()
+      .padStart(2, "0");
     workingDuration.value = `${h}:${m}:${s}`;
   } else {
     workingDuration.value = "00:00:00";
   }
 };
 
-watch(isCheckedIn, (newVal) => {
-  if (newVal) {
-    updateTimer();
-    timerInterval = setInterval(updateTimer, 1000);
-  } else {
-    if (timerInterval) clearInterval(timerInterval);
-    workingDuration.value = "00:00:00";
-  }
-}, { immediate: true });
+watch(
+  isCheckedIn,
+  (newVal) => {
+    if (newVal) {
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+    } else {
+      if (timerInterval) clearInterval(timerInterval);
+      workingDuration.value = "00:00:00";
+    }
+  },
+  { immediate: true },
+);
+
+onMounted(async () => {
+  await Promise.all([
+    authStore.hydrateSession(),
+    userStore.fetchManagerAccess(),
+    userStore.fetchCurrentEmployee({ force: true }),
+  ]);
+});
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
 });
 
-async function fetchEmployeeData() {
-  try {
-    const employee = await fetchCurrentUserEmployee();
-    if (employee) {
-      employeeId.value = employee.id;
-      isCheckedIn.value = employee.attendanceState === 'checked_in';
-      if (isCheckedIn.value && employee.lastCheckIn) {
-        // Odoo stores dates in UTC without the 'Z' suffix, we add it back.
-        checkInTime.value = new Date(employee.lastCheckIn + 'Z');
-      } else {
-        checkInTime.value = null;
-      }
-    }
-  } catch (error) {
-    console.error("Failed to fetch employee:", error);
-  }
-}
-
-function formatDisplayTime(date: Date) {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function formatDisplayTime(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 async function toggleAttendance() {
   if (isToggling.value) return;
   isToggling.value = true;
-  
-  // Optimistic UI update
-  const previousState = isCheckedIn.value;
-  const previousTime = checkInTime.value;
-  isCheckedIn.value = !previousState;
-  if (!previousState) {
-    checkInTime.value = new Date();
-  } else {
-    checkInTime.value = null;
-  }
 
   let latitude = 11.549701051642238;
   let longitude = 104.94357686377263;
 
   try {
-    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+    const pos = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        timeout: 5000,
+      });
     });
     latitude = pos.coords.latitude;
     longitude = pos.coords.longitude;
-  } catch (e) {
-    console.warn("Could not get exact location, using default", e);
+  } catch (error) {
+    console.warn("Could not get exact location, using default", error);
   }
 
   try {
-    const response = await postJsonRpc("/hr_attendance/systray_check_in_out", {
-      latitude,
-      longitude
-    });
-
-    if (response.error) {
-      // Revert optimistic update
-      isCheckedIn.value = previousState;
-      checkInTime.value = previousTime;
-      console.error("Failed to toggle attendance:", response.error);
-      alert("Failed to update attendance. Please try again.");
-      return;
-    }
-
-    await fetchEmployeeData();
+    await userStore.toggleAttendance(latitude, longitude);
   } catch (error) {
     console.error("Error during attendance toggle:", error);
-    alert("An error occurred. Please try again.");
+    alert(error.message || "An error occurred. Please try again.");
   } finally {
     isToggling.value = false;
   }
 }
 
-async function fetchUserGroups() {
-  try {
-    const response = await postJsonRpc(
-      "/web/dataset/call_kw/res.users/has_group",
-      {
-        model: "res.users",
-        method: "has_group",
-        args: ["hr_holidays.group_hr_holidays_manager"],
-        kwargs: {},
-      }
-    );
-
-    if (response.result === true) {
-      groups.value = ["hr_holidays.group_hr_holidays_manager"];
-    }
-  } catch (error) {
-    console.error("Failed to check manager access:", error);
-  }
-}
-
-const handleRefresh = async (event: CustomEvent) => {
-  await Promise.all([fetchUserGroups(), fetchEmployeeData()]);
+const handleRefresh = async (event) => {
+  await Promise.all([
+    userStore.fetchManagerAccess(),
+    userStore.fetchCurrentEmployee({ force: true }),
+  ]);
   event.target.complete();
 };
 
 const handleLogout = async () => {
-  await logout();
+  await authStore.logout();
   await router.replace("/login");
 };
 </script>

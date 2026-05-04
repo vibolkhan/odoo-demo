@@ -14,7 +14,7 @@
         class="date-display"
         :class="{ 'date-display-placeholder': !modelValue }"
       >
-        {{ modelValue || placeholder || "Select date" }}
+        {{ displayValue || placeholder || "Select date" }}
       </div>
       <ion-icon
         slot="end"
@@ -72,10 +72,7 @@
             >
               Clear
             </ion-button>
-            <ion-button
-              class="date-picker-confirm"
-              @click="handleConfirm"
-            >
+            <ion-button class="date-picker-confirm" @click="handleConfirm">
               Done
             </ion-button>
           </div>
@@ -85,7 +82,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonButton,
   IonContent,
@@ -95,23 +92,51 @@ import {
   IonModal,
 } from "@ionic/vue";
 import { calendarOutline, close } from "ionicons/icons";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
-const props = defineProps<{
-  modelValue: string;
-  label?: string;
-  placeholder?: string;
-  min?: string;
-  max?: string;
-  disabled?: boolean;
-}>();
+const props = defineProps({
+  modelValue: {
+    type: String,
+    required: true,
+  },
+  label: {
+    type: String,
+    default: "",
+  },
+  placeholder: {
+    type: String,
+    default: "",
+  },
+  min: {
+    type: String,
+    default: "",
+  },
+  max: {
+    type: String,
+    default: "",
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-const emit = defineEmits<{
-  (e: "update:modelValue", value: string): void;
-}>();
+const emit = defineEmits(["update:modelValue"]);
 
 const isOpen = ref(false);
 const draftValue = ref("");
+
+const displayValue = computed(() => {
+  if (!props.modelValue) return "";
+  const date = new Date(props.modelValue);
+  if (isNaN(date.getTime())) return props.modelValue;
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+});
 
 const openPicker = () => {
   draftValue.value = props.modelValue || new Date().toISOString().slice(0, 10);
@@ -150,9 +175,9 @@ const handleClear = () => {
 .field {
   --background: #f7f9fc;
   --border-radius: 18px;
-  --padding-start: 14px;
-  --inner-padding-end: 14px;
-  --min-height: 50px;
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  --min-height: 44px;
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   transition: all 0.2s ease;
@@ -178,7 +203,7 @@ const handleClear = () => {
 .date-display {
   flex: 1;
   min-width: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #0f172a;
 }
 

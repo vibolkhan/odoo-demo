@@ -93,14 +93,20 @@
         :disabled="isSubmittingRequest"
         @click="handleSubmitRequest"
       >
-        {{ isSubmittingRequest ? "Submitting..." : "Submit Request" }}
+        {{
+          isSubmittingRequest
+            ? "Submitting..."
+            : initialData
+            ? "Update Request"
+            : "Submit Request"
+        }}
       </ion-button>
     </section>
 
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonButton,
   IonCheckbox,
@@ -111,63 +117,57 @@ import {
 } from "@ionic/vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 import DateInput from "./DateInput.vue";
+import { useUserStore } from "@/stores/user.store";
+import { useTimeoffStore } from "@/stores/timeoff.store";
 
-import {
-  fetchCurrentUserEmployee,
-  type EmployeeOption,
-} from "@/utils/employees";
-import { fetchLeaveTypes, type LeaveTypeOption } from "@/utils/leaveTypes";
-import { saveLeaveRequest } from "@/utils/leaveRequests";
-
-const props = withDefaults(
-  defineProps<{
-    navigateAfterSubmit?: boolean;
-    showHeader?: boolean;
-  }>(),
-  {
-    navigateAfterSubmit: true,
-    showHeader: true,
+const props = defineProps({
+  navigateAfterSubmit: {
+    type: Boolean,
+    default: true,
   },
-);
+  showHeader: {
+    type: Boolean,
+    default: true,
+  },
+  initialData: {
+    type: Object,
+    default: null,
+  },
+});
 
-const emit = defineEmits<{
-  submitted: [];
-}>();
+const emit = defineEmits(["submitted"]);
 
 const router = useRouter();
+const userStore = useUserStore();
+const timeoffStore = useTimeoffStore();
+const { leaveTypes, loading } = storeToRefs(timeoffStore);
 
-// Form State
-const leaveType = ref<number | null>(null);
-const leaveTypes = ref<LeaveTypeOption[]>([]);
-const selectedEmployeeId = ref<number | null>(null);
-const selectedEmployeeDetails = ref<EmployeeOption | null>(null);
+const leaveType = ref(null);
+const selectedEmployeeId = ref(null);
 const startDate = ref("");
 const endDate = ref("");
 const isHalfDay = ref(false);
 const reason = ref("");
 
-// UI State
-const isLoadingLeaveTypes = ref(false);
 const leaveTypeErrorMessage = ref("");
 const submitErrorMessage = ref("");
 const submitSuccessMessage = ref("");
-const isSubmittingRequest = ref(false);
 
-// Computed
-const localizedDatePlaceholder = computed(() => {
-  return "YYYY-MM-DD";
-});
+const isLoadingLeaveTypes = computed(() => loading.value.leaveTypes);
+const isSubmittingRequest = computed(() => loading.value.leaveRequestSubmit);
+const localizedDatePlaceholder = computed(() => "YYYY-MM-DD");
 
-watch(isHalfDay, (val) => {
-  if (val && startDate.value) {
+watch(isHalfDay, (value) => {
+  if (value && startDate.value) {
     endDate.value = startDate.value;
   }
 });
 
-watch(startDate, (val) => {
-  if (isHalfDay.value && val) {
-    endDate.value = val;
+watch(startDate, (value) => {
+  if (isHalfDay.value && value) {
+    endDate.value = value;
   }
 });
 
@@ -182,21 +182,17 @@ const leaveTypeSelectInterfaceOptions = {
   subHeader: "Choose the leave type for this request.",
 };
 
-// Actions
 const loadLeaveTypes = async () => {
   if (!selectedEmployeeId.value) return;
 
-  isLoadingLeaveTypes.value = true;
   leaveTypeErrorMessage.value = "";
 
   try {
-    const options = await fetchLeaveTypes({
+    const options = await timeoffStore.fetchLeaveTypes({
       employeeId: selectedEmployeeId.value,
       dateFrom: startDate.value || undefined,
       dateTo: endDate.value || undefined,
     });
-
-    leaveTypes.value = options;
 
     if (
       leaveType.value != null &&
@@ -205,21 +201,17 @@ const loadLeaveTypes = async () => {
       leaveType.value = null;
     }
   } catch (error) {
-    leaveTypes.value = [];
     leaveType.value = null;
     leaveTypeErrorMessage.value =
       error instanceof Error ? error.message : "Unable to load leave types.";
-  } finally {
-    isLoadingLeaveTypes.value = false;
   }
 };
 
 const loadCurrentUserEmployee = async () => {
   try {
-    const employee = await fetchCurrentUserEmployee();
+    const employee = await userStore.fetchCurrentEmployee({ force: true });
     if (employee) {
       selectedEmployeeId.value = employee.id;
-      selectedEmployeeDetails.value = employee;
     }
   } catch (error) {
     console.error("Failed to load current user employee:", error);
@@ -257,20 +249,33 @@ const handleSubmitRequest = async () => {
     return;
   }
 
-  isSubmittingRequest.value = true;
-
   try {
-    await saveLeaveRequest({
-      employeeId: selectedEmployeeId.value,
-      leaveTypeId: leaveType.value,
-      requestDateFrom: startDate.value,
-      requestDateTo: endDate.value,
-      requestUnitHalf: isHalfDay.value,
-      reason: reason.value,
-    });
+    if (props.initialData?.id) {
+      await timeoffStore.updateLeaveRequest(props.initialData.id, {
+        leaveTypeId: leaveType.value,
+        requestDateFrom: startDate.value,
+        requestDateTo: endDate.value,
+        requestUnitHalf: isHalfDay.value,
+        reason: reason.value,
+      });
+    } else {
+      await timeoffStore.saveLeaveRequest({
+        employeeId: selectedEmployeeId.value,
+        leaveTypeId: leaveType.value,
+        requestDateFrom: startDate.value,
+        requestDateTo: endDate.value,
+        requestUnitHalf: isHalfDay.value,
+        reason: reason.value,
+      });
+    }
 
-    resetForm();
-    submitSuccessMessage.value = "Leave request submitted successfully.";
+    if (!props.initialData) {
+      resetForm();
+    }
+
+    submitSuccessMessage.value = props.initialData
+      ? "Leave request updated successfully."
+      : "Leave request submitted successfully.";
     emit("submitted");
 
     if (props.navigateAfterSubmit) {
@@ -281,13 +286,20 @@ const handleSubmitRequest = async () => {
       error instanceof Error
         ? error.message
         : "Unable to submit leave request.";
-  } finally {
-    isSubmittingRequest.value = false;
   }
 };
 
 onMounted(async () => {
   await loadCurrentUserEmployee();
+
+  if (props.initialData) {
+    leaveType.value = props.initialData.leaveTypeId;
+    startDate.value = props.initialData.dateFrom.split(" ")[0];
+    endDate.value = props.initialData.dateTo.split(" ")[0];
+    isHalfDay.value = props.initialData.requestUnitHalf;
+    reason.value = props.initialData.reason;
+  }
+
   void loadLeaveTypes();
 });
 

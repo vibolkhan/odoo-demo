@@ -74,7 +74,7 @@
   </ion-modal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { IonContent, IonIcon, IonModal } from "@ionic/vue";
 import {
   calendarClearOutline,
@@ -85,30 +85,18 @@ import {
   sparklesOutline,
 } from "ionicons/icons";
 
-export type HolidayDetail = {
-  id: string;
-  type: string;
-  date: string;
-  fullDate: string;
-  duration: string;
-  status: string;
-  color: string;
-};
+defineProps({
+  isOpen: Boolean,
+  holiday: Object,
+});
 
-defineProps<{
-  isOpen: boolean;
-  holiday: HolidayDetail | null;
-}>();
+defineEmits(['close']);
 
-defineEmits<{
-  close: [];
-}>();
-
-const getEnglishName = (name: string) => {
+const getEnglishName = (name) => {
   return name.split("(")[0].trim();
 };
 
-const getKhmerName = (name: string) => {
+const getKhmerName = (name) => {
   const match = name.match(/\(([^)]+)\)/);
   return match ? match[1] : "";
 };

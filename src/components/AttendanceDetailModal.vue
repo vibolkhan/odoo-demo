@@ -113,7 +113,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonPage,
   IonHeader,
@@ -128,14 +128,18 @@ import {
 } from "@ionic/vue";
 import { closeOutline } from "ionicons/icons";
 import { ref, onMounted } from "vue";
-import { postJsonRpc, getStoredUserId, DEFAULT_ALLOWED_COMPANY_IDS } from "@/utils/auth";
+import { useUserStore } from "@/stores/user.store";
 
-const props = defineProps<{
-  recordId: number;
-}>();
+const props = defineProps({
+  recordId: {
+    type: Number,
+    required: true
+  }
+});
 
 const loading = ref(true);
-const record = ref<any>(null);
+const record = ref(null);
+const userStore = useUserStore();
 
 onMounted(() => {
   fetchDetail();
@@ -148,49 +152,9 @@ const dismiss = () => {
 async function fetchDetail() {
   loading.value = true;
   try {
-    const uid = Number(getStoredUserId());
-    const response = await postJsonRpc("/web/dataset/call_kw/hr.attendance/web_read", {
-      model: "hr.attendance",
-      method: "web_read",
-      args: [[props.recordId]],
-      kwargs: {
-        context: {
-          lang: "en_US",
-          tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Bangkok",
-          uid,
-          allowed_company_ids: DEFAULT_ALLOWED_COMPANY_IDS,
-          bin_size: true,
-        },
-        specification: {
-          overtime_status: {},
-          employee_id: { fields: { display_name: {} } },
-          check_in: {},
-          check_out: {},
-          worked_hours: {},
-          overtime_hours: {},
-          validated_overtime_hours: {},
-          in_mode: {},
-          in_ip_address: {},
-          in_browser: {},
-          in_country_name: {},
-          in_city: {},
-          in_latitude: {},
-          in_longitude: {},
-          out_mode: {},
-          out_ip_address: {},
-          out_browser: {},
-          out_country_name: {},
-          out_city: {},
-          out_latitude: {},
-          out_longitude: {},
-          no_validated_overtime_hours: {},
-          display_name: {},
-        },
-      },
-    });
-
-    if (response.result && response.result.length > 0) {
-      record.value = response.result[0];
+    const result = await userStore.fetchAttendanceDetail(props.recordId);
+    if (result) {
+      record.value = result;
     }
   } catch (error) {
     console.error("Error fetching attendance details:", error);
@@ -206,7 +170,7 @@ function getEmployeeName() {
   return record.value?.display_name || "Unknown Employee";
 }
 
-function formatDateTime(dateStr: string | null | false) {
+function formatDateTime(dateStr) {
   if (!dateStr) return "N/A";
   
   const date = new Date(dateStr + "Z");
@@ -220,7 +184,7 @@ function formatDateTime(dateStr: string | null | false) {
   });
 }
 
-function formatHours(hours: number | null | false) {
+function formatHours(hours) {
   if (!hours) return "0.0";
   return hours.toFixed(2);
 }

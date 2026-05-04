@@ -10,11 +10,11 @@
       </ion-refresher>
 
       <section class="catalog-shell">
-        <div class="top-action-bar">
+        <!-- <div class="top-action-bar">
           <ion-button fill="clear" class="utility-button">
             <ion-icon :icon="notificationsOutline" size="large" />
           </ion-button>
-        </div>
+        </div> -->
 
         <div class="page-header">
           <div>
@@ -98,7 +98,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonButton,
   IonContent,
@@ -117,11 +117,9 @@ import { useRoute, useRouter } from "vue-router";
 import RequestForm from "@/components/RequestForm.vue";
 import RequestLst from "@/components/RequestLst.vue";
 
-type RequestListInstance = InstanceType<typeof RequestLst>;
-
 const route = useRoute();
 const router = useRouter();
-const requestListRef = ref<RequestListInstance | null>(null);
+const requestListRef = ref(null);
 const isCreateModalOpen = ref(false);
 const actionMessage = ref("");
 const summary = ref({
@@ -145,21 +143,23 @@ const handleRequestSubmitted = async () => {
   await requestListRef.value?.loadLeaveRequests();
 };
 
-const handleSummaryChange = (nextSummary: typeof summary.value) => {
+const handleSummaryChange = (nextSummary) => {
   summary.value = nextSummary;
 };
 
-const handleRefresh = async (event: CustomEvent) => {
+const handleRefresh = async (event) => {
   try {
     await requestListRef.value?.loadLeaveRequests();
   } finally {
-    (event.target as HTMLIonRefresherElement | null)?.complete();
+    event.target?.complete();
   }
 };
 
 const openRequestedDetailFromQuery = async () => {
   const requestIdParam = route.query.requestId;
-  const requestIdValue = Array.isArray(requestIdParam) ? requestIdParam[0] : requestIdParam;
+  const requestIdValue = Array.isArray(requestIdParam)
+    ? requestIdParam[0]
+    : requestIdParam;
   const requestId = Number(requestIdValue);
 
   if (!requestId) {

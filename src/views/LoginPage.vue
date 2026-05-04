@@ -7,7 +7,7 @@
           <div class="orb orb-2"></div>
           <div class="orb orb-3"></div>
         </div>
-        
+
         <section class="login-card">
           <div class="card-header">
             <p class="eyebrow">Odoo Demo</p>
@@ -50,14 +50,20 @@
               <p class="error-message">{{ errorMessage }}</p>
             </div>
 
-            <ion-button class="submit-button" expand="block" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Authenticating...' : 'Sign In' }}
+            <ion-button
+              class="submit-button"
+              expand="block"
+              type="submit"
+              :disabled="isSubmitting"
+            >
+              {{ isSubmitting ? "Authenticating..." : "Sign In" }}
             </ion-button>
           </form>
 
           <div class="card-footer">
             <p class="hint">
-              Connected to <strong>memot_rubber_plantation_staging</strong>
+              <!-- Connected to <strong>memot_rubber_plantation_staging</strong> -->
+              {{ authStore.loginBaseUrl }}
             </p>
           </div>
         </section>
@@ -66,57 +72,53 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
-import {
-  IonButton,
-  IonContent,
-  IonPage,
-} from '@ionic/vue'
-import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { login, isAuthenticated } from '@/utils/auth'
+<script setup>
+import { IonButton, IonContent, IonPage } from "@ionic/vue";
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth.store";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
+const authStore = useAuthStore();
+const { loading: isSubmitting, isAuthenticated } = storeToRefs(authStore);
 
-const username = ref('vibol.khan@axivit.com')
-const password = ref('Admin@2026')
-const errorMessage = ref('')
-const isSubmitting = ref(false)
+const username = ref("vibol.khan@axivit.com");
+const password = ref("Admin@2026");
+const errorMessage = ref("");
 
 const redirectPath = computed(() => {
-  const redirect = route.query.redirect
-  return typeof redirect === 'string' && redirect.startsWith('/')
+  const redirect = route.query.redirect;
+  return typeof redirect === "string" && redirect.startsWith("/")
     ? redirect
-    : '/tabs/tab2'
-})
+    : "/tabs/leave-calendar";
+});
 
-if (isAuthenticated()) {
-  router.replace(redirectPath.value)
+await authStore.hydrateSession();
+
+if (isAuthenticated.value) {
+  router.replace(redirectPath.value);
 }
 
 const handleLogin = async () => {
-  errorMessage.value = ''
+  errorMessage.value = "";
 
   if (!username.value.trim() || !password.value.trim()) {
-    errorMessage.value = 'Please enter both email and password.'
-    return
+    errorMessage.value = "Please enter both email and password.";
+    return;
   }
 
-  isSubmitting.value = true
-
   try {
-    await login(username.value.trim(), password.value)
-    await router.replace(redirectPath.value)
+    await authStore.login(username.value.trim(), password.value);
+    await router.replace(redirectPath.value);
   } catch (error) {
     errorMessage.value =
       error instanceof Error
         ? error.message
-        : 'Unable to sign in right now. Please try again.'
-  } finally {
-    isSubmitting.value = false
+        : "Unable to sign in right now. Please try again.";
   }
-}
+};
 </script>
 
 <style scoped>
@@ -182,10 +184,18 @@ const handleLogin = async () => {
 }
 
 @keyframes float {
-  0% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0, 0) scale(1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* Glassmorphism Card */
@@ -198,7 +208,7 @@ const handleLogin = async () => {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  box-shadow: 
+  box-shadow:
     0 24px 48px -12px rgba(15, 23, 42, 0.15),
     0 4px 24px rgba(15, 23, 42, 0.05),
     inset 0 0 0 1px rgba(255, 255, 255, 0.8);
@@ -280,7 +290,7 @@ h1 {
 .text-input:focus {
   border-color: #3b82f6;
   background: #ffffff;
-  box-shadow: 
+  box-shadow:
     0 0 0 4px rgba(59, 130, 246, 0.15),
     0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
@@ -340,7 +350,7 @@ h1 {
     padding: 32px 24px;
     gap: 24px;
   }
-  
+
   h1 {
     font-size: 2rem;
   }

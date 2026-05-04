@@ -10,18 +10,18 @@
             <p class="eyebrow">Employee Portal</p>
             <h1>Leave Balance</h1>
           </div>
-          <div v-if="loading" class="header-loader">
+          <div v-if="loading.leaveAllocations || loading.leaveRequests" class="header-loader">
             <ion-spinner name="crescent" />
           </div>
         </div>
 
-        <div v-if="error" class="error-banner">
+        <div v-if="error.leaveAllocations || error.leaveRequests" class="error-banner">
           <ion-icon :icon="alertCircleOutline" />
-          <p>{{ error }}</p>
-          <button @click="loadAllocations">Retry</button>
+          <p>{{ error.leaveAllocations || error.leaveRequests }}</p>
+          <button @click="loadData">Retry</button>
         </div>
 
-        <div v-if="!loading && !error && allocations.length === 0" class="empty-state">
+        <div v-if="!loading.leaveAllocations && !loading.leaveRequests && !(error.leaveAllocations || error.leaveRequests) && allocations.length === 0" class="empty-state">
           <div class="empty-icon">
             <ion-icon :icon="calendarOutline" />
           </div>
@@ -29,7 +29,7 @@
           <p>You don't have any active leave allocations for this period.</p>
         </div>
 
-        <div v-if="!loading && !error && allocations.length > 0" class="summary-card">
+        <div v-if="!loading.leaveAllocations && !loading.leaveRequests && !(error.leaveAllocations || error.leaveRequests) && allocations.length > 0" class="summary-card">
           <div class="summary-main">
             <div class="summary-info">
               <span>Total Remaining</span>
@@ -66,11 +66,11 @@
           </div>
         </div>
 
-        <div v-if="!loading && !error && allocations.length > 0" class="section-title">
+        <div v-if="!loading.leaveAllocations && !loading.leaveRequests && !(error.leaveAllocations || error.leaveRequests) && allocations.length > 0" class="section-title">
           <h2>By Leave Type</h2>
         </div>
 
-        <div v-if="!loading && !error" class="balance-list">
+        <div v-if="!loading.leaveAllocations && !loading.leaveRequests && !(error.leaveAllocations || error.leaveRequests)" class="balance-list">
           <div v-for="item in balances" :key="item.id" class="balance-item">
             <div class="item-icon" :style="{ backgroundColor: item.color + '15', color: item.color }">
               <ion-icon :icon="item.icon" />
@@ -98,7 +98,7 @@
           </div>
         </div>
 
-        <div v-if="loading" class="loading-skeletons">
+        <div v-if="loading.leaveAllocations || loading.leaveRequests" class="loading-skeletons">
           <div v-for="i in 3" :key="i" class="skeleton-item">
             <ion-skeleton-text animated style="width: 48px; height: 48px; border-radius: 16px" />
             <div style="flex: 1">
@@ -113,7 +113,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonContent,
   IonPage,
@@ -131,53 +131,45 @@ import {
   alertCircleOutline,
   sparklesOutline,
 } from "ionicons/icons";
-import { ref, computed, onMounted } from "vue";
-import { 
-  fetchLeaveAllocations, 
-  fetchLeaveRequests, 
-  type LeaveAllocation, 
-  type LeaveRequest 
-} from "@/utils/leaveRequests";
+import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { useTimeoffStore } from "@/stores/timeoff.store";
 
-const allocations = ref<LeaveAllocation[]>([]);
-const requests = ref<LeaveRequest[]>([]);
-const loading = ref(true);
-const error = ref<string | null>(null);
+const timeoffStore = useTimeoffStore();
+const {
+  leaveAllocations: allocations,
+  leaveRequests: requests,
+  loading,
+  error,
+} = storeToRefs(timeoffStore);
 
-const loadData = async (quiet = false) => {
+const loadData = async () => {
   try {
-    if (!quiet) loading.value = true;
-    error.value = null;
-    const [allocResult, reqResult] = await Promise.all([
-      fetchLeaveAllocations(),
-      fetchLeaveRequests()
+    await Promise.all([
+      timeoffStore.fetchLeaveAllocations(),
+      timeoffStore.fetchLeaveRequests(),
     ]);
-    allocations.value = allocResult;
-    requests.value = reqResult;
-  } catch (err: any) {
-    console.error('Failed to load leave data:', err);
-    error.value = err.message || 'Failed to load leave balance.';
-  } finally {
-    if (!quiet) loading.value = false;
+  } catch (err) {
+    console.error("Failed to load leave data:", err);
   }
 };
 
-const handleRefresh = async (event: any) => {
+const handleRefresh = async (event) => {
   await loadData(true);
   event.target.complete();
 };
 
 onMounted(loadData);
 
-const getLeaveTypeEnglishName = (name: string) => {
+const getLeaveTypeEnglishName = (name) => {
   return name.split(" - ")[0] || name;
 };
 
-const getLeaveTypeKhmerName = (name: string) => {
+const getLeaveTypeKhmerName = (name) => {
   return name.split(" - ")[1] || "";
 };
 
-const formatDays = (days: number) => {
+const formatDays = (days) => {
   return days % 1 === 0 ? days.toString() : days.toFixed(1);
 };
 
@@ -202,7 +194,7 @@ const usagePercentage = computed(() => {
   return Math.round((totalRemaining.value / totalEntitlement.value) * 100);
 });
 
-const getIconForType = (name: string) => {
+const getIconForType = (name) => {
   const n = name.toLowerCase();
   if (n.includes('sick')) return medicalOutline;
   if (n.includes('annual')) return calendarOutline;
@@ -211,7 +203,7 @@ const getIconForType = (name: string) => {
   return sparklesOutline;
 };
 
-const getColorForType = (name: string) => {
+const getColorForType = (name) => {
   const n = name.toLowerCase();
   if (n.includes('sick')) return '#e11d48';
   if (n.includes('annual')) return '#2e66db';

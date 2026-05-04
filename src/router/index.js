@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
-import { RouteRecordRaw } from "vue-router";
 import TabsPage from "../views/TabsPage.vue";
-import { isAuthenticated } from "@/utils/auth";
+import { useAuthStore } from "@/stores/auth.store";
+import { pinia } from "@/stores";
 
-const routes: Array<RouteRecordRaw> = [
+const routes = [
   {
     path: "/",
     redirect: "/tabs/leave-calendar",
@@ -55,6 +55,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("@/views/AdminAttendancePage.vue"),
       },
       {
+        path: "my-attendance",
+        component: () => import("@/views/MyAttendancePage.vue"),
+      },
+      {
         path: "leave-approval",
         component: () => import("@/views/LeaveApprovalPage.vue"),
       },
@@ -67,8 +71,10 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
-  const loggedIn = isAuthenticated();
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore(pinia);
+  await authStore.hydrateSession();
+  const loggedIn = authStore.isAuthenticated;
 
   if (to.meta.requiresAuth && !loggedIn) {
     return {

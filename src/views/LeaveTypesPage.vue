@@ -261,7 +261,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonAlert,
   IonButton,
@@ -294,21 +294,15 @@ import {
 } from "ionicons/icons";
 
 import { computed, onBeforeUnmount, ref, watch } from "vue";
-
-import {
-  createLeaveType,
-  deleteLeaveType,
-  fetchLeaveTypeCatalog,
-  type LeaveTypeCatalogItem,
-  updateLeaveType,
-} from "@/utils/leaveTypes";
+import { useTimeoffStore } from "@/stores/timeoff.store";
 
 const pageSize = 20;
+const timeoffStore = useTimeoffStore();
 
-const leaveTypes = ref<LeaveTypeCatalogItem[]>([]);
+const leaveTypes = ref([]);
 const searchQuery = ref("");
 const activeQuery = ref("");
-const activeFilter = ref<"all" | "core" | "special">("all");
+const activeFilter = ref("all");
 
 const isLoading = ref(false);
 const hasMore = ref(true);
@@ -319,27 +313,27 @@ const formErrorMessage = ref("");
 
 const isFormOpen = ref(false);
 const isSaving = ref(false);
-const editingLeaveTypeId = ref<number | null>(null);
+const editingLeaveTypeId = ref(null);
 
 const isDeleteAlertOpen = ref(false);
 const isDeleting = ref(false);
-const pendingDeleteLeaveType = ref<LeaveTypeCatalogItem | null>(null);
+const pendingDeleteLeaveType = ref(null);
 
 const formState = ref({
   name: "",
 });
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null;
+let searchTimer = null;
 
-const getEnglishName = (name: string) => {
+const getEnglishName = (name) => {
   return name.split("-")[0];
 };
 
-const getKhmerName = (name: string) => {
+const getKhmerName = (name) => {
   return name.includes(" - ") ? name.split(" - ").slice(1).join(" - ") : "";
 };
 
-const getLeaveTypeCategory = (name: string): "core" | "special" => {
+const getLeaveTypeCategory = (name) => {
   const n = name.toLowerCase();
 
   if (n.includes("annual") || n.includes("sick") || n.includes("unpaid")) {
@@ -383,11 +377,14 @@ const loadLeaveTypes = async (reset = false) => {
   }
 
   try {
-    const result = await fetchLeaveTypeCatalog({
-      query: activeQuery.value,
-      limit: pageSize,
-      offset: reset ? 0 : leaveTypes.value.length,
-    });
+    const result = await timeoffStore.fetchLeaveTypeCatalog(
+      {
+        query: activeQuery.value,
+        limit: pageSize,
+        offset: reset ? 0 : leaveTypes.value.length,
+      },
+      reset,
+    );
 
     leaveTypes.value = reset ? result : [...leaveTypes.value, ...result];
     hasMore.value = result.length === pageSize;
@@ -416,7 +413,7 @@ const openCreateModal = () => {
   isFormOpen.value = true;
 };
 
-const openEditModal = (leaveType: LeaveTypeCatalogItem) => {
+const openEditModal = (leaveType) => {
   formState.value = {
     name: leaveType.name,
   };
@@ -444,10 +441,10 @@ const handleSave = async () => {
 
   try {
     if (editingLeaveTypeId.value) {
-      await updateLeaveType(editingLeaveTypeId.value, formState.value);
+      await timeoffStore.updateLeaveType(editingLeaveTypeId.value, formState.value);
       actionMessage.value = "Leave type updated successfully.";
     } else {
-      await createLeaveType(formState.value);
+      await timeoffStore.createLeaveType(formState.value);
       actionMessage.value = "Leave type created successfully.";
     }
 
@@ -461,7 +458,7 @@ const handleSave = async () => {
   }
 };
 
-const promptDelete = (leaveType: LeaveTypeCatalogItem) => {
+const promptDelete = (leaveType) => {
   pendingDeleteLeaveType.value = leaveType;
   isDeleteAlertOpen.value = true;
 };
@@ -479,7 +476,7 @@ const confirmDelete = async () => {
   actionMessage.value = "";
 
   try {
-    await deleteLeaveType(pendingDeleteLeaveType.value.id);
+    await timeoffStore.deleteLeaveType(pendingDeleteLeaveType.value.id);
     actionMessage.value = "Leave type deleted successfully.";
     closeDeleteAlert();
     await loadLeaveTypes(true);
@@ -507,8 +504,8 @@ const deleteAlertButtons = [
   },
 ];
 
-const loadMore = async (event: CustomEvent) => {
-  const infiniteScroll = event.target as HTMLIonInfiniteScrollElement | null;
+const loadMore = async (event) => {
+  const infiniteScroll = event.target;
 
   await loadLeaveTypes(false);
   await infiniteScroll?.complete();
@@ -518,11 +515,11 @@ const loadMore = async (event: CustomEvent) => {
   }
 };
 
-const handleRefresh = async (event: CustomEvent) => {
+const handleRefresh = async (event) => {
   try {
     await loadLeaveTypes(true);
   } finally {
-    (event.target as HTMLIonRefresherElement | null)?.complete();
+    event.target?.complete();
   }
 };
 

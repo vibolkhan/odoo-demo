@@ -1,5 +1,3 @@
-/// <reference types="vitest" />
-
 import legacy from '@vitejs/plugin-legacy'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
@@ -16,7 +14,7 @@ export default defineConfig({
       '/odoo-api': {
         target: 'https://mrp.staging-sourceamax.asia',
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/odoo-api/, ''),
       },
     },

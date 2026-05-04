@@ -7,7 +7,7 @@
       <LeaveRequestDetailModal
         :is-open="isDetailModalOpen"
         :request="selectedRequest"
-        :fallback-employee-name="currentUserEmployee?.name"
+        :fallback-employee-name="currentEmployee?.name"
         @close="closeRequestDetail"
         @updated="fetchCalendarData"
       />
@@ -52,7 +52,7 @@
             </div>
           </div>
 
-          <div v-if="isLoading" class="loader-container">
+          <div v-if="loading.calendar" class="loader-container">
             <ion-spinner name="crescent" />
           </div>
           <div v-else-if="errorMessage" class="error-container">
@@ -136,7 +136,7 @@
           </div>
 
           <div
-            v-if="monthlyLeaves.length === 0 && !isLoading"
+            v-if="monthlyLeaves.length === 0 && !loading.calendar"
             class="empty-state"
           >
             <ion-icon :icon="calendarOutline" />
@@ -176,7 +176,7 @@
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   IonContent,
   IonPage,
@@ -194,71 +194,24 @@ import {
 } from "ionicons/icons";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { storeToRefs } from "pinia";
 import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
-import PublicHolidayDetailModal, { type HolidayDetail } from "@/components/PublicHolidayDetailModal.vue";
-import {
-  getUnusualDays,
-  getLeaveReportCalendar,
-  getMandatoryDays,
-  getSpecialDaysData,
-} from "@/utils/calendar";
-import {
-  fetchLeaveRequests,
-  type LeaveRequest,
-} from "@/utils/leaveRequests";
-import { getStoredUsername } from "@/utils/auth";
-import { fetchCurrentUserEmployee, type EmployeeOption } from "@/utils/employees";
-
-type CalendarDay = {
-  day: number;
-  month: number;
-  year: number;
-  isCurrentMonth: boolean;
-  isToday?: boolean;
-};
-
-type PublicHoliday = {
-  date: string;
-  name: string;
-};
-
-type DayStatus = {
-  hasLeave: boolean;
-  leaveType: string;
-  leaveState: string;
-  isUnusual: boolean;
-  isMandatory: boolean;
-  specialDay: PublicHoliday | null;
-  isPublicHoliday: boolean;
-  publicHolidayName: string;
-};
-
-type CalendarEvent = {
-  id: string;
-  request?: LeaveRequest | null;
-  type: string;
-  date: string;
-  duration: string;
-  status: string;
-  color: string;
-  timestamp: number;
-};
+import PublicHolidayDetailModal from "@/components/PublicHolidayDetailModal.vue";
+import { useTimeoffStore } from "@/stores/timeoff.store";
+import { useUserStore } from "@/stores/user.store";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const router = useRouter();
+const timeoffStore = useTimeoffStore();
+const userStore = useUserStore();
+const { leaveRequests, calendarData, loading } = storeToRefs(timeoffStore);
+const { currentEmployee } = storeToRefs(userStore);
 const currentDate = ref(new Date());
-const isLoading = ref(false);
 const errorMessage = ref("");
 const isDetailModalOpen = ref(false);
 const isHolidayDetailModalOpen = ref(false);
-const selectedRequest = ref<LeaveRequest | null>(null);
-const selectedHoliday = ref<HolidayDetail | null>(null);
-const calendarLeaves = ref<any[]>([]);
-const leaveRequests = ref<LeaveRequest[]>([]);
-const unusualDays = ref<Record<string, any>>({});
-const mandatoryDays = ref<any[]>([]);
-const specialDays = ref<unknown>([]);
-const currentUserEmployee = ref<EmployeeOption | null>(null);
+const selectedRequest = ref(null);
+const selectedHoliday = ref(null);
 
 const currentMonthYear = computed(() => {
   return currentDate.value.toLocaleString("default", {
@@ -267,7 +220,7 @@ const currentMonthYear = computed(() => {
   });
 });
 
-const calendarDays = computed<CalendarDay[]>(() => {
+const calendarDays = computed(() => {
   const year = currentDate.value.getFullYear();
   const month = currentDate.value.getMonth();
 
@@ -276,7 +229,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
   let startDay = firstDayOfMonth.getDay();
   startDay = startDay === 0 ? 6 : startDay - 1;
 
-  const days: CalendarDay[] = [];
+  const days = [];
 
   for (let i = startDay - 1; i >= 0; i--) {
     const date = new Date(year, month, -i);
@@ -317,18 +270,18 @@ const calendarDays = computed<CalendarDay[]>(() => {
   return days;
 });
 
-const formatDate = (date: Date) => {
+const formatDate = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
-const formatDateTime = (date: Date, time: string) => {
+const formatDateTime = (date, time) => {
   return `${formatDate(date)} ${time}`;
 };
 
-const asArray = (value: unknown): any[] => {
+const asArray = (value) => {
   if (Array.isArray(value)) {
     return value;
   }
@@ -336,7 +289,7 @@ const asArray = (value: unknown): any[] => {
   return [];
 };
 
-const toIsoDate = (value: unknown) => {
+const toIsoDate = (value) => {
   if (typeof value !== "string" || !value.trim()) {
     return "";
   }
@@ -355,9 +308,9 @@ const toIsoDate = (value: unknown) => {
 };
 
 const normalizeSpecialDayEntry = (
-  entry: any,
+  entry,
   fallbackDate = "",
-): PublicHoliday[] => {
+) => {
   if (!entry) {
     return [];
   }
@@ -441,7 +394,7 @@ const normalizeSpecialDayEntry = (
 
   const start = new Date(startDateStr);
   const end = new Date(endDateStr);
-  const result: PublicHoliday[] = [];
+  const result = [];
 
   const diffTime = Math.abs(end.getTime() - start.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -466,7 +419,7 @@ const normalizeSpecialDayEntry = (
   ];
 };
 
-const normalizeSpecialDays = (payload: unknown): PublicHoliday[] => {
+const normalizeSpecialDays = (payload) => {
   if (Array.isArray(payload)) {
     return payload.flatMap((entry) => normalizeSpecialDayEntry(entry));
   }
@@ -475,7 +428,7 @@ const normalizeSpecialDays = (payload: unknown): PublicHoliday[] => {
     return [];
   }
 
-  const objectPayload = payload as Record<string, unknown>;
+  const objectPayload = payload;
   const keyedEntries = Object.entries(objectPayload).flatMap(([key, value]) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
       if (typeof value === "string") {
@@ -503,10 +456,10 @@ const normalizeSpecialDays = (payload: unknown): PublicHoliday[] => {
   return normalizeSpecialDayEntry(objectPayload);
 };
 
-const publicHolidaysByDate = computed<Record<string, PublicHoliday>>(() => {
-  const holidays = normalizeSpecialDays(specialDays.value);
+const publicHolidaysByDate = computed(() => {
+  const holidays = normalizeSpecialDays(calendarData.value.specialDays);
 
-  return holidays.reduce<Record<string, PublicHoliday>>(
+  return holidays.reduce(
     (accumulator, holiday) => {
       if (!holiday.date || accumulator[holiday.date]) {
         return accumulator;
@@ -520,17 +473,7 @@ const publicHolidaysByDate = computed<Record<string, PublicHoliday>>(() => {
 });
 
 const fetchCalendarData = async () => {
-  if (isLoading.value) return;
-
-  isLoading.value = true;
   errorMessage.value = "";
-
-  const timeoutId = setTimeout(() => {
-    if (isLoading.value) {
-      isLoading.value = false;
-      errorMessage.value = "Request timed out. Please check your connection.";
-    }
-  }, 10000);
 
   try {
     const year = currentDate.value.getFullYear();
@@ -544,32 +487,15 @@ const fetchCalendarData = async () => {
     const startStrShort = formatDate(startDate);
     const endStrShort = formatDate(endDate);
 
-    const results = await Promise.allSettled([
-      getUnusualDays(startStr, endStr),
-      getLeaveReportCalendar(startStr, endStr),
-      fetchLeaveRequests(),
-      getMandatoryDays(startStrShort, endStrShort),
-      getSpecialDaysData(startStrShort, endStrShort),
-    ]);
-
-    if (results[0].status === "fulfilled")
-      unusualDays.value = results[0].value || {};
-    if (results[1].status === "fulfilled")
-      calendarLeaves.value = Array.isArray(results[1].value) ? results[1].value : [];
-    if (results[2].status === "fulfilled")
-      leaveRequests.value = Array.isArray(results[2].value) ? results[2].value : [];
-    if (results[3].status === "fulfilled")
-      mandatoryDays.value = Array.isArray(results[3].value)
-        ? results[3].value
-        : [];
-    if (results[4].status === "fulfilled")
-      specialDays.value = results[4].value || [];
+    await timeoffStore.fetchCalendarData({
+      startStr,
+      endStr,
+      startStrShort,
+      endStrShort,
+    });
   } catch (error) {
     console.error("Critical failure in fetchCalendarData:", error);
     errorMessage.value = "Failed to sync with server.";
-  } finally {
-    clearTimeout(timeoutId);
-    isLoading.value = false;
   }
 };
 
@@ -591,7 +517,7 @@ const nextMonth = () => {
   fetchCalendarData();
 };
 
-const getDayStatus = (dateObj: CalendarDay): DayStatus => {
+const getDayStatus = (dateObj) => {
   if (!dateObj) {
     return {
       hasLeave: false,
@@ -609,16 +535,18 @@ const getDayStatus = (dateObj: CalendarDay): DayStatus => {
     dateObj.day,
   ).padStart(2, "0")}`;
 
-  const leave = calendarLeaves.value.find((item) => {
+  const leave = calendarData.value.calendarLeaves.find((item) => {
     if (!item?.start_datetime || !item?.stop_datetime) return false;
     const start = item.start_datetime.split(" ")[0];
     const stop = item.stop_datetime.split(" ")[0];
     return dateStr >= start && dateStr <= stop;
   });
 
-  const isUnusual = !!(unusualDays.value && unusualDays.value[dateStr]);
+  const isUnusual =
+    !!(calendarData.value.unusualDays && calendarData.value.unusualDays[dateStr]);
   const isMandatory =
-    Array.isArray(mandatoryDays.value) && mandatoryDays.value.includes(dateStr);
+    Array.isArray(calendarData.value.mandatoryDays) &&
+    calendarData.value.mandatoryDays.includes(dateStr);
   const specialDay = publicHolidaysByDate.value[dateStr] || null;
 
   return {
@@ -633,7 +561,7 @@ const getDayStatus = (dateObj: CalendarDay): DayStatus => {
   };
 };
 
-const monthlyLeaves = computed<CalendarEvent[]>(() => {
+const monthlyLeaves = computed(() => {
   const currentMonth = currentDate.value.getMonth();
   const currentYear = currentDate.value.getFullYear();
 
@@ -672,7 +600,7 @@ const monthlyLeaves = computed<CalendarEvent[]>(() => {
     });
 });
 
-const monthlyPublicHolidays = computed<HolidayDetail[]>(() => {
+const monthlyPublicHolidays = computed(() => {
   const currentMonth = currentDate.value.getMonth();
   const currentYear = currentDate.value.getFullYear();
 
@@ -687,8 +615,8 @@ const monthlyPublicHolidays = computed<HolidayDetail[]>(() => {
     })
     .sort((left, right) => left.date.localeCompare(right.date));
 
-  const groups: any[] = [];
-  let currentGroup: { name: string; dates: string[] } | null = null;
+  const groups = [];
+  let currentGroup = null;
 
   for (const holiday of sortedHolidays) {
     if (currentGroup && currentGroup.name === holiday.name) {
@@ -735,30 +663,30 @@ const monthlyPublicHolidays = computed<HolidayDetail[]>(() => {
       duration: durationDisplay,
       status: "Public Holiday",
       color: "#dc2626",
-    } as HolidayDetail;
+    };
   });
 });
 
-const getEnglishName = (name: string) => {
+const getEnglishName = (name) => {
   return name.split("(")[0].trim();
 };
 
-const getKhmerName = (name: string) => {
+const getKhmerName = (name) => {
   const match = name.match(/\(([^)]+)\)/);
   return match ? match[1] : "";
 };
 
-const handleRefresh = async (event: CustomEvent<{ complete: () => void }>) => {
+const handleRefresh = async (event) => {
   await fetchCalendarData();
-  event.detail.complete();
+  event.target.complete();
 };
 
-const handleDayClick = (dateObj: CalendarDay) => {
+const handleDayClick = (dateObj) => {
   const status = getDayStatus(dateObj);
   
   if (status.isPublicHoliday && status.specialDay) {
     const holidayDate = new Date(status.specialDay.date);
-    const holiday: HolidayDetail = {
+    const holiday = {
       id: `holiday-${status.specialDay.date}`,
       type: status.specialDay.name,
       date: holidayDate.toLocaleDateString("default", {
@@ -801,7 +729,7 @@ const goToMyRequests = () => {
   void router.push("/tabs/tab4");
 };
 
-const goToRequestDetail = (leave: CalendarEvent) => {
+const goToRequestDetail = (leave) => {
   if (!leave.request) {
     return;
   }
@@ -810,7 +738,7 @@ const goToRequestDetail = (leave: CalendarEvent) => {
   isDetailModalOpen.value = true;
 };
 
-const goToHolidayDetail = (holiday: HolidayDetail) => {
+const goToHolidayDetail = (holiday) => {
   selectedHoliday.value = holiday;
   isHolidayDetailModalOpen.value = true;
 };
@@ -827,7 +755,7 @@ const closeRequestDetail = () => {
 
 onIonViewWillEnter(async () => {
   fetchCalendarData();
-  currentUserEmployee.value = await fetchCurrentUserEmployee();
+  await userStore.fetchCurrentEmployee({ force: true });
 });
 </script>
 
