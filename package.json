@@ -13,7 +13,8 @@
     "dev:host": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vite build",
     "preview": "vite preview",
-    "andriod:live": "npx.cmd cap run android -l --host localhost --port 5173 --forwardPorts 5173:5173"
+    "andriod:live": "npx.cmd cap run android -l --host localhost --port 5173 --forwardPorts 5173:5173",
+    "ios:live": "npx cap run ios -l --host localhost --port 5173"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
