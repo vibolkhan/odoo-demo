@@ -72,10 +72,6 @@
           <DateInput v-model="dateFrom" placeholder="From" />
           <DateInput v-model="dateTo" placeholder="To" />
         </div>
-
-        <!-- <div class="filter-actions">
-          <ion-button fill="clear" size="small" @click="resetFilters">Reset All Filters</ion-button>
-        </div> -->
       </div>
 
       <!-- Summary Stats -->
@@ -437,7 +433,7 @@ const formatDateRange = (start, end) => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #64748b;
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -453,11 +449,11 @@ const formatDateRange = (start, end) => {
 }
 
 .record-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 18px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -477,12 +473,12 @@ const formatDateRange = (start, end) => {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .employee-name {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -495,19 +491,19 @@ const formatDateRange = (start, end) => {
 }
 
 .status-pending {
-  background: #fffbeb;
+  background: rgba(245, 158, 11, 0.1);
   color: #d97706;
 }
 .status-review {
-  background: #eff6ff;
+  background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
 }
 .status-approved {
-  background: #ecfdf5;
+  background: rgba(16, 185, 129, 0.1);
   color: #059669;
 }
 .status-refused {
-  background: #fef2f2;
+  background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }
 
@@ -522,7 +518,7 @@ const formatDateRange = (start, end) => {
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -531,8 +527,8 @@ const formatDateRange = (start, end) => {
 }
 
 .duration-tag {
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--app-bg);
+  color: var(--text-secondary);
   padding: 4px 10px;
   border-radius: 8px;
   font-size: 0.8rem;
@@ -542,12 +538,12 @@ const formatDateRange = (start, end) => {
 
 /* Filter Styles */
 .filter-panel {
-  background: white;
+  background: var(--card-bg);
   border-radius: 24px;
   padding: 20px;
   margin-bottom: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -585,14 +581,14 @@ const formatDateRange = (start, end) => {
 .filter-item label {
   font-size: 0.7rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-left: 4px;
 }
 
 .custom-searchbar {
-  --background: #f8fafc;
+  --background: var(--app-bg);
   --border-radius: 14px;
   padding: 0;
 }
@@ -602,8 +598,8 @@ const formatDateRange = (start, end) => {
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   z-index: 100;
   margin-top: 6px;
@@ -615,12 +611,12 @@ const formatDateRange = (start, end) => {
 .suggestion-item {
   padding: 14px 16px;
   font-size: 0.9rem;
-  color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .suggestion-item:active {
-  background: #f1f5f9;
+  background: var(--app-bg);
 }
 
 .selected-tags-container {
@@ -634,7 +630,7 @@ const formatDateRange = (start, end) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #eff6ff;
+  background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
   padding: 6px 14px;
   border-radius: 99px;
@@ -696,8 +692,8 @@ const formatDateRange = (start, end) => {
 .status-tab {
   padding: 10px 20px;
   border-radius: 14px;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--border-color);
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 700;
   border: none;

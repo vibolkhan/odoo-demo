@@ -169,23 +169,23 @@ const handleClear = () => {
 .field-label {
   font-size: 0.82rem;
   font-weight: 800;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .field {
-  --background: #f7f9fc;
+  --background: var(--app-bg);
   --border-radius: 18px;
   --padding-start: 10px;
   --inner-padding-end: 10px;
   --min-height: 44px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   transition: all 0.2s ease;
 }
 
 .field-disabled {
   opacity: 0.6;
-  --background: #f8fafc;
+  --background: var(--app-bg);
   pointer-events: none;
 }
 
@@ -197,23 +197,24 @@ const handleClear = () => {
 .date-field-icon {
   flex-shrink: 0;
   font-size: 1.1rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .date-display {
   flex: 1;
   min-width: 0;
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .date-display-placeholder {
-  color: #94a3b8;
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 /* Date Picker Modal Styles */
 .date-picker-modal {
-  --background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  --background: var(--app-bg);
   --padding-top: 14px;
   --padding-start: 18px;
   --padding-end: 18px;
@@ -245,20 +246,20 @@ const handleClear = () => {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .date-picker-header h3 {
   margin: 6px 0 0;
   font-size: 1.45rem;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .date-picker-calendar {
   overflow: hidden;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--card-bg);
   box-shadow: 0 12px 28px rgba(55, 75, 105, 0.08);
 }
 
@@ -286,17 +287,17 @@ const handleClear = () => {
 }
 
 .date-picker-clear {
-  --color: #64748b;
-  --border-color: #e2e8f0;
+  --color: var(--text-secondary);
+  --border-color: var(--border-color);
 }
 
 .detail-close-button {
   width: 48px;
   height: 48px;
   margin: 0;
-  --color: #1d4ed8;
+  --color: var(--text-secondary);
   --border-radius: 16px;
-  --background: rgba(255, 255, 255, 0.95);
+  --background: var(--card-bg);
   --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
 }
 

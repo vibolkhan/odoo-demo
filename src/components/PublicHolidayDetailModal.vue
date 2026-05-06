@@ -104,7 +104,7 @@ const getKhmerName = (name) => {
 
 <style scoped>
 .holiday-detail-modal {
-  --background: #ffffff;
+  --background: var(--card-bg);
   --padding-top: 0;
   --padding-start: 24px;
   --padding-end: 24px;
@@ -153,21 +153,22 @@ const getKhmerName = (name) => {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 700;
 }
 
 .date-tag ion-icon {
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 .english-title {
   margin: 0;
   font-size: 1.55rem;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
   line-height: 1.25;
 }
 
@@ -179,7 +180,7 @@ const getKhmerName = (name) => {
   margin: 8px 0 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -191,12 +192,12 @@ const getKhmerName = (name) => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: var(--border-color);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
@@ -205,7 +206,8 @@ const getKhmerName = (name) => {
 
 .close-fab:active {
   transform: scale(0.9);
-  background: #e2e8f0;
+  background: var(--border-color);
+  opacity: 0.8;
 }
 
 .detail-cards-grid {
@@ -215,13 +217,13 @@ const getKhmerName = (name) => {
 }
 
 .info-card {
-  background: #f8fafc;
+  background: var(--app-bg);
   border-radius: 20px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
 }
 
 .card-icon-box {
@@ -252,7 +254,7 @@ const getKhmerName = (name) => {
 .card-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -260,14 +262,14 @@ const getKhmerName = (name) => {
 .card-value {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .description-section {
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 24px;
   padding: 24px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
 }
 
@@ -280,21 +282,21 @@ const getKhmerName = (name) => {
 
 .section-header ion-icon {
   font-size: 1.3rem;
-  color: #3b82f6;
+  color: var(--ion-color-primary);
 }
 
 .section-header h3 {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .description-content p {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.6;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .benefit-box {
@@ -305,7 +307,7 @@ const getKhmerName = (name) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #4f46e5;
+  color: var(--ion-color-primary);
   font-weight: 600;
   font-size: 0.85rem;
 }

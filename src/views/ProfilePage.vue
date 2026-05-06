@@ -159,6 +159,19 @@
         <section class="action-section">
           <h3 class="section-title">Account</h3>
           <div class="action-grid">
+            <button class="action-card" @click="themeStore.toggleTheme">
+              <div class="icon-box" :class="isDarkMode ? 'amber' : 'blue'">
+                <ion-icon :icon="isDarkMode ? sunnyOutline : moonOutline" />
+              </div>
+              <div class="card-copy">
+                <h4>{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</h4>
+                <p>Switch between light and dark themes</p>
+              </div>
+              <div class="theme-toggle-status">
+                {{ isDarkMode ? 'ON' : 'OFF' }}
+              </div>
+            </button>
+
             <button class="action-card logout" @click="handleLogout">
               <div class="icon-box red">
                 <ion-icon :icon="logOutOutline" />
@@ -167,6 +180,7 @@
                 <h4>Sign Out</h4>
                 <p>End your current session</p>
               </div>
+              <ion-icon :icon="chevronForwardOutline" class="chevron" />
             </button>
           </div>
         </section>
@@ -193,16 +207,21 @@ import {
   walletOutline,
   calendarOutline,
   timeOutline,
+  moonOutline,
+  sunnyOutline,
 } from "ionicons/icons";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
+import { useThemeStore } from "@/stores/theme.store";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const userStore = useUserStore();
+const themeStore = useThemeStore();
+const { isDarkMode } = storeToRefs(themeStore);
 const { displayName: username, userId } = storeToRefs(authStore);
 const { currentEmployee, isManager } = storeToRefs(userStore);
 
@@ -230,258 +249,254 @@ let timerInterval = null;
 
 const updateTimer = () => {
   if (isCheckedIn.value && checkInTime.value) {
-    const diff = Math.floor(
-      (new Date().getTime() - checkInTime.value.getTime()) / 1000,
-    );
-    const h = Math.floor(diff / 3600)
-      .toString()
-      .padStart(2, "0");
-    const m = Math.floor((diff % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = Math.floor(diff % 60)
-      .toString()
-      .padStart(2, "0");
-    workingDuration.value = `${h}:${m}:${s}`;
-  } else {
-    workingDuration.value = "00:00:00";
+    const now = new Date();
+    const diff = now.getTime() - checkInTime.value.getTime();
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    workingDuration.value = `${String(hours).padStart(2, "0")}:${String(
+      minutes,
+    ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   }
 };
 
-watch(
-  isCheckedIn,
-  (newVal) => {
-    if (newVal) {
-      updateTimer();
-      timerInterval = setInterval(updateTimer, 1000);
-    } else {
-      if (timerInterval) clearInterval(timerInterval);
-      workingDuration.value = "00:00:00";
-    }
-  },
-  { immediate: true },
-);
-
 onMounted(async () => {
-  await Promise.all([
-    authStore.hydrateSession(),
-    userStore.fetchManagerAccess(),
-    userStore.fetchCurrentEmployee({ force: true }),
-  ]);
+  await userStore.fetchCurrentEmployee();
+  if (isCheckedIn.value) {
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+  }
 });
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
 });
 
-function formatDisplayTime(date) {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
+watch(isCheckedIn, (newVal) => {
+  if (newVal) {
+    updateTimer();
+    if (!timerInterval) timerInterval = setInterval(updateTimer, 1000);
+  } else {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    workingDuration.value = "00:00:00";
+  }
+});
 
-async function toggleAttendance() {
+const handleRefresh = async (event) => {
+  try {
+    await userStore.fetchCurrentEmployee({ force: true });
+  } finally {
+    event.target.complete();
+  }
+};
+
+const getCurrentPosition = () => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      console.warn("Geolocation is not supported by this browser.");
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.warn("Geolocation error:", error);
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      },
+    );
+  });
+};
+
+const toggleAttendance = async () => {
   if (isToggling.value) return;
   isToggling.value = true;
-
-  let latitude = 11.549701051642238;
-  let longitude = 104.94357686377263;
-
   try {
-    const pos = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        timeout: 5000,
-      });
-    });
-    latitude = pos.coords.latitude;
-    longitude = pos.coords.longitude;
+    const location = await getCurrentPosition();
+    await userStore.toggleAttendance(
+      location?.latitude ?? 11.549689964595043,
+      location?.longitude ?? 104.94361458805437,
+    );
   } catch (error) {
-    console.warn("Could not get exact location, using default", error);
-  }
-
-  try {
-    await userStore.toggleAttendance(latitude, longitude);
-  } catch (error) {
-    console.error("Error during attendance toggle:", error);
-    alert(error.message || "An error occurred. Please try again.");
+    console.error("Attendance toggle failed:", error);
   } finally {
     isToggling.value = false;
   }
-}
-
-const handleRefresh = async (event) => {
-  await Promise.all([
-    userStore.fetchManagerAccess(),
-    userStore.fetchCurrentEmployee({ force: true }),
-  ]);
-  event.target.complete();
 };
 
 const handleLogout = async () => {
-  await authStore.logout();
-  await router.replace("/login");
+  try {
+    await authStore.logout();
+    await router.replace("/login");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
+
+const formatDisplayTime = (date) => {
+  if (!date) return "";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 </script>
 
 <style scoped>
 .profile-page-content {
-  --background: #f8fafc;
+  --background: var(--app-bg);
 }
 
 .profile-hero {
   position: relative;
-  padding: calc(env(safe-area-inset-top) + 40px) 24px 60px;
-  background: #ffffff;
+  padding: 60px 20px 40px;
   overflow: hidden;
 }
 
 .hero-bg {
   position: absolute;
-  top: -100px;
-  right: -50px;
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(
-    circle,
-    rgba(37, 99, 235, 0.08) 0%,
-    transparent 70%
-  );
-  border-radius: 50%;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 240px;
+  background: var(--card-bg);
+  z-index: 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .hero-content {
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 20px;
 }
 
 .avatar-circle {
-  width: 96px;
-  height: 96px;
-  border-radius: 36px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  display: grid;
-  place-items: center;
+  width: 100px;
+  height: 100px;
+  background: var(--app-bg);
+  border-radius: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 2.5rem;
   font-weight: 800;
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+  color: var(--ion-color-primary);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  border: 4px solid var(--border-color);
 }
 
 .user-info h1 {
   margin: 0;
   font-size: 1.75rem;
-  font-weight: 900;
-  color: #0f172a;
+  font-weight: 850;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
-  word-break: break-all;
 }
 
 .badge-row {
   display: flex;
-  justify-content: center;
   gap: 8px;
   margin-top: 12px;
+  justify-content: center;
 }
 
 .user-id-tag,
 .role-tag {
   padding: 4px 12px;
-  background: #f1f5f9;
-  border-radius: 99px;
+  background: var(--app-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-secondary);
   font-size: 0.75rem;
-  font-weight: 800;
-  color: #64748b;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.role-tag {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
 .attendance-section {
-  padding: 0 20px 20px;
+  padding: 0 20px;
   margin-top: -20px;
+  margin-bottom: 32px;
   position: relative;
-  z-index: 10;
+  z-index: 2;
 }
 
 .attendance-card {
+  background: var(--card-bg);
+  border-radius: 28px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 20px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
-  border: 1px solid #f1f5f9;
-  transition: all 0.3s ease;
-}
-
-.attendance-card.is-checked-in {
-  background: linear-gradient(to right, #ffffff, #f0fdf4);
-  border-color: #bbf7d0;
-}
-
-.attendance-info {
-  flex: 1;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
 }
 
 .attendance-info h3 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .attendance-info p {
-  margin: 0;
+  margin: 4px 0 0;
   font-size: 0.85rem;
-  color: #64748b;
-  font-weight: 600;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .live-timer {
   color: #2563eb;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  margin-left: 2px;
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 .attendance-btn {
+  padding: 12px 20px;
+  border-radius: 18px;
+  border: none;
+  font-weight: 800;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-.attendance-btn.check-in {
-  background: #2563eb;
-  color: white;
+.attendance-btn ion-icon {
+  font-size: 1.2rem;
 }
 
-.attendance-btn.check-in:active {
-  background: #1d4ed8;
-  transform: scale(0.95);
+.check-in {
+  background: #eff6ff;
+  color: #2563eb;
 }
 
-.attendance-btn.check-out {
-  background: #ef4444;
-  color: white;
+.check-out {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.attendance-btn.check-out:active {
-  background: #dc2626;
+.attendance-btn:active {
   transform: scale(0.95);
 }
 
@@ -493,7 +508,6 @@ const handleLogout = async () => {
 .btn-spinner {
   width: 16px;
   height: 16px;
-  color: white;
 }
 
 .profile-actions {
@@ -526,17 +540,17 @@ const handleLogout = async () => {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   text-align: left;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .action-card:active {
   transform: scale(0.98);
-  background: #f8fafc;
+  background: var(--app-bg);
 }
 
 .icon-box {
@@ -549,23 +563,23 @@ const handleLogout = async () => {
 }
 
 .icon-box.blue {
-  background: #eff6ff;
+  background: rgba(59, 130, 246, 0.1);
   color: #2563eb;
 }
 .icon-box.purple {
-  background: #f5f3ff;
+  background: rgba(124, 58, 237, 0.1);
   color: #7c3aed;
 }
 .icon-box.emerald {
-  background: #ecfdf5;
+  background: rgba(16, 185, 129, 0.1);
   color: #059669;
 }
 .icon-box.amber {
-  background: #fffbeb;
+  background: rgba(245, 158, 11, 0.1);
   color: #d97706;
 }
 .icon-box.red {
-  background: #fef2f2;
+  background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
 }
 
@@ -577,13 +591,13 @@ const handleLogout = async () => {
   margin: 0;
   font-size: 1rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .card-copy p {
   margin: 2px 0 0;
   font-size: 0.82rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -592,8 +606,14 @@ const handleLogout = async () => {
   color: #cbd5e1;
 }
 
-.action-card.logout {
-  border-color: #fee2e2;
-  background: #fffcfc;
+/* Logout card now uses standard action-card style */
+
+.theme-toggle-status {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  padding: 4px 8px;
+  background: var(--border-color);
+  border-radius: 8px;
 }
 </style>

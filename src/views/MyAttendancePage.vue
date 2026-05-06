@@ -6,12 +6,6 @@
       </ion-refresher>
 
       <section class="catalog-shell">
-        <!-- <div class="top-action-bar">
-          <ion-button fill="clear" class="utility-button">
-            <ion-icon :icon="notificationsOutline" size="large" />
-          </ion-button>
-        </div> -->
-
         <div class="page-header">
           <div>
             <p class="eyebrow">Attendance Tracking</p>
@@ -119,20 +113,16 @@
 import {
   IonPage,
   IonContent,
-  IonButtons,
-  IonBackButton,
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
   IonIcon,
-  IonButton,
   modalController,
 } from "@ionic/vue";
 import {
   timeOutline,
   locationOutline,
   chevronForwardOutline,
-  notificationsOutline,
 } from "ionicons/icons";
 import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
@@ -199,13 +189,8 @@ function formatDate(dateStr) {
 
 <style scoped>
 .request-list-page {
-  --background:
-    radial-gradient(
-      circle at top left,
-      rgba(46, 102, 219, 0.16),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #f8fbff 0%, #eef4fb 55%, #e8f0f8 100%);
+  --background: var(--app-bg);
+  background-image: radial-gradient(circle at top left, rgba(46, 102, 219, 0.16), transparent 34%);
   --padding-top: calc(env(safe-area-inset-top) + 18px);
   --padding-start: 16px;
   --padding-end: 16px;
@@ -215,26 +200,6 @@ function formatDate(dateStr) {
 .catalog-shell {
   display: grid;
   gap: 16px;
-}
-
-.top-action-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.utility-button {
-  width: 52px;
-  height: 52px;
-  margin: 0;
-  --background: rgba(255, 255, 255, 0.9);
-  --border-radius: 20px;
-  --color: #16243a;
-  --box-shadow: 0 10px 24px rgba(45, 67, 100, 0.08);
-}
-
-.utility-button-back {
-  --color: #16243a;
 }
 
 .page-header {
@@ -247,7 +212,7 @@ function formatDate(dateStr) {
   margin: 0 0 4px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #5b6b82;
+  color: var(--text-secondary);
   letter-spacing: 0.04em;
 }
 
@@ -256,7 +221,7 @@ h1 {
   font-size: 2.15rem;
   line-height: 1.1;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .stats-grid {
@@ -268,14 +233,14 @@ h1 {
 .stat-card {
   padding: 14px 12px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--card-bg);
   box-shadow: 0 8px 22px rgba(55, 75, 105, 0.08);
 }
 
 .stat-card span {
   display: block;
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 650;
 }
 
@@ -283,7 +248,7 @@ h1 {
   display: block;
   margin-top: 4px;
   font-size: 1.35rem;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .request-list {
@@ -294,8 +259,8 @@ h1 {
 .request-card {
   position: relative;
   border-radius: 24px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
@@ -324,12 +289,12 @@ h1 {
 }
 
 .tone-blue {
-  background: #eff6ff;
+  background: rgba(37, 99, 235, 0.1);
   color: #2563eb;
 }
 
 .tone-coral {
-  background: #fff1f2;
+  background: rgba(225, 29, 72, 0.1);
   color: #e11d48;
 }
 
@@ -350,7 +315,7 @@ h1 {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 850;
-  color: #1e293b;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
@@ -358,7 +323,7 @@ h1 {
   margin: 2px 0 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .separator {
@@ -370,7 +335,7 @@ h1 {
   margin: 2px 0 0;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -408,9 +373,9 @@ h1 {
 .state-card {
   padding: 48px 24px;
   text-align: center;
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 32px;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .state-card ion-icon {
@@ -423,12 +388,13 @@ h1 {
   margin: 0 0 8px;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .state-card p {
   font-size: 1rem;
   margin: 0;
+  color: var(--text-secondary);
 }
 
 .hours-tag {
@@ -441,7 +407,7 @@ h1 {
   font-size: 0.75rem;
   font-weight: 800;
   color: #2563eb;
-  background: #eff6ff;
+  background: rgba(37, 99, 235, 0.1);
   padding: 2px 8px;
   border-radius: 6px;
 }
@@ -450,7 +416,7 @@ h1 {
   font-size: 0.75rem;
   font-weight: 800;
   color: #d97706;
-  background: #fffbeb;
+  background: rgba(217, 119, 6, 0.1);
   padding: 2px 8px;
   border-radius: 6px;
 }

@@ -3,15 +3,11 @@
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
-        <!-- <ion-tab-button tab="tab1" href="/tabs/tab1">
-          <ion-icon
-            aria-hidden="true"
-            :icon="tabIcon('/tabs/tab1', list, listOutline)"
-          />
-          <ion-label>Types</ion-label>
-        </ion-tab-button> -->
-
-        <ion-tab-button tab="leave-calendar" href="/tabs/leave-calendar">
+        <ion-tab-button
+          tab="leave-calendar"
+          href="/tabs/leave-calendar"
+          @click="triggerTabHaptic"
+        >
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/leave-calendar', calendar, calendarOutline)"
@@ -19,23 +15,31 @@
           <ion-label>Calendar</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="my-attendance" href="/tabs/my-attendance">
+        <ion-tab-button
+          tab="my-attendance"
+          href="/tabs/my-attendance"
+          @click="triggerTabHaptic"
+        >
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/my-attendance', time, timeOutline)"
           />
-          <ion-label>Attendance</ion-label>
+          <ion-label>Attend</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="tab4" href="/tabs/tab4">
+        <ion-tab-button tab="tab4" href="/tabs/tab4" @click="triggerTabHaptic">
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/tab4', receipt, receiptOutline)"
           />
-          <ion-label>My Request</ion-label>
+          <ion-label>Requests</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="leave-balance" href="/tabs/leave-balance">
+        <ion-tab-button
+          tab="leave-balance"
+          href="/tabs/leave-balance"
+          @click="triggerTabHaptic"
+        >
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/leave-balance', wallet, walletOutline)"
@@ -43,12 +47,12 @@
           <ion-label>Balance</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="tab3" href="/tabs/tab3">
+        <ion-tab-button tab="tab3" href="/tabs/tab3" @click="triggerTabHaptic">
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/tab3', person, personOutline)"
           />
-          <ion-label>Profile</ion-label>
+          <ion-label>Me</ion-label>
         </ion-tab-button>
       </ion-tab-bar>
     </ion-tabs>
@@ -68,8 +72,6 @@ import {
 import {
   receipt,
   receiptOutline,
-  list,
-  listOutline,
   person,
   personOutline,
   wallet,
@@ -81,33 +83,40 @@ import {
 } from "ionicons/icons";
 import { useRoute } from "vue-router";
 
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
+
 const route = useRoute();
 
 const tabIcon = (path, activeIcon, inactiveIcon) =>
   route.path === path || route.path.startsWith(`${path}/`)
     ? activeIcon
     : inactiveIcon;
+
+const triggerTabHaptic = async () => {
+  await Haptics.impact({ style: ImpactStyle.Light });
+};
 </script>
 
 <style scoped>
 ion-tab-bar {
-  --background: rgba(255, 255, 255, 0.85);
+  --background: var(--card-bg);
   backdrop-filter: blur(12px);
-  border-top: 1px solid #f1f5f9;
-  height: calc(64px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-color);
+  height: calc(72px + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.03);
 }
 
 ion-tab-button {
-  --color: #94a3b8;
-  --color-selected: #2563eb;
+  --color: var(--text-secondary);
+  --color-selected: var(--ion-color-primary);
   font-weight: 700;
   transition: all 0.2s ease;
 }
 
 ion-tab-button::part(native) {
-  padding-top: 8px;
+  padding-top: 10px;
+  padding-bottom: 8px;
 }
 
 ion-icon {
@@ -130,8 +139,25 @@ ion-tab-button.tab-selected::after {
   transform: translateX(-50%);
   width: 24px;
   height: 3px;
-  background: #2563eb;
+  background: var(--ion-color-primary);
   border-radius: 0 0 4px 4px;
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+ion-tab-button.tab-selected ion-icon {
+  transform: scale(1.12);
+}
+
+ion-icon {
+  transition: transform 0.2s ease;
+}
+
+ion-tab-button.tab-selected::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  border-radius: 14px;
+  z-index: -1;
 }
 </style>

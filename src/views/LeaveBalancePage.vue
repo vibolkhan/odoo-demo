@@ -205,10 +205,10 @@ const getIconForType = (name) => {
 
 const getColorForType = (name) => {
   const n = name.toLowerCase();
-  if (n.includes('sick')) return '#e11d48';
-  if (n.includes('annual')) return '#2e66db';
-  if (n.includes('special')) return '#f59e0b';
-  if (n.includes('business')) return '#7c3aed';
+  if (n.includes('sick')) return '#f43f5e';
+  if (n.includes('annual')) return '#3b82f6';
+  if (n.includes('special')) return '#fbbf24';
+  if (n.includes('business')) return '#8b5cf6';
   return '#10b981';
 };
 
@@ -241,9 +241,8 @@ const balances = computed(() => {
 
 <style scoped>
 .leave-balance-page {
-  --background: 
-    radial-gradient(circle at top left, rgba(46, 102, 219, 0.12), transparent 40%),
-    linear-gradient(180deg, #f8fbff 0%, #f0f5fa 100%);
+  --background: var(--app-bg);
+  background-image: radial-gradient(circle at top left, rgba(46, 102, 219, 0.12), transparent 40%);
   --padding-top: calc(env(safe-area-inset-top) + 20px);
   --padding-start: 16px;
   --padding-end: 16px;
@@ -292,7 +291,7 @@ const balances = computed(() => {
 .empty-state {
   padding: 40px 20px;
   text-align: center;
-  background: white;
+  background: var(--card-bg);
   border-radius: 30px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
@@ -306,12 +305,12 @@ const balances = computed(() => {
 .empty-state h3 {
   margin: 0 0 8px;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .empty-state p {
   margin: 0;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
@@ -322,7 +321,7 @@ const balances = computed(() => {
 }
 
 .skeleton-item {
-  background: white;
+  background: var(--card-bg);
   border-radius: 24px;
   padding: 16px;
   display: flex;
@@ -335,8 +334,8 @@ const balances = computed(() => {
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 100px;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--border-color);
+  color: var(--text-secondary);
 }
 
 .state-tag.validate {
@@ -363,7 +362,7 @@ const balances = computed(() => {
   margin: 0 0 4px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -372,11 +371,11 @@ h1 {
   margin: 0;
   font-size: 2.25rem;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .summary-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 30px;
   padding: 24px;
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
@@ -392,7 +391,7 @@ h1 {
 .summary-info span {
   display: block;
   font-size: 1rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -400,7 +399,7 @@ h1 {
 .summary-info strong {
   display: block;
   font-size: 2rem;
-  color: #0f172a;
+  color: var(--text-primary);
   font-weight: 850;
 }
 
@@ -418,7 +417,7 @@ h1 {
 
 .circle-bg {
   fill: none;
-  stroke: #f1f5f9;
+  stroke: var(--border-color);
   stroke-width: 3.8;
 }
 
@@ -431,7 +430,7 @@ h1 {
 }
 
 .percentage {
-  fill: #0f172a;
+  fill: var(--text-primary);
   font-family: inherit;
   font-size: 0.5rem;
   font-weight: 800;
@@ -442,7 +441,7 @@ h1 {
   display: flex;
   gap: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
 }
 
 .footer-stat {
@@ -451,7 +450,7 @@ h1 {
   gap: 6px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .dot {
@@ -467,7 +466,7 @@ h1 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 750;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .balance-list {
@@ -477,9 +476,8 @@ h1 {
 }
 
 .balance-item {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid white;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   padding: 16px;
   display: flex;
@@ -517,7 +515,7 @@ h1 {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 750;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .item-title-group {
@@ -528,14 +526,14 @@ h1 {
 
 .khmer-item-name {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
 .item-total {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .item-progress {
@@ -544,7 +542,7 @@ h1 {
 
 .progress-bar {
   height: 6px;
-  background: #f1f5f9;
+  background: var(--border-color);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -559,6 +557,6 @@ h1 {
   gap: 12px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 </style>

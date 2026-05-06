@@ -31,7 +31,7 @@ import RequestForm from "@/components/RequestForm.vue";
 
 <style scoped>
 .request-page {
-  --background: linear-gradient(180deg, #f5f8fc 0%, #edf3fa 100%);
+  --background: var(--app-bg);
   --padding-top: calc(env(safe-area-inset-top) + 24px);
   --padding-start: 16px;
   --padding-end: 16px;

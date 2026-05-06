@@ -406,7 +406,7 @@ function formatHours(hours) {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  color: #64748b;
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -422,18 +422,18 @@ function formatHours(hours) {
 }
 
 .record-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .record-card:active {
   transform: scale(0.98);
-  background: #f8fafc;
+  background: var(--app-bg);
 }
 
 .card-header {
@@ -447,7 +447,7 @@ function formatHours(hours) {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .status-badge {
@@ -459,13 +459,13 @@ function formatHours(hours) {
 }
 
 .status-badge.checked-in {
-  background: #eff6ff;
+  background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
 }
 
 .status-badge.checked-out {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--border-color);
+  color: var(--text-secondary);
 }
 
 .card-body {
@@ -487,14 +487,14 @@ function formatHours(hours) {
 
 .time-col .label {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .time-col .value {
   font-size: 0.95rem;
-  color: #334155;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -504,7 +504,7 @@ function formatHours(hours) {
   gap: 12px;
   margin-top: 4px;
   padding-top: 12px;
-  border-top: 1px dashed #e2e8f0;
+  border-top: 1px dashed var(--border-color);
 }
 
 .worked-hours {
@@ -514,7 +514,7 @@ function formatHours(hours) {
   font-size: 0.85rem;
   font-weight: 600;
   color: #3b82f6;
-  background: #eff6ff;
+  background: rgba(59, 130, 246, 0.1);
   padding: 4px 10px;
   border-radius: 8px;
 }
@@ -523,19 +523,19 @@ function formatHours(hours) {
   font-size: 0.85rem;
   font-weight: 600;
   color: #d97706;
-  background: #fffbeb;
+  background: rgba(245, 158, 11, 0.1);
   padding: 4px 10px;
   border-radius: 8px;
 }
 
 /* Filter Styles */
 .filter-panel {
-  background: white;
+  background: var(--card-bg);
   border-radius: 20px;
   padding: 16px;
   margin-bottom: 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -574,14 +574,14 @@ function formatHours(hours) {
 .filter-item label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-left: 4px;
 }
 
 .custom-searchbar {
-  --background: #f8fafc;
+  --background: var(--app-bg);
   --border-radius: 12px;
   padding: 0;
   height: 44px;
@@ -592,8 +592,8 @@ function formatHours(hours) {
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   z-index: 100;
   margin-top: 4px;
@@ -605,8 +605,8 @@ function formatHours(hours) {
 .suggestion-item {
   padding: 12px 16px;
   font-size: 0.9rem;
-  color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .suggestion-item:last-child {
@@ -614,7 +614,7 @@ function formatHours(hours) {
 }
 
 .suggestion-item:active {
-  background: #f1f5f9;
+  background: var(--border-color);
 }
 
 .suggestion-loading {
@@ -634,7 +634,7 @@ function formatHours(hours) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #eff6ff;
+  background: rgba(37, 99, 235, 0.1);
   color: #2563eb;
   padding: 6px 12px;
   border-radius: 99px;
@@ -658,7 +658,7 @@ function formatHours(hours) {
 .team-toggle ion-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .filter-actions {
@@ -666,7 +666,7 @@ function formatHours(hours) {
   justify-content: flex-end;
   gap: 8px;
   padding-top: 8px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
 }
 
 ion-button {

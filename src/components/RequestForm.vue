@@ -339,16 +339,16 @@ watch([selectedEmployeeId, startDate, endDate], () => {
 .field-label {
   font-size: 0.82rem;
   font-weight: 800;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .field {
-  --background: #f7f9fc;
+  --background: var(--app-bg);
   --border-radius: 18px;
   --padding-start: 14px;
   --inner-padding-end: 14px;
   --min-height: 50px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 18px;
 }
 
@@ -362,7 +362,7 @@ watch([selectedEmployeeId, startDate, endDate], () => {
   width: 100%;
   font-size: 0.92rem;
   font-weight: 650;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .leave-type-select::part(placeholder) {
@@ -377,7 +377,7 @@ watch([selectedEmployeeId, startDate, endDate], () => {
 .checkbox-field ion-checkbox {
   width: 100%;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .textarea-field {

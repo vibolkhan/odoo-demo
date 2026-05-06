@@ -191,13 +191,12 @@ onIonViewWillEnter(() => {
 
 <style scoped>
 .request-list-page {
-  --background:
-    radial-gradient(
-      circle at top left,
-      rgba(46, 102, 219, 0.16),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #f8fbff 0%, #eef4fb 55%, #e8f0f8 100%);
+  --background: var(--app-bg);
+  background-image: radial-gradient(
+    circle at top left,
+    rgba(46, 102, 219, 0.16),
+    transparent 34%
+  );
   --padding-top: calc(env(safe-area-inset-top) + 18px);
   --padding-start: 16px;
   --padding-end: 16px;
@@ -218,9 +217,9 @@ onIonViewWillEnter(() => {
   width: 52px;
   height: 52px;
   margin: 0;
-  --background: rgba(255, 255, 255, 0.9);
+  --background: var(--card-bg);
   --border-radius: 20px;
-  --color: #16243a;
+  --color: var(--text-primary);
   --box-shadow: 0 10px 24px rgba(45, 67, 100, 0.08);
 }
 
@@ -234,7 +233,7 @@ onIonViewWillEnter(() => {
   margin: 0 0 4px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #5b6b82;
+  color: var(--text-secondary);
   letter-spacing: 0.04em;
 }
 
@@ -243,7 +242,7 @@ h1 {
   font-size: 2.15rem;
   line-height: 1.1;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .stats-grid {
@@ -255,14 +254,14 @@ h1 {
 .stat-card {
   padding: 14px 12px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--card-bg);
   box-shadow: 0 8px 22px rgba(55, 75, 105, 0.08);
 }
 
 .stat-card span {
   display: block;
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 650;
 }
 
@@ -270,7 +269,7 @@ h1 {
   display: block;
   margin-top: 4px;
   font-size: 1.35rem;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .fab-create {
@@ -282,7 +281,7 @@ h1 {
   padding: 22px 16px;
   border-radius: 24px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--card-bg);
 }
 
 .success-message {
@@ -290,7 +289,7 @@ h1 {
 }
 
 .leave-type-modal {
-  --background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  --background: var(--app-bg);
   --padding-top: 22px;
   --padding-start: 18px;
   --padding-end: 18px;
@@ -315,7 +314,7 @@ h1 {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .modal-header h2 {
@@ -323,14 +322,14 @@ h1 {
   font-size: 1.75rem;
   line-height: 1.15;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .modal-subtitle {
   margin: 8px 0 0;
   font-size: 0.92rem;
   line-height: 1.45;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .detail-close-button {
@@ -339,7 +338,7 @@ h1 {
   margin: 0;
   --color: #1d4ed8;
   --border-radius: 16px;
-  --background: rgba(255, 255, 255, 0.95);
+  --background: var(--card-bg);
   --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
 }
 

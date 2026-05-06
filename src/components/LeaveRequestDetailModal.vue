@@ -296,18 +296,14 @@ const getLeaveTypeKhmerName = (name) => {
 
 const parseRequestDate = (value) => {
   if (!value) return null;
-
   const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
   const date = new Date(normalizedValue);
-
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
 const formatDate = (value) => {
   const date = parseRequestDate(value);
-
   if (!date) return value || "-";
-
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
@@ -318,68 +314,52 @@ const formatDate = (value) => {
 const formatDateRange = (start, end) => {
   const startLabel = formatDate(start);
   const endLabel = formatDate(end);
-
   return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
 const formatStateLabel = (state) => {
   switch (state) {
-    case "confirm":
-      return "Pending";
-    case "validate1":
-      return "Review";
-    case "validate":
-      return "Approved";
-    case "refuse":
-      return "Refused";
-    case "cancel":
-      return "Cancelled";
-    case "draft":
-      return "Draft";
-    default:
-      return state.charAt(0).toUpperCase() + state.slice(1);
+    case "confirm": return "Pending";
+    case "validate1": return "Review";
+    case "validate": return "Approved";
+    case "refuse": return "Refused";
+    case "cancel": return "Cancelled";
+    case "draft": return "Draft";
+    default: return state.charAt(0).toUpperCase() + state.slice(1);
   }
 };
 
 const badgeClass = (state) => {
   switch (state) {
-    case "validate1":
-      return "status-review";
-    case "validate":
-      return "status-approved";
+    case "validate1": return "status-review";
+    case "validate": return "status-approved";
     case "refuse":
-    case "cancel":
-      return "status-refused";
-    default:
-      return "status-pending";
+    case "cancel": return "status-refused";
+    default: return "status-pending";
   }
 };
 
 const requestTypeIcon = (leaveType) => {
   const normalizedType = leaveType.toLowerCase();
-
   if (normalizedType.includes("sick")) return medkitOutline;
   if (normalizedType.includes("personal")) return personOutline;
   if (normalizedType.includes("annual")) return calendarClearOutline;
   if (normalizedType.includes("unpaid")) return airplaneOutline;
-
   return sparklesOutline;
 };
 
 const tileTone = (leaveType) => {
   const normalizedType = leaveType.toLowerCase();
-
   if (normalizedType.includes("sick")) return "tone-blue";
   if (normalizedType.includes("personal")) return "tone-coral";
   if (normalizedType.includes("annual")) return "tone-lilac";
-
   return "tone-sand";
 };
 </script>
 
 <style scoped>
 .request-detail-modal {
-  --background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  --background: var(--app-bg);
   --padding-top: 22px;
   --padding-start: 18px;
   --padding-end: 18px;
@@ -404,7 +384,7 @@ const tileTone = (leaveType) => {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .detail-title-group {
@@ -418,31 +398,31 @@ const tileTone = (leaveType) => {
   font-size: 1.75rem;
   line-height: 1.15;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .khmer-detail-title {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .detail-subtitle {
   margin: 8px 0 0;
   font-size: 0.92rem;
   line-height: 1.45;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .detail-close-button {
   width: 48px;
   height: 48px;
   margin: 0;
-  --color: #1d4ed8;
+  --color: var(--text-secondary);
   --border-radius: 16px;
-  --background: rgba(255, 255, 255, 0.95);
-  --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
+  --background: var(--card-bg);
+  --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 .detail-close-button ion-icon {
@@ -457,8 +437,8 @@ const tileTone = (leaveType) => {
 .detail-section-card {
   padding: 18px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 14px 32px rgba(55, 75, 105, 0.08);
+  background: var(--card-bg);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.04);
 }
 
 .detail-hero-main {
@@ -474,7 +454,6 @@ const tileTone = (leaveType) => {
   height: 54px;
   border-radius: 18px;
   font-size: 1.4rem;
-  color: #1e293b;
   flex-shrink: 0;
 }
 
@@ -484,30 +463,15 @@ const tileTone = (leaveType) => {
   border-radius: 20px;
 }
 
-.tone-blue {
-  background: rgba(59, 130, 246, 0.18);
-  color: #2563eb;
-}
-
-.tone-coral {
-  background: rgba(251, 113, 133, 0.18);
-  color: #e11d48;
-}
-
-.tone-lilac {
-  background: rgba(129, 140, 248, 0.18);
-  color: #4f46e5;
-}
-
-.tone-sand {
-  background: rgba(245, 158, 11, 0.18);
-  color: #b45309;
-}
+.tone-blue { background: rgba(59, 130, 246, 0.18); color: #2563eb; }
+.tone-coral { background: rgba(251, 113, 133, 0.18); color: #e11d48; }
+.tone-lilac { background: rgba(129, 140, 248, 0.18); color: #4f46e5; }
+.tone-sand { background: rgba(245, 158, 11, 0.18); color: #b45309; }
 
 .detail-duration {
   margin: 8px 0 0;
   font-size: 0.92rem;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .detail-attention {
@@ -525,7 +489,7 @@ const tileTone = (leaveType) => {
 .detail-card {
   padding: 16px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--card-bg);
 }
 
 .detail-card span,
@@ -535,7 +499,7 @@ const tileTone = (leaveType) => {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .detail-card strong {
@@ -543,21 +507,21 @@ const tileTone = (leaveType) => {
   margin-top: 8px;
   font-size: 1rem;
   line-height: 1.4;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .detail-section-card h3 {
   margin: 12px 0 6px;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .detail-section-card p {
   margin: 0;
   font-size: 0.92rem;
   line-height: 1.6;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .status-pill {
@@ -572,38 +536,15 @@ const tileTone = (leaveType) => {
   letter-spacing: 0.04em;
 }
 
-.status-pending {
-  background: rgba(245, 158, 11, 0.16);
-  color: #b45309;
-}
-
-.status-review {
-  background: rgba(59, 130, 246, 0.16);
-  color: #2563eb;
-}
-
-.status-approved {
-  background: rgba(16, 185, 129, 0.16);
-  color: #047857;
-}
-
-.status-refused {
-  background: rgba(239, 68, 68, 0.16);
-  color: #b91c1c;
-}
+.status-pending { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+.status-review { background: rgba(59, 130, 246, 0.16); color: #2563eb; }
+.status-approved { background: rgba(16, 185, 129, 0.16); color: #047857; }
+.status-refused { background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
 
 @media (max-width: 640px) {
-  .request-detail-header h2 {
-    font-size: 1.55rem;
-  }
-
-  .detail-subtitle {
-    font-size: 0.86rem;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
+  .request-detail-header h2 { font-size: 1.55rem; }
+  .detail-subtitle { font-size: 0.86rem; }
+  .detail-grid { grid-template-columns: 1fr; }
 }
 
 .detail-actions-tray {
@@ -612,7 +553,7 @@ const tileTone = (leaveType) => {
   gap: 12px;
   margin-top: 10px;
   padding: 16px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 24px;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
 }
@@ -624,12 +565,6 @@ const tileTone = (leaveType) => {
   height: 48px;
 }
 
-.approve-button {
-  --background: #2e66db;
-}
-
-.reject-button {
-  --color: #dc2626;
-  --border-color: #dc2626;
-}
+.approve-button { --background: #2e66db; }
+.reject-button { --color: #dc2626; --border-color: #dc2626; }
 </style>

@@ -123,7 +123,7 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-content {
-  --background: #f1f5f9;
+  --background: var(--app-bg);
 }
 
 .login-shell {
@@ -227,7 +227,7 @@ const handleLogin = async () => {
   font-weight: 800;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #4338ca;
+  color: var(--ion-color-primary);
 }
 
 h1 {
@@ -235,13 +235,13 @@ h1 {
   font-size: 2.25rem;
   line-height: 1.15;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .intro {
   margin: 12px 0 0;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -259,7 +259,7 @@ h1 {
 .field-label {
   font-size: 0.9rem;
   font-weight: 650;
-  color: #334155;
+  color: var(--text-primary);
   margin-left: 4px;
 }
 
@@ -271,11 +271,11 @@ h1 {
   width: 100%;
   box-sizing: border-box;
   padding: 16px 20px;
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  border: 2px solid var(--border-color);
   outline: none;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #0f172a;
+  background: var(--card-bg);
+  color: var(--text-primary);
   font-size: 1.05rem;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -288,8 +288,8 @@ h1 {
 }
 
 .text-input:focus {
-  border-color: #3b82f6;
-  background: #ffffff;
+  border-color: var(--ion-color-primary);
+  background: var(--card-bg);
   box-shadow:
     0 0 0 4px rgba(59, 130, 246, 0.15),
     0 4px 12px rgba(0, 0, 0, 0.05);
@@ -330,18 +330,18 @@ h1 {
 
 .card-footer {
   text-align: center;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid var(--border-color);
   padding-top: 24px;
 }
 
 .hint {
   margin: 0;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
 .hint strong {
-  color: #334155;
+  color: var(--text-primary);
   font-weight: 650;
 }
 
@@ -354,5 +354,13 @@ h1 {
   h1 {
     font-size: 2rem;
   }
+}
+
+.ion-palette-dark .login-card {
+  background: rgba(30, 41, 59, 0.7);
+  box-shadow:
+    0 24px 48px -12px rgba(0, 0, 0, 0.4),
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 </style>

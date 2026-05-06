@@ -2,10 +2,10 @@ import { defineStore } from "pinia";
 import {
   fetchAllAttendances,
   fetchAttendanceDetail,
+  fetchAttendanceUserData,
   fetchCurrentUserEmployee,
   fetchEmployees,
   fetchMyAttendances,
-  fetchUserGroupAccess,
   toggleAttendanceState,
 } from "@/api/user.api";
 import { useAuthStore } from "@/stores/auth.store";
@@ -16,8 +16,7 @@ const createLoadingState = () => ({
   myAttendances: false,
   allAttendances: false,
   attendanceDetail: false,
-  attendanceToggle: false, 
-  managerAccess: false,
+  attendanceToggle: false,
 });
 
 const createErrorState = () => ({
@@ -27,7 +26,6 @@ const createErrorState = () => ({
   allAttendances: "",
   attendanceDetail: "",
   attendanceToggle: "",
-  managerAccess: "",
 });
 
 export const useUserStore = defineStore("user", {
@@ -41,7 +39,7 @@ export const useUserStore = defineStore("user", {
     myAttendances: [],
     allAttendances: [],
     attendanceDetail: null,
-    isManager: false,
+    isManager: true,
     loading: createLoadingState(),
     error: createErrorState(),
   }),
@@ -76,7 +74,7 @@ export const useUserStore = defineStore("user", {
       this.myAttendances = [];
       this.allAttendances = [];
       this.attendanceDetail = null;
-      this.isManager = false;
+      this.isManager = true;
       this.loading = createLoadingState();
       this.error = createErrorState();
     },
@@ -92,7 +90,13 @@ export const useUserStore = defineStore("user", {
       try {
         const employee = await fetchCurrentUserEmployee(this.getRequiredUserId());
         this.currentEmployee = employee;
-        return employee;
+        
+        // Supplement with fresh attendance data from the new endpoint
+        if (employee) {
+          await this.fetchAttendanceUserData();
+        }
+        
+        return this.currentEmployee;
       } catch (error) {
         this.currentEmployee = null;
         this.setError(
@@ -131,30 +135,6 @@ export const useUserStore = defineStore("user", {
       }
     },
 
-    async fetchManagerAccess() {
-      this.setLoading("managerAccess", true);
-      this.setError("managerAccess", "");
-
-      try {
-        const hasAccess = await fetchUserGroupAccess(
-          this.getRequiredUserId(),
-          "hr_holidays.group_hr_holidays_manager",
-        );
-        this.isManager = hasAccess;
-        return hasAccess;
-      } catch (error) {
-        this.isManager = false;
-        this.setError(
-          "managerAccess",
-          error instanceof Error
-            ? error.message
-            : "Unable to load user permissions.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("managerAccess", false);
-      }
-    },
 
     async fetchMyAttendances() {
       this.setLoading("myAttendances", true);
@@ -222,6 +202,23 @@ export const useUserStore = defineStore("user", {
       }
     },
 
+    async fetchAttendanceUserData() {
+      try {
+        const data = await fetchAttendanceUserData(this.getRequiredUserId());
+        if (this.currentEmployee && data) {
+          this.currentEmployee = {
+            ...this.currentEmployee,
+            attendanceState: data.attendance_state,
+            lastCheckIn: data.last_check_in,
+          };
+        }
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch attendance user data:", error);
+        throw error;
+      }
+    },
+
     async toggleAttendance(latitude, longitude) {
       this.setLoading("attendanceToggle", true);
       this.setError("attendanceToggle", "");
@@ -232,7 +229,7 @@ export const useUserStore = defineStore("user", {
           latitude,
           longitude,
         );
-        await this.fetchCurrentEmployee({ force: true });
+        await this.fetchAttendanceUserData();
         return result;
       } catch (error) {
         this.setError(

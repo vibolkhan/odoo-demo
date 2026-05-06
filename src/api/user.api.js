@@ -118,6 +118,68 @@ const employeeSpecification = {
   last_check_in: {},
 };
 
+export const fetchAttendanceUserData = async (userId) => {
+  getRequiredUserId(userId);
+
+  const path = "/hr_attendance/attendance_user_data";
+  const body = {
+    jsonrpc: "2.0",
+    method: "call",
+    params: {},
+    id: 1,
+  };
+  let response;
+
+  try {
+    if (isNativePlatform()) {
+      const result = await CapacitorHttp.post({
+        url: buildUrl(path),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: body,
+      });
+
+      if (result.status < 200 || result.status >= 300) {
+        throw new Error(`Request failed with status ${result.status}.`);
+      }
+
+      response = result.data;
+    } else {
+      const result = await odooAxios.post(buildUrl(path), body);
+      response = result.data;
+    }
+
+    if (isSessionExpiredError(response.error)) {
+      await handleExpiredSession();
+      throw createSessionExpiredError();
+    }
+  } catch (error) {
+    if (error instanceof Error && containsSessionExpiredText(error.message)) {
+      await handleExpiredSession();
+      throw createSessionExpiredError();
+    }
+
+    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
+      throw new Error(
+        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
+      );
+    }
+
+    throw error;
+  }
+
+  if (response.error) {
+    throw new Error(
+      response.error.data?.message ||
+        response.error.message ||
+        "Unable to load attendance user data.",
+    );
+  }
+
+  return response.result;
+};
+
 const attendanceSpecification = {
   employee_id: {
     fields: {
@@ -368,72 +430,6 @@ export const fetchCurrentUserEmployee = async (userId) => {
   return mapEmployeeRecord(response.result.records[0]);
 };
 
-export const fetchUserGroupAccess = async (userId, groupXmlId) => {
-  getRequiredUserId(userId);
-
-  const path = "/web/dataset/call_kw/res.users/has_group";
-  const body = {
-    jsonrpc: "2.0",
-    method: "call",
-    params: {
-      model: "res.users",
-      method: "has_group",
-      args: [groupXmlId],
-      kwargs: {},
-    },
-    id: 1,
-  };
-  let response;
-
-  try {
-    if (isNativePlatform()) {
-      const result = await CapacitorHttp.post({
-        url: buildUrl(path),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: body,
-      });
-
-      if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
-      }
-
-      response = result.data;
-    } else {
-      const result = await odooAxios.post(buildUrl(path), body);
-      response = result.data;
-    }
-
-    if (isSessionExpiredError(response.error)) {
-      await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-  } catch (error) {
-    if (error instanceof Error && containsSessionExpiredText(error.message)) {
-      await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
-    }
-
-    throw error;
-  }
-
-  if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to load user access.",
-    );
-  }
-
-  return response.result === true;
-};
 
 export const fetchMyAttendances = async (userId) => {
   const storedUserId = getRequiredUserId(userId);

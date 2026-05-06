@@ -761,13 +761,8 @@ onIonViewWillEnter(async () => {
 
 <style scoped>
 .leave-calendar-page {
-  --background:
-    radial-gradient(
-      circle at top right,
-      rgba(46, 102, 219, 0.12),
-      transparent 40%
-    ),
-    linear-gradient(180deg, #f8fbff 0%, #f0f5fa 100%);
+  --background: var(--app-bg);
+  background-image: radial-gradient(circle at top right, rgba(46, 102, 219, 0.12), transparent 40%);
   --padding-top: calc(env(safe-area-inset-top) + 20px);
   --padding-start: 16px;
   --padding-end: 16px;
@@ -792,7 +787,7 @@ onIonViewWillEnter(async () => {
   margin: 0 0 4px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -801,93 +796,77 @@ h1 {
   margin: 0;
   font-size: 2.25rem;
   font-weight: 850;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .calendar-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 30px;
-  padding: 20px;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--border-color);
 }
 
 .calendar-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
 
 .nav-btn {
-  background: #f1f5f9;
-  border: none;
   width: 40px;
   height: 40px;
   border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0f172a;
   font-size: 1.2rem;
+  transition: all 0.2s ease;
 }
 
-.refresh-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  border-radius: 14px;
-  background: #0f172a;
-  color: white;
-  padding: 10px 14px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.refresh-btn:disabled {
-  opacity: 0.7;
+.nav-btn:active {
+  background: var(--app-bg);
+  transform: scale(0.95);
 }
 
 .current-month h2 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .calendar-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .legend-item {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 700;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
-.legend-dot.leave {
-  background: #2e66db;
-}
-
-.legend-dot.holiday {
-  background: #dc2626;
-}
-
-.legend-dot.mandatory {
-  background: #64748b;
-}
+.legend-dot.leave { background: #f59e0b; }
+.legend-dot.holiday { background: #dc2626; }
+.legend-dot.mandatory { background: #3b82f6; }
 
 .calendar-grid {
   display: grid;
@@ -899,7 +878,7 @@ h1 {
   text-align: center;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-secondary);
   padding-bottom: 8px;
 }
 
@@ -909,140 +888,58 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #334155;
+  border-radius: 12px;
   position: relative;
-  cursor: pointer;
+  color: var(--text-primary);
   transition: all 0.2s ease;
-}
-
-.day-cell:active {
-  transform: scale(0.95);
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.day-cell.weekend {
-  color: #94a3b8;
-}
-
-.day-cell.today {
-  background: #2e66db;
-  color: white;
-  box-shadow: 0 8px 16px rgba(46, 102, 219, 0.3);
 }
 
 .day-cell.other-month {
   opacity: 0.3;
 }
 
-.day-cell.unusual {
-  background: rgba(225, 29, 72, 0.03);
+.day-cell.today {
+  background: var(--ion-color-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.day-cell.mandatory {
-  background: rgba(46, 102, 219, 0.03);
+.day-cell.has-leave {
+  background: rgba(245, 158, 11, 0.1);
 }
 
 .day-cell.public-holiday {
   background: rgba(220, 38, 38, 0.1);
-  color: #991b1b;
+}
+
+.day-cell.mandatory {
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .leave-dot {
+  position: absolute;
+  bottom: 6px;
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  position: absolute;
-  bottom: 6px;
 }
 
-.leave-dot.approved {
-  background: #2e66db;
-}
-
-.leave-dot.pending {
-  background: #f59e0b;
-}
+.leave-dot.approved { background: #10b981; }
+.leave-dot.pending { background: #f59e0b; }
 
 .mandatory-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #64748b;
   position: absolute;
   top: 6px;
   right: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #3b82f6;
 }
 
-.loader-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
-  color: #94a3b8;
-  gap: 12px;
-}
-
-.empty-state ion-icon {
-  font-size: 3rem;
-  opacity: 0.5;
-}
-
-.empty-state p {
-  margin: 0;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.day-cell.has-leave {
-  background: rgba(46, 102, 219, 0.08);
-}
-
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 20px;
-  gap: 12px;
-  color: #e11d48;
-}
-
-.error-container ion-icon {
-  font-size: 2.5rem;
-}
-
-.error-container p {
-  margin: 0;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.retry-btn {
-  background: #f1f5f9;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: #0f172a;
-}
-
-.holiday-section,
-.upcoming-section {
+.holiday-section, .upcoming-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1057,81 +954,38 @@ h1 {
 .section-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 750;
-  color: #1e293b;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .view-all {
   background: transparent;
   border: none;
-  color: #2e66db;
+  color: var(--ion-color-primary);
+  font-size: 0.85rem;
   font-weight: 700;
-  font-size: 0.9rem;
 }
 
-.upcoming-list {
+.holiday-list, .upcoming-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.upcoming-item {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid white;
+.holiday-item, .upcoming-item {
+  background: var(--card-bg);
   border-radius: 20px;
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.upcoming-item:active {
-  transform: scale(0.99);
-}
-
-.holiday-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.holiday-item {
-  background: white;
-  border-radius: 24px;
   padding: 16px;
   display: flex;
   align-items: center;
   gap: 16px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
 }
 
-.holiday-item:active {
-  transform: scale(0.97);
-  background: #f8fafc;
-}
-
-.holiday-title-en {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.3;
-}
-
-.holiday-title-km {
-  margin: 4px 0 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
-  line-height: 1.4;
-}
-
-.item-chevron {
-  color: #cbd5e1;
-  font-size: 1.2rem;
+.holiday-item:active, .upcoming-item:active {
+  transform: scale(0.98);
+  background: var(--app-bg);
 }
 
 .date-badge {
@@ -1145,53 +999,82 @@ h1 {
   flex-shrink: 0;
 }
 
-.holiday-badge {
-  background: rgba(220, 38, 38, 0.12);
+.date-badge.holiday-badge {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
 }
 
 .date-badge .day {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 1.2rem;
+  font-weight: 850;
   line-height: 1;
 }
 
 .date-badge .day.long-text {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
 }
 
 .date-badge .month {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #64748b;
   text-transform: uppercase;
+  margin-top: 2px;
 }
 
 .leave-info {
   flex: 1;
 }
 
-.leave-info h3 {
+.holiday-title-en, .upcoming-item h3 {
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.holiday-title-km {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .leave-info p {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   font-size: 0.8rem;
-  color: #64748b;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 6px;
+  height: 24px;
+  border-radius: 3px;
 }
 
-.holiday-indicator {
-  background: #dc2626;
+.item-chevron {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--card-bg);
+  border-radius: 24px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.empty-state ion-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-weight: 600;
 }
 </style>

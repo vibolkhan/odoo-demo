@@ -127,10 +127,6 @@
                 <p class="request-dates">
                   {{ formatDateRange(request.dateFrom, request.dateTo) }}
                 </p>
-
-                <!-- <p v-if="request.employeeName" class="employee-name">
-                  {{ request.employeeName }}
-                </p> -->
               </div>
 
               <ion-icon
@@ -156,7 +152,6 @@
 
 <script setup>
 import { IonButton, IonIcon, IonSpinner } from "@ionic/vue";
-
 import {
   airplaneOutline,
   alertCircleOutline,
@@ -169,9 +164,7 @@ import {
   personOutline,
   sparklesOutline,
 } from "ionicons/icons";
-
 import DateInput from "./DateInput.vue";
-
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
@@ -389,22 +382,16 @@ const formatStateLabel = (state) => {
   switch (state) {
     case "confirm":
       return "Pending";
-
     case "validate1":
       return "Review";
-
     case "validate":
       return "Approved";
-
     case "refuse":
       return "Refused";
-
     case "cancel":
       return "Cancelled";
-
     case "draft":
       return "Draft";
-
     default:
       return state.charAt(0).toUpperCase() + state.slice(1);
   }
@@ -426,18 +413,14 @@ const badgeClass = (state) => {
 
 const parseRequestDate = (value) => {
   if (!value) return null;
-
   const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
   const date = new Date(normalizedValue);
-
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
 const parseFilterDate = (value) => {
   if (!value) return null;
-
   const date = new Date(`${value}T00:00:00`);
-
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
@@ -446,22 +429,18 @@ const getRequestSortValue = (request) =>
 
 const requestTypeIcon = (leaveType) => {
   const normalizedType = leaveType.toLowerCase();
-
   if (normalizedType.includes("sick")) return medkitOutline;
   if (normalizedType.includes("personal")) return personOutline;
   if (normalizedType.includes("annual")) return calendarClearOutline;
   if (normalizedType.includes("unpaid")) return airplaneOutline;
-
   return sparklesOutline;
 };
 
 const tileTone = (leaveType) => {
   const normalizedType = leaveType.toLowerCase();
-
   if (normalizedType.includes("sick")) return "tone-blue";
   if (normalizedType.includes("personal")) return "tone-coral";
   if (normalizedType.includes("annual")) return "tone-lilac";
-
   return "tone-sand";
 };
 
@@ -496,7 +475,7 @@ defineExpose({
   gap: 8px;
   padding: 6px;
   border-radius: 20px;
-  background: rgba(241, 245, 249, 0.8);
+  background: var(--border-color);
   backdrop-filter: blur(8px);
   overflow-x: auto;
   scrollbar-width: none;
@@ -514,7 +493,7 @@ defineExpose({
   border-radius: 14px;
   padding: 0 18px;
   background: transparent;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 750;
   white-space: nowrap;
@@ -522,9 +501,9 @@ defineExpose({
 }
 
 .filter-segment.active {
-  background: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  background: var(--card-bg);
+  color: var(--ion-color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .filter-toggle-row {
@@ -538,17 +517,17 @@ defineExpose({
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: #ffffff;
-  color: #64748b;
+  background: var(--card-bg);
+  color: var(--text-secondary);
   transition: all 0.2s ease;
 }
 
 .filter-toggle-button.active {
-  background: #2563eb;
+  background: var(--ion-color-primary);
   color: #ffffff;
-  border-color: #2563eb;
+  border-color: var(--ion-color-primary);
   box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
 }
 
@@ -557,8 +536,8 @@ defineExpose({
   gap: 16px;
   padding: 20px;
   border-radius: 28px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
@@ -566,39 +545,6 @@ defineExpose({
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-}
-
-@media (max-width: 380px) {
-  .date-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.clear-filters-button {
-  margin-top: 8px;
-  min-height: 52px;
-  font-weight: 850;
-  --border-radius: 18px;
-  --background: #f1f5f9;
-  --color: #475569;
-  --box-shadow: none;
-}
-
-@media (max-width: 480px) {
-  .date-picker-modal {
-    --padding-start: 12px;
-    --padding-end: 12px;
-  }
-
-  .date-picker-shell {
-    max-width: none;
-  }
-}
-
-@media (max-width: 380px) {
-  .date-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .month-group {
@@ -617,7 +563,7 @@ defineExpose({
   margin: 0;
   font-size: 1.25rem;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -625,7 +571,7 @@ defineExpose({
   margin: 0;
   font-size: 0.7rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: var(--text-secondary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding-bottom: 3px;
@@ -639,9 +585,9 @@ defineExpose({
 .request-card {
   position: relative;
   border-radius: 24px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.04);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
@@ -669,19 +615,19 @@ defineExpose({
 }
 
 .tone-blue {
-  background: #eff6ff;
+  background: rgba(37, 99, 235, 0.1);
   color: #2563eb;
 }
 .tone-coral {
-  background: #fff1f2;
+  background: rgba(225, 29, 72, 0.1);
   color: #e11d48;
 }
 .tone-lilac {
-  background: #f5f3ff;
+  background: rgba(124, 58, 237, 0.1);
   color: #7c3aed;
 }
 .tone-sand {
-  background: #fff7ed;
+  background: rgba(234, 88, 12, 0.1);
   color: #ea580c;
 }
 
@@ -702,31 +648,21 @@ defineExpose({
   margin: 0;
   font-size: 0.95rem;
   font-weight: 850;
-  color: #1e293b;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
 .khmer-type {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .request-dates {
   margin: 2px 0 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
-}
-
-.employee-name {
-  margin: 4px 0 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  color: var(--text-secondary);
 }
 
 .status-pill {
@@ -738,22 +674,10 @@ defineExpose({
   letter-spacing: 0.05em;
 }
 
-.status-pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-.status-review {
-  background: #e0f2fe;
-  color: #075985;
-}
-.status-approved {
-  background: #dcfce7;
-  color: #166534;
-}
-.status-refused {
-  background: #fee2e2;
-  color: #991b1b;
-}
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-review { background: #e0f2fe; color: #075985; }
+.status-approved { background: #dcfce7; color: #166534; }
+.status-refused { background: #fee2e2; color: #991b1b; }
 
 .card-chevron {
   font-size: 1.1rem;
@@ -763,9 +687,9 @@ defineExpose({
 .state-card {
   padding: 48px 24px;
   text-align: center;
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 32px;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .state-card ion-icon {
@@ -777,141 +701,5 @@ defineExpose({
 .state-card p {
   font-size: 1rem;
   font-weight: 600;
-}
-
-.employee-search-modal {
-  --background: #f8fafc;
-}
-
-.employee-option {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --inner-padding-end: 0;
-  --background: #ffffff;
-  margin-bottom: 12px;
-  border-radius: 20px;
-  border: 1px solid #f1f5f9;
-}
-
-/* Filter Styles */
-.filter-panel {
-  background: white;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.filter-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
-}
-
-.filter-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  position: relative;
-}
-
-.filter-item.full {
-  flex: 1 1 100%;
-}
-
-.filter-item label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-left: 4px;
-}
-
-.custom-searchbar {
-  --background: #f8fafc;
-  --border-radius: 12px;
-  padding: 0;
-  height: 44px;
-}
-
-.employee-suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  z-index: 100;
-  margin-top: 4px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.suggestion-item {
-  padding: 12px 16px;
-  font-size: 0.9rem;
-  color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.suggestion-item:last-child {
-  border-bottom: none;
-}
-
-.suggestion-item:active {
-  background: #f1f5f9;
-}
-
-.suggestion-loading {
-  display: flex;
-  justify-content: center;
-  padding: 12px;
-}
-
-.selected-tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.selected-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #eff6ff;
-  color: #2563eb;
-  padding: 6px 12px;
-  border-radius: 99px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  width: fit-content;
-}
-
-.selected-tag ion-icon {
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.date-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.filter-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #f1f5f9;
 }
 </style>
