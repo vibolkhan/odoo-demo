@@ -10,7 +10,7 @@
 
         <section class="login-card">
           <div class="card-header">
-            <p class="eyebrow">Odoo Demo</p>
+            <p class="eyebrow">TimeNest</p>
             <h1>Welcome Back</h1>
             <p class="intro">
               Sign in to manage your leave requests and profile.

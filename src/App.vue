@@ -3,10 +3,8 @@
     <Transition name="fade">
       <div v-if="!sessionReady" class="splash-screen">
         <div class="splash-content">
-          <div class="logo-orb">
-            <ion-icon :icon="rocketOutline" />
-          </div>
-          <h1>Odoo Demo</h1>
+          <img :src="splashImage" alt="App splash" class="splash-image" />
+          <h1>TimeNest</h1>
           <div class="splash-loader">
             <div class="loader-bar"></div>
           </div>
@@ -18,12 +16,12 @@
 </template>
 
 <script setup>
-import { IonApp, IonRouterOutlet, IonIcon } from '@ionic/vue';
-import { rocketOutline } from 'ionicons/icons';
+import { IonApp, IonRouterOutlet } from '@ionic/vue';
 import { useThemeStore } from '@/stores/theme.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
+import splashImage from '../resources/splash-screen.png';
 
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
@@ -55,16 +53,11 @@ onMounted(async () => {
   gap: 24px;
 }
 
-.logo-orb {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 28px;
-  display: grid;
-  place-items: center;
-  color: white;
-  font-size: 2.5rem;
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.3);
+.splash-image {
+  width: min(220px, 60vw);
+  max-height: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px rgba(37, 99, 235, 0.22));
   animation: float 3s infinite ease-in-out;
 }
 

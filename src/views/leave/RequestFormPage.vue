@@ -26,7 +26,7 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/vue";
-import RequestForm from "@/components/RequestForm.vue";
+import RequestForm from "@/components/leave/RequestForm.vue";
 </script>
 
 <style scoped>

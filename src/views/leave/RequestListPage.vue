@@ -121,9 +121,9 @@ import {
 import { addOutline, close, notificationsOutline } from "ionicons/icons";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import RequestForm from "@/components/RequestForm.vue";
-import RequestLst from "@/components/RequestLst.vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
+import RequestForm from "@/components/leave/RequestForm.vue";
+import RequestLst from "@/components/leave/RequestList.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import { useTimeoffStore } from "@/stores/timeoff.store";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 

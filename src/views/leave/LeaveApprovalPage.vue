@@ -209,9 +209,9 @@ import {
 import { ref, onMounted, watch, computed } from "vue";
 import { useUserStore } from "@/stores/user.store";
 import { useTimeoffStore } from "@/stores/timeoff.store";
-import DateInput from "@/components/DateInput.vue";
-import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
+import DateInput from "@/components/common/DateInput.vue";
+import LeaveRequestDetailModal from "@/components/leave/LeaveRequestDetailModal.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";

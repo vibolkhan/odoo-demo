@@ -174,14 +174,14 @@ import {
   personOutline,
   sparklesOutline,
 } from "ionicons/icons";
-import DateInput from "./DateInput.vue";
+import DateInput from "@/components/common/DateInput.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
+import LeaveRequestDetailModal from "@/components/leave/LeaveRequestDetailModal.vue";
 import { useUserStore } from "@/stores/user.store";
 import { useTimeoffStore } from "@/stores/timeoff.store";
-import AppSkeleton from "@/components/AppSkeleton.vue";
-import AppEmptyState from "@/components/AppEmptyState.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
+import AppEmptyState from "@/components/common/AppEmptyState.vue";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 const props = defineProps({

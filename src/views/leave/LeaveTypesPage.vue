@@ -296,7 +296,7 @@ import {
   IonSearchbar,
   onIonViewWillEnter,
 } from "@ionic/vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
 
 import {
   addOutline,

@@ -155,8 +155,8 @@ import {
   IonRefresherContent,
 } from "@ionic/vue";
 import { useNotification } from "@/composables/useNotification";
-import AppSkeleton from "@/components/AppSkeleton.vue";
-import AppAsyncState from "@/components/AppAsyncState.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
+import AppAsyncState from "@/components/common/AppAsyncState.vue";
 import {
   calendarOutline,
   medicalOutline,

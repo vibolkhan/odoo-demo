@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
-import TabsPage from "../views/TabsPage.vue";
+import TabsPage from "../views/layout/TabsPage.vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { pinia } from "@/stores";
 
@@ -11,7 +11,7 @@ const routes = [
   {
     path: "/login",
     name: "login",
-    component: () => import("@/views/LoginPage.vue"),
+    component: () => import("@/views/auth/LoginPage.vue"),
     meta: {
       guestOnly: true,
     },
@@ -30,42 +30,42 @@ const routes = [
       {
         path: "leave-types",
         name: "leave-types",
-        component: () => import("@/views/LeaveTypesPage.vue"),
+        component: () => import("@/views/leave/LeaveTypesPage.vue"),
       },
       {
         path: "profile",
         name: "profile",
-        component: () => import("@/views/ProfilePage.vue"),
+        component: () => import("@/views/profile/ProfilePage.vue"),
       },
       {
         path: "requests",
         name: "requests",
-        component: () => import("@/views/RequestListPage.vue"),
+        component: () => import("@/views/leave/RequestListPage.vue"),
       },
       {
         path: "leave-balance",
         name: "leave-balance",
-        component: () => import("@/views/LeaveBalancePage.vue"),
+        component: () => import("@/views/leave/LeaveBalancePage.vue"),
       },
       {
         path: "leave-calendar",
         name: "leave-calendar",
-        component: () => import("@/views/LeaveCalendarPage.vue"),
+        component: () => import("@/views/leave/LeaveCalendarPage.vue"),
       },
       {
         path: "admin-attendance",
         name: "admin-attendance",
-        component: () => import("@/views/AdminAttendancePage.vue"),
+        component: () => import("@/views/attendance/AdminAttendancePage.vue"),
       },
       {
         path: "my-attendance",
         name: "my-attendance",
-        component: () => import("@/views/MyAttendancePage.vue"),
+        component: () => import("@/views/attendance/MyAttendancePage.vue"),
       },
       {
         path: "leave-approval",
         name: "leave-approval",
-        component: () => import("@/views/LeaveApprovalPage.vue"),
+        component: () => import("@/views/leave/LeaveApprovalPage.vue"),
       },
     ],
   },

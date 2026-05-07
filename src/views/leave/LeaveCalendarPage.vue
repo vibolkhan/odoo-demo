@@ -208,7 +208,7 @@ import {
   onIonViewWillEnter,
 } from "@ionic/vue";
 import { ref, watch, computed } from "vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import {
   chevronBack,
   chevronForward,
@@ -218,8 +218,8 @@ import {
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useNotification } from "@/composables/useNotification";
-import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
-import PublicHolidayDetailModal from "@/components/PublicHolidayDetailModal.vue";
+import LeaveRequestDetailModal from "@/components/leave/LeaveRequestDetailModal.vue";
+import PublicHolidayDetailModal from "@/components/leave/PublicHolidayDetailModal.vue";
 import { useTimeoffStore } from "@/stores/timeoff.store";
 import { useUserStore } from "@/stores/user.store";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";

@@ -215,12 +215,12 @@ import { ref, onMounted, watch, computed } from "vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
 import { storeToRefs } from "pinia";
-import AttendanceDetailModal from "@/components/AttendanceDetailModal.vue";
-import DateInput from "@/components/DateInput.vue";
-import AppAvatar from "@/components/AppAvatar.vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
-import AppEmptyState from "@/components/AppEmptyState.vue";
-import AppAsyncState from "@/components/AppAsyncState.vue";
+import AttendanceDetailModal from "@/components/attendance/AttendanceDetailModal.vue";
+import DateInput from "@/components/common/DateInput.vue";
+import AppAvatar from "@/components/common/AppAvatar.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
+import AppEmptyState from "@/components/common/AppEmptyState.vue";
+import AppAsyncState from "@/components/common/AppAsyncState.vue";
 
 import { 
   formatDisplayDateTime as formatDateTime, 

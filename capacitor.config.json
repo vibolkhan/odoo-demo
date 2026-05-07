@@ -1,6 +1,6 @@
 {
   "appId": "io.ionic.starter",
-  "appName": "odoo-demo",
+  "appName": "TimeNest",
   "webDir": "dist",
   "plugins": {
     "Keyboard": {

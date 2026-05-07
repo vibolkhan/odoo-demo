@@ -277,7 +277,7 @@ import {
 
 import { ref, onMounted } from "vue";
 import { useUserStore } from "@/stores/user.store";
-import AppAvatar from "@/components/AppAvatar.vue";
+import AppAvatar from "@/components/common/AppAvatar.vue";
 
 const props = defineProps({
   recordId: {

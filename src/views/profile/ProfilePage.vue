@@ -293,8 +293,8 @@ import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
 import { useThemeStore } from "@/stores/theme.store";
-import AppAvatar from "@/components/AppAvatar.vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
+import AppAvatar from "@/components/common/AppAvatar.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 import { useAttendanceTimer } from "@/composables/useAttendanceTimer";

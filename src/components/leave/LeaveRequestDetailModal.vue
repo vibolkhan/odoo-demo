@@ -198,7 +198,7 @@ import {
 } from "ionicons/icons";
 import { ref, computed, watch } from "vue";
 import { toastController } from "@ionic/vue";
-import RequestForm from "@/components/RequestForm.vue";
+import RequestForm from "@/components/leave/RequestForm.vue";
 import { useTimeoffStore } from "@/stores/timeoff.store";
 
 const props = defineProps({

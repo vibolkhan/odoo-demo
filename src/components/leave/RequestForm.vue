@@ -119,7 +119,7 @@ import { useNotification } from "@/composables/useNotification";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
-import DateInput from "./DateInput.vue";
+import DateInput from "@/components/common/DateInput.vue";
 import { useUserStore } from "@/stores/user.store";
 import { useTimeoffStore } from "@/stores/timeoff.store";
 

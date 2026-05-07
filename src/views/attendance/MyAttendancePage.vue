@@ -165,9 +165,9 @@ import {
 import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useUserStore } from "@/stores/user.store";
-import AttendanceDetailModal from "@/components/AttendanceDetailModal.vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
-import AppEmptyState from "@/components/AppEmptyState.vue";
+import AttendanceDetailModal from "@/components/attendance/AttendanceDetailModal.vue";
+import AppSkeleton from "@/components/common/AppSkeleton.vue";
+import AppEmptyState from "@/components/common/AppEmptyState.vue";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
