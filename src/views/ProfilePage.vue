@@ -5,12 +5,15 @@
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <div class="profile-hero">
+      <div class="profile-hero" v-if="!showSkeleton">
         <div class="hero-bg"></div>
         <div class="hero-content">
-          <div class="avatar-circle">
-            {{ userInitials }}
-          </div>
+          <AppAvatar
+            :name="username"
+            :size="100"
+            :border="true"
+            variant="blue"
+          />
           <div class="user-info">
             <h1>{{ username }}</h1>
             <div class="badge-row">
@@ -22,166 +25,238 @@
           </div>
         </div>
       </div>
-
-      <div class="attendance-section" v-if="employeeId">
-        <div class="attendance-card" :class="{ 'is-checked-in': isCheckedIn }">
-          <div class="attendance-info">
-            <h3>{{ isCheckedIn ? "Currently Working" : "Not Checked In" }}</h3>
-            <p v-if="isCheckedIn && checkInTime">
-              Since: {{ formatDisplayTime(checkInTime) }}
-              <span class="live-timer">({{ workingDuration }})</span>
-            </p>
-            <p v-else>Ready to start your day?</p>
+      <div class="profile-hero skeleton" v-else>
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+          <AppSkeleton shape="circle" width="100px" height="100px" />
+          <div class="user-info">
+            <AppSkeleton width="200px" height="32px" />
+            <div class="badge-row">
+              <AppSkeleton width="60px" height="20px" />
+              <AppSkeleton width="80px" height="20px" />
+            </div>
           </div>
-          <button
-            v-if="!isCheckedIn"
-            class="attendance-btn check-in"
-            @click="toggleAttendance"
-            :disabled="isToggling"
-          >
-            <ion-spinner
-              v-if="isToggling"
-              name="crescent"
-              class="btn-spinner"
-            ></ion-spinner>
-            <ion-icon v-else :icon="logInOutline" />
-            Check In
-          </button>
-          <button
-            v-else
-            class="attendance-btn check-out"
-            @click="toggleAttendance"
-            :disabled="isToggling"
-          >
-            <ion-spinner
-              v-if="isToggling"
-              name="crescent"
-              class="btn-spinner"
-            ></ion-spinner>
-            <ion-icon v-else :icon="logOutOutline" />
-            Check Out
-          </button>
         </div>
       </div>
 
-      <div class="profile-actions">
-        <section v-if="isManager" class="action-section">
-          <h3 class="section-title">Team Management</h3>
-          <div class="action-grid">
+      <template v-if="!showSkeleton">
+        <div class="attendance-section" v-if="employeeId">
+          <div
+            class="attendance-card"
+            :class="{ 'is-checked-in': isCheckedIn }"
+          >
+            <div class="attendance-accent" aria-hidden="true"></div>
+            <div class="attendance-info">
+              <div
+                class="attendance-status-chip"
+                :class="{ active: isCheckedIn }"
+              >
+                <div v-if="isCheckedIn" class="pulse-dot"></div>
+                <ion-icon v-else :icon="timeOutline" />
+                <span>{{
+                  isCheckedIn ? "Live Session" : "Ready to Start"
+                }}</span>
+              </div>
+              <div class="status-indicator-row">
+                <div class="attendance-copy">
+                  <h3>
+                    {{ isCheckedIn ? "Currently Working" : "Not Checked In" }}
+                  </h3>
+                  <p v-if="isCheckedIn && checkInTime">
+                    Since {{ formatDisplayTime(checkInTime) }}
+                  </p>
+                  <p v-else-if="!loading.currentEmployee">
+                    Check in to start tracking your work time for today.
+                  </p>
+                </div>
+                <div v-if="isCheckedIn" class="timer-pill">
+                  <span class="timer-label">Elapsed</span>
+                  <strong>{{ workingDuration }}</strong>
+                </div>
+              </div>
+            </div>
             <button
-              class="action-card"
-              @click="router.push('/tabs/leave-approval')"
+              v-if="!isCheckedIn"
+              class="attendance-btn check-in"
+              @click="toggleAttendance"
+              :disabled="isToggling"
             >
-              <div class="icon-box blue">
-                <ion-icon :icon="checkmarkDoneOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>Manager Approvals</h4>
-                <p>Review and process team requests</p>
-              </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              <ion-spinner
+                v-if="isToggling"
+                name="crescent"
+                class="btn-spinner"
+              ></ion-spinner>
+              <ion-icon v-else :icon="logInOutline" />
+              Check In
             </button>
-
             <button
-              class="action-card"
-              @click="router.push('/tabs/admin-attendance')"
+              v-else
+              class="attendance-btn check-out"
+              @click="toggleAttendance"
+              :disabled="isToggling"
             >
-              <div class="icon-box emerald">
-                <ion-icon :icon="timeOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>All Attendances</h4>
-                <p>View all employee attendances</p>
-              </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              <ion-spinner
+                v-if="isToggling"
+                name="crescent"
+                class="btn-spinner"
+              ></ion-spinner>
+              <ion-icon v-else :icon="logOutOutline" />
+              Check Out
             </button>
           </div>
-        </section>
+        </div>
 
+        <div class="profile-actions">
+          <section v-if="isManager" class="action-section">
+            <h3 class="section-title">Team Management</h3>
+            <div class="action-grid">
+              <button
+                class="action-card"
+                @click="router.push('/tabs/leave-approval')"
+                aria-label="Manager Approvals: Review and process team requests"
+              >
+                <div class="icon-box blue">
+                  <ion-icon :icon="checkmarkDoneOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>Manager Approvals</h4>
+                  <p>Review and process team requests</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+
+              <button
+                class="action-card"
+                @click="router.push('/tabs/admin-attendance')"
+                aria-label="All Attendances: View all employee attendances"
+              >
+                <div class="icon-box emerald">
+                  <ion-icon :icon="timeOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>All Attendances</h4>
+                  <p>View all employee attendances</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+            </div>
+          </section>
+
+          <section class="action-section">
+            <h3 class="section-title">Self Service</h3>
+            <div class="action-grid">
+              <button 
+                class="action-card" 
+                @click="router.push('/tabs/requests')"
+                aria-label="My Requests: View your leave history"
+              >
+                <div class="icon-box purple">
+                  <ion-icon :icon="documentTextOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>My Requests</h4>
+                  <p>View your leave history</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+
+              <button
+                class="action-card"
+                @click="router.push('/tabs/my-attendance')"
+                aria-label="My Attendances: Check your work history"
+              >
+                <div class="icon-box blue">
+                  <ion-icon :icon="timeOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>My Attendances</h4>
+                  <p>Check your work history</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+
+              <button
+                class="action-card"
+                @click="router.push('/tabs/leave-balance')"
+                aria-label="Leave Balance: Check remaining allocations"
+              >
+                <div class="icon-box emerald">
+                  <ion-icon :icon="walletOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>Leave Balance</h4>
+                  <p>Check remaining allocations</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+
+              <button
+                class="action-card"
+                @click="router.push('/tabs/leave-calendar')"
+                aria-label="Calendar: View working & leave dates"
+              >
+                <div class="icon-box amber">
+                  <ion-icon :icon="calendarOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>Calendar</h4>
+                  <p>View working & leave dates</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+            </div>
+          </section>
+
+          <section class="action-section">
+            <h3 class="section-title">Account</h3>
+            <div class="action-grid">
+              <button 
+                class="action-card" 
+                @click="themeStore.toggleTheme"
+                :aria-label="`Switch to ${isDarkMode ? 'light' : 'dark'} mode`"
+              >
+                <div class="icon-box" :class="isDarkMode ? 'amber' : 'blue'">
+                  <ion-icon :icon="isDarkMode ? sunnyOutline : moonOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>{{ isDarkMode ? "Light Mode" : "Dark Mode" }}</h4>
+                  <p>Switch between light and dark themes</p>
+                </div>
+                <div class="theme-toggle-status">
+                  {{ isDarkMode ? "ON" : "OFF" }}
+                </div>
+              </button>
+
+              <button 
+                class="action-card logout" 
+                @click="handleLogout"
+                aria-label="Sign Out: End your current session"
+              >
+                <div class="icon-box red">
+                  <ion-icon :icon="logOutOutline" />
+                </div>
+                <div class="card-copy">
+                  <h4>Sign Out</h4>
+                  <p>End your current session</p>
+                </div>
+                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+              </button>
+            </div>
+          </section>
+        </div>
+      </template>
+
+      <div v-if="showSkeleton" class="profile-actions skeleton">
         <section class="action-section">
-          <h3 class="section-title">Self Service</h3>
+          <AppSkeleton width="140px" height="24px" margin="0 0 16px" />
           <div class="action-grid">
-            <button class="action-card" @click="router.push('/tabs/tab4')">
-              <div class="icon-box purple">
-                <ion-icon :icon="documentTextOutline" />
-              </div>
+            <div v-for="i in 6" :key="i" class="action-card skeleton-card">
+              <AppSkeleton shape="squircle" width="48px" height="48px" />
               <div class="card-copy">
-                <h4>My Requests</h4>
-                <p>View your leave history</p>
+                <AppSkeleton width="120px" height="18px" />
+                <AppSkeleton width="180px" height="14px" margin="6px 0 0" />
               </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
-            </button>
-
-            <button
-              class="action-card"
-              @click="router.push('/tabs/my-attendance')"
-            >
-              <div class="icon-box blue">
-                <ion-icon :icon="timeOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>My Attendances</h4>
-                <p>Check your work history</p>
-              </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
-            </button>
-
-            <button
-              class="action-card"
-              @click="router.push('/tabs/leave-balance')"
-            >
-              <div class="icon-box emerald">
-                <ion-icon :icon="walletOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>Leave Balance</h4>
-                <p>Check remaining allocations</p>
-              </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
-            </button>
-
-            <button
-              class="action-card"
-              @click="router.push('/tabs/leave-calendar')"
-            >
-              <div class="icon-box amber">
-                <ion-icon :icon="calendarOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>Calendar</h4>
-                <p>View working & leave dates</p>
-              </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
-            </button>
-          </div>
-        </section>
-
-        <section class="action-section">
-          <h3 class="section-title">Account</h3>
-          <div class="action-grid">
-            <button class="action-card" @click="themeStore.toggleTheme">
-              <div class="icon-box" :class="isDarkMode ? 'amber' : 'blue'">
-                <ion-icon :icon="isDarkMode ? sunnyOutline : moonOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</h4>
-                <p>Switch between light and dark themes</p>
-              </div>
-              <div class="theme-toggle-status">
-                {{ isDarkMode ? 'ON' : 'OFF' }}
-              </div>
-            </button>
-
-            <button class="action-card logout" @click="handleLogout">
-              <div class="icon-box red">
-                <ion-icon :icon="logOutOutline" />
-              </div>
-              <div class="card-copy">
-                <h4>Sign Out</h4>
-                <p>End your current session</p>
-              </div>
-              <ion-icon :icon="chevronForwardOutline" class="chevron" />
-            </button>
+            </div>
           </div>
         </section>
       </div>
@@ -198,6 +273,8 @@ import {
   IonRefresherContent,
   IonSpinner,
 } from "@ionic/vue";
+import { useNotification } from "@/composables/useNotification";
+import { Geolocation } from "@capacitor/geolocation";
 import {
   checkmarkDoneOutline,
   chevronForwardOutline,
@@ -216,6 +293,13 @@ import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
 import { useThemeStore } from "@/stores/theme.store";
+import AppAvatar from "@/components/AppAvatar.vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+
+import { useAttendanceTimer } from "@/composables/useAttendanceTimer";
+import { useAttendanceActions } from "@/composables/useAttendanceActions";
+import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -223,7 +307,15 @@ const userStore = useUserStore();
 const themeStore = useThemeStore();
 const { isDarkMode } = storeToRefs(themeStore);
 const { displayName: username, userId } = storeToRefs(authStore);
-const { currentEmployee, isManager } = storeToRefs(userStore);
+const { currentEmployee, isManager, loading } = storeToRefs(userStore);
+const { showSkeleton } = useMinimumSkeleton(
+  () => loading.value.currentEmployee,
+  1000,
+);
+
+const { formatTime: formatDisplayTime } = useDateTimeFormatter();
+const { isToggling, toggleAttendance } = useAttendanceActions();
+const { showToast } = useNotification();
 
 const userInitials = computed(() => {
   const name = username.value;
@@ -243,48 +335,10 @@ const checkInTime = computed(() => {
   return new Date(`${currentEmployee.value.lastCheckIn}Z`);
 });
 
-const isToggling = ref(false);
-const workingDuration = ref("00:00:00");
-let timerInterval = null;
-
-const updateTimer = () => {
-  if (isCheckedIn.value && checkInTime.value) {
-    const now = new Date();
-    const diff = now.getTime() - checkInTime.value.getTime();
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    workingDuration.value = `${String(hours).padStart(2, "0")}:${String(
-      minutes,
-    ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  }
-};
+const { workingDuration } = useAttendanceTimer(isCheckedIn, checkInTime);
 
 onMounted(async () => {
   await userStore.fetchCurrentEmployee();
-  if (isCheckedIn.value) {
-    updateTimer();
-    timerInterval = setInterval(updateTimer, 1000);
-  }
-});
-
-onUnmounted(() => {
-  if (timerInterval) clearInterval(timerInterval);
-});
-
-watch(isCheckedIn, (newVal) => {
-  if (newVal) {
-    updateTimer();
-    if (!timerInterval) timerInterval = setInterval(updateTimer, 1000);
-  } else {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-    workingDuration.value = "00:00:00";
-  }
 });
 
 const handleRefresh = async (event) => {
@@ -295,63 +349,16 @@ const handleRefresh = async (event) => {
   }
 };
 
-const getCurrentPosition = () => {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      console.warn("Geolocation is not supported by this browser.");
-      resolve(null);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      (error) => {
-        console.warn("Geolocation error:", error);
-        resolve(null);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      },
-    );
-  });
-};
-
-const toggleAttendance = async () => {
-  if (isToggling.value) return;
-  isToggling.value = true;
-  try {
-    const location = await getCurrentPosition();
-    await userStore.toggleAttendance(
-      location?.latitude ?? 11.549689964595043,
-      location?.longitude ?? 104.94361458805437,
-    );
-  } catch (error) {
-    console.error("Attendance toggle failed:", error);
-  } finally {
-    isToggling.value = false;
-  }
-};
-
 const handleLogout = async () => {
   try {
     await authStore.logout();
     await router.replace("/login");
   } catch (error) {
     console.error("Logout failed:", error);
+    await showToast("Failed to sign out. Please try again.", "danger");
   }
 };
 
-const formatDisplayTime = (date) => {
-  if (!date) return "";
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-};
 </script>
 
 <style scoped>
@@ -403,8 +410,9 @@ const formatDisplayTime = (date) => {
 
 .user-info h1 {
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 850;
+  font-size: clamp(1.45rem, 4.5vw, 1.7rem);
+  line-height: 1.15;
+  font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
@@ -431,13 +439,15 @@ const formatDisplayTime = (date) => {
 
 .attendance-section {
   padding: 0 20px;
-  margin-top: -20px;
+  margin-top: -10px;
   margin-bottom: 32px;
   position: relative;
   z-index: 2;
 }
 
 .attendance-card {
+  position: relative;
+  overflow: hidden;
   background: var(--card-bg);
   border-radius: 28px;
   padding: 20px;
@@ -446,20 +456,103 @@ const formatDisplayTime = (date) => {
   justify-content: space-between;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border-color);
+  gap: 18px;
+}
+
+.attendance-accent {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: linear-gradient(180deg, #94a3b8 0%, #cbd5e1 100%);
+}
+
+.attendance-card.is-checked-in .attendance-accent {
+  background: var(--ion-color-primary);
+}
+
+.attendance-card.is-checked-in {
+  background: var(--card-bg);
 }
 
 .attendance-info h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-primary);
 }
 
+.attendance-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.attendance-status-chip ion-icon {
+  font-size: 0.9rem;
+}
+
+.attendance-status-chip.active {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--ion-color-primary);
+}
+
+.status-indicator-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.attendance-copy {
+  min-width: 0;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ion-color-primary);
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--ion-color-primary);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
 .attendance-info p {
-  margin: 4px 0 0;
-  font-size: 0.85rem;
+  margin: 6px 0 0;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   font-weight: 500;
+  line-height: 1.45;
 }
 
 .live-timer {
@@ -468,12 +561,41 @@ const formatDisplayTime = (date) => {
   margin-left: 4px;
 }
 
+.timer-pill {
+  flex-shrink: 0;
+  min-width: 96px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  text-align: right;
+}
+
+.timer-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.timer-pill strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #1d4ed8;
+  letter-spacing: 0.02em;
+}
+
 .attendance-btn {
   padding: 12px 20px;
   border-radius: 18px;
   border: none;
   font-weight: 800;
   font-size: 0.9rem;
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -486,12 +608,16 @@ const formatDisplayTime = (date) => {
 }
 
 .check-in {
-  background: #eff6ff;
-  color: #2563eb;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1d4ed8;
 }
 
 .check-out {
-  background: rgba(239, 68, 68, 0.1);
+  background: linear-gradient(
+    135deg,
+    rgba(254, 226, 226, 0.95),
+    rgba(254, 202, 202, 0.9)
+  );
   color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
@@ -508,6 +634,27 @@ const formatDisplayTime = (date) => {
 .btn-spinner {
   width: 16px;
   height: 16px;
+}
+
+@media (max-width: 640px) {
+  .attendance-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-indicator-row {
+    flex-direction: column;
+  }
+
+  .timer-pill {
+    width: 100%;
+    text-align: left;
+  }
+
+  .attendance-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .profile-actions {

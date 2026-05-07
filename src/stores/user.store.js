@@ -9,28 +9,32 @@ import {
   toggleAttendanceState,
 } from "@/api/user.api";
 import { useAuthStore } from "@/stores/auth.store";
+import { createAsyncState, runAsync } from "@/utils/async-state";
 
-const createLoadingState = () => ({
-  currentEmployee: false,
-  employees: false,
-  myAttendances: false,
-  allAttendances: false,
-  attendanceDetail: false,
-  attendanceToggle: false,
-});
+/**
+ * @typedef {Object} NormalizedEmployee
+ * @property {number} id
+ * @property {string} name
+ * @property {string} company
+ * @property {string} department
+ * @property {'checked_in' | 'checked_out'} attendanceState
+ * @property {string | null} lastCheckIn ISO date string or null
+ */
 
-const createErrorState = () => ({
-  currentEmployee: "",
-  employees: "",
-  myAttendances: "",
-  allAttendances: "",
-  attendanceDetail: "",
-  attendanceToggle: "",
+const createAsyncStates = () => ({
+  currentEmployee: createAsyncState(),
+  employees: createAsyncState(),
+  myAttendances: createAsyncState(),
+  allAttendances: createAsyncState(),
+  attendanceDetail: createAsyncState(),
+  attendanceToggle: createAsyncState(),
 });
 
 export const useUserStore = defineStore("user", {
   state: () => ({
+    /** @type {NormalizedEmployee | null} */
     currentEmployee: null,
+    /** @type {NormalizedEmployee[]} */
     employees: [],
     employeePagination: {
       hasMore: true,
@@ -40,9 +44,29 @@ export const useUserStore = defineStore("user", {
     allAttendances: [],
     attendanceDetail: null,
     isManager: true,
-    loading: createLoadingState(),
-    error: createErrorState(),
+    asyncStates: createAsyncStates(),
   }),
+
+  getters: {
+    // Helper to get loading state of specific features
+    loading: (state) => ({
+      currentEmployee: state.asyncStates.currentEmployee.status === "loading",
+      employees: state.asyncStates.employees.status === "loading",
+      myAttendances: state.asyncStates.myAttendances.status === "loading",
+      allAttendances: state.asyncStates.allAttendances.status === "loading",
+      attendanceDetail: state.asyncStates.attendanceDetail.status === "loading",
+      attendanceToggle: state.asyncStates.attendanceToggle.status === "loading",
+    }),
+    // Helper to get error state of specific features
+    error: (state) => ({
+      currentEmployee: state.asyncStates.currentEmployee.error,
+      employees: state.asyncStates.employees.error,
+      myAttendances: state.asyncStates.myAttendances.error,
+      allAttendances: state.asyncStates.allAttendances.error,
+      attendanceDetail: state.asyncStates.attendanceDetail.error,
+      attendanceToggle: state.asyncStates.attendanceToggle.error,
+    }),
+  },
 
   actions: {
     getRequiredUserId() {
@@ -56,12 +80,26 @@ export const useUserStore = defineStore("user", {
       return userId;
     },
 
-    setLoading(key, value) {
-      this.loading[key] = value;
-    },
+    /**
+     * Centralized normalization for employee data.
+     * Ensures consistent shape across the app, merging data from hr.employee
+     * and specialized attendance endpoints.
+     */
+    _normalizeEmployee(employee, attendanceSupplement = null) {
+      if (!employee) return null;
 
-    setError(key, value) {
-      this.error[key] = value;
+      return {
+        ...employee,
+        // Prioritize supplement data (usually fresher) over base employee record
+        attendanceState:
+          attendanceSupplement?.attendance_state ||
+          employee.attendanceState ||
+          "checked_out",
+        lastCheckIn:
+          attendanceSupplement?.last_check_in ||
+          employee.lastCheckIn ||
+          null,
+      };
     },
 
     resetState() {
@@ -75,142 +113,107 @@ export const useUserStore = defineStore("user", {
       this.allAttendances = [];
       this.attendanceDetail = null;
       this.isManager = true;
-      this.loading = createLoadingState();
-      this.error = createErrorState();
+      this.asyncStates = createAsyncStates();
     },
 
     async fetchCurrentEmployee(options = {}) {
-      if (this.loading.currentEmployee && !options.force) {
+      if (
+        this.asyncStates.currentEmployee.status === "loading" &&
+        !options.force
+      ) {
         return this.currentEmployee;
       }
 
-      this.setLoading("currentEmployee", true);
-      this.setError("currentEmployee", "");
-
-      try {
+      return runAsync(this.asyncStates.currentEmployee, async () => {
+        // Fetch base employee record
         const employee = await fetchCurrentUserEmployee(this.getRequiredUserId());
-        this.currentEmployee = employee;
         
-        // Supplement with fresh attendance data from the new endpoint
-        if (employee) {
-          await this.fetchAttendanceUserData();
+        if (!employee) {
+          this.currentEmployee = null;
+          return null;
         }
-        
+
+        // Try to supplement with fresh attendance data
+        // We do this in parallel or sequence, but handle failure gracefully
+        try {
+          const attendanceData = await fetchAttendanceUserData(this.getRequiredUserId());
+          this.currentEmployee = this._normalizeEmployee(employee, attendanceData);
+        } catch (error) {
+          console.warn("Could not fetch fresh attendance supplement:", error);
+          // Fallback to base employee data only
+          this.currentEmployee = this._normalizeEmployee(employee);
+        }
+
         return this.currentEmployee;
-      } catch (error) {
-        this.currentEmployee = null;
-        this.setError(
-          "currentEmployee",
-          error instanceof Error ? error.message : "Unable to load profile.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("currentEmployee", false);
-      }
+      });
     },
 
     async fetchEmployees(options = {}) {
-      this.setLoading("employees", true);
-      this.setError("employees", "");
-
-      try {
-        const result = await fetchEmployees(this.getRequiredUserId(), options);
-        this.employees = result.records;
-        this.employeePagination = {
-          hasMore: result.hasMore,
-          offset: (options.offset ?? 0) + result.records.length,
-        };
-        return result;
-      } catch (error) {
-        if ((options.offset ?? 0) === 0) {
-          this.employees = [];
+      return runAsync(this.asyncStates.employees, async () => {
+        try {
+          const result = await fetchEmployees(this.getRequiredUserId(), options);
+          this.employees = result.records;
+          this.employeePagination = {
+            hasMore: result.hasMore,
+            offset: (options.offset ?? 0) + result.records.length,
+          };
+          return result;
+        } catch (error) {
+          if ((options.offset ?? 0) === 0) {
+            this.employees = [];
+          }
+          throw error;
         }
-        this.setError(
-          "employees",
-          error instanceof Error ? error.message : "Unable to load employees.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("employees", false);
-      }
+      });
     },
 
-
     async fetchMyAttendances() {
-      this.setLoading("myAttendances", true);
-      this.setError("myAttendances", "");
-
-      try {
-        const records = await fetchMyAttendances(this.getRequiredUserId());
-        this.myAttendances = records;
-        return records;
-      } catch (error) {
-        this.myAttendances = [];
-        this.setError(
-          "myAttendances",
-          error instanceof Error
-            ? error.message
-            : "Unable to load attendance records.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("myAttendances", false);
-      }
+      return runAsync(this.asyncStates.myAttendances, async () => {
+        try {
+          const records = await fetchMyAttendances(this.getRequiredUserId());
+          this.myAttendances = records;
+          return records;
+        } catch (error) {
+          this.myAttendances = [];
+          throw error;
+        }
+      });
     },
 
     async fetchAllAttendances(domain = []) {
-      this.setLoading("allAttendances", true);
-      this.setError("allAttendances", "");
-
-      try {
-        const records = await fetchAllAttendances(this.getRequiredUserId(), domain);
-        this.allAttendances = records;
-        return records;
-      } catch (error) {
-        this.allAttendances = [];
-        this.setError(
-          "allAttendances",
-          error instanceof Error
-            ? error.message
-            : "Unable to load attendance records.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("allAttendances", false);
-      }
+      return runAsync(this.asyncStates.allAttendances, async () => {
+        try {
+          const records = await fetchAllAttendances(this.getRequiredUserId(), domain);
+          this.allAttendances = records;
+          return records;
+        } catch (error) {
+          this.allAttendances = [];
+          throw error;
+        }
+      });
     },
 
     async fetchAttendanceDetail(id) {
-      this.setLoading("attendanceDetail", true);
-      this.setError("attendanceDetail", "");
-
-      try {
-        const detail = await fetchAttendanceDetail(this.getRequiredUserId(), id);
-        this.attendanceDetail = detail;
-        return detail;
-      } catch (error) {
-        this.attendanceDetail = null;
-        this.setError(
-          "attendanceDetail",
-          error instanceof Error
-            ? error.message
-            : "Unable to load attendance details.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("attendanceDetail", false);
-      }
+      return runAsync(this.asyncStates.attendanceDetail, async () => {
+        try {
+          const detail = await fetchAttendanceDetail(this.getRequiredUserId(), id);
+          this.attendanceDetail = detail;
+          return detail;
+        } catch (error) {
+          this.attendanceDetail = null;
+          throw error;
+        }
+      });
     },
 
     async fetchAttendanceUserData() {
       try {
         const data = await fetchAttendanceUserData(this.getRequiredUserId());
-        if (this.currentEmployee && data) {
-          this.currentEmployee = {
-            ...this.currentEmployee,
-            attendanceState: data.attendance_state,
-            lastCheckIn: data.last_check_in,
-          };
+        if (this.currentEmployee) {
+          this.currentEmployee = this._normalizeEmployee(
+            this.currentEmployee,
+            data,
+          );
         }
         return data;
       } catch (error) {
@@ -220,28 +223,22 @@ export const useUserStore = defineStore("user", {
     },
 
     async toggleAttendance(latitude, longitude) {
-      this.setLoading("attendanceToggle", true);
-      this.setError("attendanceToggle", "");
-
-      try {
+      return runAsync(this.asyncStates.attendanceToggle, async () => {
         const result = await toggleAttendanceState(
           this.getRequiredUserId(),
           latitude,
           longitude,
         );
-        await this.fetchAttendanceUserData();
+
+        // Always refresh supplemental data after a toggle
+        try {
+          await this.fetchAttendanceUserData();
+        } catch (error) {
+          console.warn("Toggle succeeded but supplement refresh failed:", error);
+        }
+
         return result;
-      } catch (error) {
-        this.setError(
-          "attendanceToggle",
-          error instanceof Error
-            ? error.message
-            : "Unable to toggle attendance.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("attendanceToggle", false);
-      }
+      });
     },
   },
 });

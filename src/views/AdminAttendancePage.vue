@@ -3,7 +3,7 @@
     <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-back-button default-href="/tabs/tab3"></ion-back-button>
+          <ion-back-button default-href="/tabs/profile"></ion-back-button>
         </ion-buttons>
         <ion-title>All Attendances</ion-title>
         <ion-buttons slot="end">
@@ -75,81 +75,114 @@
         </div>
       </div>
 
-      <!-- Summary Stats -->
-      <div v-if="records.length > 0 && !loading" class="stats-summary">
-        <div class="stat-item">
-          <span class="stat-value">{{ totalWorkedHours.toFixed(1) }}</span>
-          <span class="stat-label">Total Hours</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ records.length }}</span>
-          <span class="stat-label">Records</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ totalOvertimeHours.toFixed(1) }}</span>
-          <span class="stat-label">OT Hours</span>
-        </div>
-      </div>
-
-      <div class="attendance-list">
-        <div v-if="loading" class="loading-state">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Loading attendances...</p>
-        </div>
-
-        <div v-else-if="records.length === 0" class="empty-state">
-          <ion-icon :icon="listOutline"></ion-icon>
-          <p>No attendance records found.</p>
-        </div>
-
-        <div v-else class="record-grid">
-          <div
-            v-for="record in records"
-            :key="record.id"
-            class="record-card"
-            @click="openDetail(record.id)"
-          >
-            <div class="card-header">
-              <h3>{{ getEmployeeName(record) }}</h3>
-              <span
-                class="status-badge"
-                :class="record.check_out ? 'checked-out' : 'checked-in'"
-              >
-                {{ record.check_out ? "Completed" : "Working" }}
-              </span>
+      <AppAsyncState :state="userStore.asyncStates.allAttendances" @retry="fetchAttendances">
+        <template #loading>
+          <!-- Summary Stats Skeleton -->
+          <div class="stats-summary stats-summary-skeleton">
+            <div v-for="i in 3" :key="`admin-attendance-stat-skeleton-${i}`" class="stat-item">
+              <AppSkeleton width="42px" height="24px" />
+              <AppSkeleton width="60px" height="12px" margin="8px 0 0" />
             </div>
-
-            <div class="card-body">
-              <div class="time-row">
-                <div class="time-col">
-                  <span class="label">Check In</span>
-                  <span class="value">{{
-                    formatDateTime(record.check_in)
-                  }}</span>
+          </div>
+          
+          <div class="record-grid">
+            <div v-for="i in 6" :key="i" class="record-card skeleton-card">
+              <div class="card-header">
+                <div class="header-left">
+                  <AppSkeleton shape="squircle" width="32px" height="32px" />
+                  <AppSkeleton width="120px" height="18px" />
                 </div>
-                <div class="time-col" v-if="record.check_out">
-                  <span class="label">Check Out</span>
-                  <span class="value">{{
-                    formatDateTime(record.check_out)
-                  }}</span>
+                <AppSkeleton width="60px" height="20px" shape="rect" />
+              </div>
+              <div class="card-body">
+                <div class="time-row">
+                  <AppSkeleton width="80px" height="14px" />
+                  <AppSkeleton width="80px" height="14px" />
+                </div>
+                <div class="stats-row">
+                  <AppSkeleton width="60px" height="24px" />
                 </div>
               </div>
+            </div>
+          </div>
+        </template>
 
-              <div class="stats-row" v-if="record.worked_hours">
-                <span class="worked-hours">
-                  <ion-icon :icon="timeOutline"></ion-icon>
-                  {{ formatHours(record.worked_hours) }} hrs
+        <div class="attendance-list">
+          <div v-if="records.length > 0" class="stats-summary">
+            <div class="stat-item">
+              <span class="stat-value">{{ totalWorkedHours.toFixed(1) }}</span>
+              <span class="stat-label">Total Hours</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-value">{{ records.length }}</span>
+              <span class="stat-label">Records</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-value">{{ totalOvertimeHours.toFixed(1) }}</span>
+              <span class="stat-label">OT Hours</span>
+            </div>
+          </div>
+
+          <AppEmptyState
+            v-if="records.length === 0"
+            :icon="listOutline"
+            title="No results found"
+            description="We couldn't find any attendance records matching your current filter criteria."
+            variant="slate"
+          />
+
+          <div v-else class="record-grid">
+            <div
+              v-for="record in records"
+              :key="record.id"
+              class="record-card"
+              @click="openDetail(record.id)"
+            >
+              <div class="card-header">
+                <div class="header-left">
+                  <AppAvatar :name="getEmployeeName(record)" :size="32" variant="slate" />
+                  <h3>{{ getEmployeeName(record) }}</h3>
+                </div>
+                <span
+                  class="status-badge"
+                  :class="record.check_out ? 'checked-out' : 'checked-in'"
+                >
+                  {{ record.check_out ? "Completed" : "Working" }}
                 </span>
-                <span class="overtime" v-if="record.overtime_hours > 0">
-                  +{{ formatHours(record.overtime_hours) }} OT
-                </span>
+              </div>
+
+              <div class="card-body">
+                <div class="time-row">
+                  <div class="time-col">
+                    <span class="label">Check In</span>
+                    <span class="value">{{
+                      formatDateTime(record.check_in)
+                    }}</span>
+                  </div>
+                  <div class="time-col" v-if="record.check_out">
+                    <span class="label">Check Out</span>
+                    <span class="value">{{
+                      formatDateTime(record.check_out)
+                    }}</span>
+                  </div>
+                </div>
+
+                <div class="stats-row" v-if="record.worked_hours">
+                  <span class="worked-hours">
+                    <ion-icon :icon="timeOutline"></ion-icon>
+                    {{ formatHours(record.worked_hours) }} hrs
+                  </span>
+                  <span class="overtime" v-if="record.overtime_hours > 0">
+                    +{{ formatHours(record.overtime_hours) }} OT
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </AppAsyncState>
     </ion-content>
   </ion-page>
 </template>
@@ -169,27 +202,36 @@ import {
   IonIcon,
   IonButton,
   IonSearchbar,
-  IonToggle,
-  IonLabel,
   modalController,
 } from "@ionic/vue";
+import { useNotification } from "@/composables/useNotification";
 import {
   timeOutline,
   listOutline,
   filterOutline,
   closeCircle,
-  chevronDownOutline,
 } from "ionicons/icons";
 import { ref, onMounted, watch, computed } from "vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
+import { storeToRefs } from "pinia";
 import AttendanceDetailModal from "@/components/AttendanceDetailModal.vue";
 import DateInput from "@/components/DateInput.vue";
+import AppAvatar from "@/components/AppAvatar.vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
+import AppEmptyState from "@/components/AppEmptyState.vue";
+import AppAsyncState from "@/components/AppAsyncState.vue";
+
+import { 
+  formatDisplayDateTime as formatDateTime, 
+  formatHours 
+} from "@/utils/date";
 
 const authStore = useAuthStore();
 const userStore = useUserStore();
-const records = ref([]);
-const loading = ref(true);
+const { allAttendances: records } = storeToRefs(userStore);
+
+const { showToast } = useNotification();
 
 // Computed Totals
 const totalWorkedHours = computed(() =>
@@ -222,7 +264,6 @@ const onEmployeeFocus = () => {
 };
 
 const onEmployeeBlur = () => {
-  // Delay hiding to allow click event on suggestions to fire
   setTimeout(() => {
     showAllEmployees.value = false;
   }, 200);
@@ -256,6 +297,7 @@ const loadEmployees = async (reset = false) => {
     showAllEmployees.value = !employeeSearch.value;
   } catch (error) {
     console.error("Error loading employees:", error);
+    await showToast("Failed to load employees list.", "danger");
   } finally {
     loadingEmployees.value = false;
   }
@@ -288,15 +330,6 @@ const removeEmployee = (empId) => {
   );
 };
 
-const resetFilters = () => {
-  dateFrom.value = "";
-  dateTo.value = "";
-  isMyTeam.value = false;
-  selectedEmployees.value = [];
-  employeeSearch.value = "";
-  loadEmployees(true);
-};
-
 // Automatic filter application
 watch(
   [selectedEmployees, dateFrom, dateTo, isMyTeam],
@@ -316,11 +349,8 @@ const handleRefresh = async (event) => {
 };
 
 async function fetchAttendances() {
-  loading.value = true;
   try {
     const uid = Number(authStore.userId);
-
-    // Build dynamic domain
     const domain = [["employee_id.active", "=", true]];
 
     if (selectedEmployees.value.length > 0) {
@@ -343,12 +373,10 @@ async function fetchAttendances() {
       domain.push(["check_in", "<=", dateTo.value + " 23:59:59"]);
     }
 
-    const result = await userStore.fetchAllAttendances(domain);
-    records.value = result;
+    await userStore.fetchAllAttendances(domain);
   } catch (error) {
     console.error("Error fetching attendances:", error);
-  } finally {
-    loading.value = false;
+    await showToast("Failed to load attendance records.", "danger");
   }
 }
 
@@ -371,26 +399,6 @@ function getEmployeeName(record) {
     return record.employee_id.display_name;
   }
   return "Unknown Employee";
-}
-
-function formatDateTime(dateStr) {
-  if (!dateStr) return "N/A";
-
-  // Odoo returns UTC times without 'Z'. We append 'Z' to parse it correctly as UTC.
-  const date = new Date(dateStr + "Z");
-  if (isNaN(date.getTime())) return dateStr;
-
-  return date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatHours(hours) {
-  if (!hours) return "0.0";
-  return hours.toFixed(2);
 }
 </script>
 
@@ -439,8 +447,14 @@ function formatHours(hours) {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .card-header h3 {
@@ -685,6 +699,10 @@ ion-button {
   color: white;
   box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
   margin-bottom: 20px;
+}
+
+.stats-summary-skeleton {
+  min-height: 96px;
 }
 
 .stat-item {

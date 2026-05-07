@@ -3,7 +3,7 @@
     <ion-header class="ion-no-border">
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-back-button default-href="/tabs/tab3"></ion-back-button>
+          <ion-back-button default-href="/tabs/profile"></ion-back-button>
         </ion-buttons>
         <ion-title>Leave Approvals</ion-title>
         <ion-buttons slot="end">
@@ -75,7 +75,18 @@
       </div>
 
       <!-- Summary Stats -->
-      <div v-if="!loading" class="stats-summary">
+      <div v-if="showSkeleton" class="stats-summary stats-summary-skeleton">
+        <div
+          v-for="i in 3"
+          :key="`leave-approval-stat-skeleton-${i}`"
+          class="stat-item"
+        >
+          <AppSkeleton width="42px" height="24px" />
+          <AppSkeleton width="56px" height="12px" margin="8px 0 0" />
+        </div>
+      </div>
+
+      <div v-else-if="!loading" class="stats-summary">
         <div class="stat-item">
           <span class="stat-value">{{ filteredRequests.length }}</span>
           <span class="stat-label">Total</span>
@@ -106,9 +117,20 @@
       </div>
 
       <div class="request-list">
-        <div v-if="loading" class="loading-state">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Loading requests...</p>
+        <div v-if="showSkeleton" class="record-grid">
+          <div v-for="i in 5" :key="i" class="record-card skeleton-card">
+            <div class="card-header">
+              <div class="type-info">
+                <AppSkeleton width="120px" height="18px" />
+                <AppSkeleton width="80px" height="14px" margin="6px 0 0" />
+              </div>
+              <AppSkeleton width="60px" height="22px" shape="rect" />
+            </div>
+            <div class="card-body">
+              <AppSkeleton width="160px" height="14px" />
+              <AppSkeleton width="40px" height="24px" margin="8px 0 0" />
+            </div>
+          </div>
         </div>
 
         <div v-else-if="finalRequests.length === 0" class="empty-state">
@@ -176,6 +198,7 @@ import {
   IonButton,
   IonSearchbar,
 } from "@ionic/vue";
+import { useNotification } from "@/composables/useNotification";
 import {
   filterOutline,
   closeCircle,
@@ -188,11 +211,30 @@ import { useUserStore } from "@/stores/user.store";
 import { useTimeoffStore } from "@/stores/timeoff.store";
 import DateInput from "@/components/DateInput.vue";
 import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+
+import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
 
 const userStore = useUserStore();
 const timeoffStore = useTimeoffStore();
 const requests = ref([]);
 const loading = ref(true);
+const { showToast } = useNotification();
+const { showSkeleton } = useMinimumSkeleton(loading, 1000);
+
+const { formatDateRange } = (function() {
+  const { formatDate } = useDateTimeFormatter();
+  return {
+    formatDateRange: (start, end) => {
+      const s = formatDate(start);
+      // Remove year for start if it's the same year
+      const e = formatDate(end);
+      return s === e ? s : `${s} - ${e}`;
+    }
+  };
+})();
+
 
 // Filter State
 const showFilters = ref(false);
@@ -243,6 +285,7 @@ const loadEmployees = async (reset = false) => {
     showAllEmployees.value = !employeeSearch.value;
   } catch (error) {
     console.error("Error loading employees:", error);
+    await showToast("Failed to load employees list.", "danger");
   } finally {
     loadingEmployees.value = false;
   }
@@ -303,6 +346,7 @@ const fetchRequests = async () => {
     requests.value = await timeoffStore.fetchCompanyLeaveRequests();
   } catch (error) {
     console.error("Error fetching leave requests:", error);
+    await showToast("Failed to load leave requests.", "danger");
   } finally {
     loading.value = false;
   }
@@ -376,6 +420,8 @@ const closeDetail = () => {
 };
 
 // Utils
+const getLeaveTypeEnglishName = (name) => name.split(" - ")[0] || name;
+
 const formatStateLabel = (state) => {
   switch (state) {
     case "confirm":
@@ -409,20 +455,6 @@ const badgeClass = (state) => {
   }
 };
 
-const getLeaveTypeEnglishName = (name) => name.split(" - ")[0] || name;
-
-const formatDateRange = (start, end) => {
-  const s = new Date(start).toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-  });
-  const e = new Date(end).toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  return s === e ? s : `${s} - ${e}`;
-};
 </script>
 
 <style scoped>
@@ -649,6 +681,10 @@ const formatDateRange = (start, end) => {
   color: white;
   box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25);
   margin-bottom: 24px;
+}
+
+.stats-summary-skeleton {
+  min-height: 108px;
 }
 
 .stat-item {

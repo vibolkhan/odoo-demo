@@ -6,14 +6,14 @@ import {
   logoutRequest,
   restoreStoredSession,
 } from "@/api/auth.api";
+import { createAsyncState, runAsync } from "@/utils/async-state";
 
 const getDefaultState = () => ({
   sessionReady: false,
   isAuthenticated: false,
   username: "",
   userId: null,
-  loading: false,
-  error: "",
+  asyncState: createAsyncState(),
 });
 
 export const useAuthStore = defineStore("auth", {
@@ -23,6 +23,8 @@ export const useAuthStore = defineStore("auth", {
     displayName: (state) => state.username || "Guest User",
     hasSession: (state) => state.isAuthenticated && Boolean(state.userId),
     loginBaseUrl: () => buildUrl(),
+    isLoading: (state) => state.asyncState.status === "loading",
+    error: (state) => state.asyncState.error,
   },
 
   actions: {
@@ -40,48 +42,47 @@ export const useAuthStore = defineStore("auth", {
       });
     },
 
-    async hydrateSession() {
-      const session = await restoreStoredSession();
-      this.applySession(session);
+    async hydrateSession(force = false) {
+      if (this.sessionReady && !force) return this.isAuthenticated;
+
+      try {
+        const session = await restoreStoredSession();
+        this.applySession(session);
+      } catch {
+        await clearPersistedSession();
+        this.clearSessionState();
+      }
+
       return this.isAuthenticated;
     },
 
     async login(username, password) {
-      this.loading = true;
-      this.error = "";
-
-      try {
-        const user = await loginRequest(username, password);
-        await this.hydrateSession();
-        return user;
-      } catch (error) {
-        await clearPersistedSession();
-        this.clearSessionState();
-        this.error =
-          error instanceof Error
-            ? error.message
-            : "Unable to sign in right now. Please try again.";
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+      return runAsync(this.asyncState, async () => {
+        try {
+          const user = await loginRequest(username, password);
+          await this.hydrateSession(true);
+          return user;
+        } catch (error) {
+          await clearPersistedSession();
+          this.clearSessionState();
+          throw error;
+        }
+      });
     },
 
     async logout() {
-      this.loading = true;
-      this.error = "";
+      return runAsync(this.asyncState, async () => {
+        try {
+          await logoutRequest();
+        } finally {
+          this.clearSessionState();
+          const { useUserStore } = await import("@/stores/user.store");
+          const { useTimeoffStore } = await import("@/stores/timeoff.store");
 
-      try {
-        await logoutRequest();
-      } finally {
-        this.clearSessionState();
-        const { useUserStore } = await import("@/stores/user.store");
-        const { useTimeoffStore } = await import("@/stores/timeoff.store");
-
-        useUserStore().resetState();
-        useTimeoffStore().resetState();
-        this.loading = false;
-      }
+          useUserStore().resetState();
+          useTimeoffStore().resetState();
+        }
+      });
     },
   },
 });

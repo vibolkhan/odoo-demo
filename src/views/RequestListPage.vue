@@ -23,20 +23,27 @@
           </div>
         </div>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span>Total</span>
-            <strong>{{ summary.total }}</strong>
+        <div v-if="showSummarySkeleton" class="stats-summary stats-summary-skeleton">
+          <div v-for="i in 3" :key="`request-stat-skeleton-${i}`" class="stat-item">
+            <AppSkeleton width="42px" height="24px" />
+            <AppSkeleton width="56px" height="12px" margin="8px 0 0" />
           </div>
+        </div>
 
-          <div class="stat-card">
-            <span>Pending</span>
-            <strong>{{ summary.pending }}</strong>
+        <div v-else class="stats-summary">
+          <div class="stat-item">
+            <span class="stat-value">{{ summary.total }}</span>
+            <span class="stat-label">Total</span>
           </div>
-
-          <div class="stat-card">
-            <span>Review</span>
-            <strong>{{ summary.review }}</strong>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ summary.pending }}</span>
+            <span class="stat-label">Pending</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ summary.review }}</span>
+            <span class="stat-label">Review</span>
           </div>
         </div>
 
@@ -116,9 +123,13 @@ import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import RequestForm from "@/components/RequestForm.vue";
 import RequestLst from "@/components/RequestLst.vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
+import { useTimeoffStore } from "@/stores/timeoff.store";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 const route = useRoute();
 const router = useRouter();
+const timeoffStore = useTimeoffStore();
 const requestListRef = ref(null);
 const isCreateModalOpen = ref(false);
 const actionMessage = ref("");
@@ -127,6 +138,10 @@ const summary = ref({
   pending: 0,
   review: 0,
 });
+const { showSkeleton: showSummarySkeleton } = useMinimumSkeleton(
+  () => timeoffStore.loading.leaveRequests,
+  1000,
+);
 
 const openCreateModal = () => {
   actionMessage.value = "";
@@ -239,37 +254,51 @@ onIonViewWillEnter(() => {
 
 h1 {
   margin: 0;
-  font-size: 2.15rem;
-  line-height: 1.1;
-  font-weight: 850;
+  font-size: clamp(1.65rem, 5vw, 1.9rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+.stats-summary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  color: white;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25);
 }
 
-.stat-card {
-  padding: 14px 12px;
-  border-radius: 20px;
-  background: var(--card-bg);
-  box-shadow: 0 8px 22px rgba(55, 75, 105, 0.08);
+.stats-summary-skeleton {
+  min-height: 108px;
 }
 
-.stat-card span {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  font-weight: 650;
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.stat-card strong {
-  display: block;
-  margin-top: 4px;
-  font-size: 1.35rem;
-  color: var(--text-primary);
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.9;
+  text-transform: uppercase;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .fab-create {

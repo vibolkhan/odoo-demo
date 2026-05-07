@@ -141,7 +141,7 @@ export const fetchAttendanceUserData = async (userId) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -152,29 +152,21 @@ export const fetchAttendanceUserData = async (userId) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
   }
 
   if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to load attendance user data.",
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 
   return response.result;
@@ -220,7 +212,7 @@ const getRequiredUserId = (userId) => {
   const normalizedUserId = Number(userId);
 
   if (!Number.isFinite(normalizedUserId) || normalizedUserId <= 0) {
-    throw new Error("Missing user session. Please log in again.");
+    throw new Error("SESSION_EXPIRED");
   }
 
   return normalizedUserId;
@@ -316,7 +308,7 @@ export const fetchEmployees = async (userId, options = {}) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -327,29 +319,21 @@ export const fetchEmployees = async (userId, options = {}) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
   }
 
   if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to load employees.",
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 
   const records = (response.result?.records ?? []).map(mapEmployeeRecord);
@@ -395,7 +379,7 @@ export const fetchCurrentUserEmployee = async (userId) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -406,18 +390,14 @@ export const fetchCurrentUserEmployee = async (userId) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
@@ -472,7 +452,7 @@ export const fetchMyAttendances = async (userId) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -486,29 +466,21 @@ export const fetchMyAttendances = async (userId) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
   }
 
   if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to load attendance records.",
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 
   return response.result?.records ?? [];
@@ -552,7 +524,7 @@ export const fetchAllAttendances = async (userId, domain = []) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -566,29 +538,21 @@ export const fetchAllAttendances = async (userId, domain = []) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
   }
 
   if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to load attendance records.",
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 
   return response.result?.records ?? [];
@@ -651,7 +615,7 @@ export const fetchAttendanceDetail = async (userId, id) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -662,29 +626,21 @@ export const fetchAttendanceDetail = async (userId, id) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
   }
 
   if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to load attendance details.",
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 
   return response.result && response.result.length > 0 ? response.result[0] : null;
@@ -716,7 +672,7 @@ export const toggleAttendanceState = async (userId, latitude, longitude) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -727,29 +683,21 @@ export const toggleAttendanceState = async (userId, latitude, longitude) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw createSessionExpiredError(error.message);
     }
 
     throw error;
   }
 
   if (response.error) {
-    throw new Error(
-      response.error.data?.message ||
-        response.error.message ||
-        "Unable to toggle attendance.",
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 
   return response.result;

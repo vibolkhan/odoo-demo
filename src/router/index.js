@@ -10,6 +10,7 @@ const routes = [
   },
   {
     path: "/login",
+    name: "login",
     component: () => import("@/views/LoginPage.vue"),
     meta: {
       guestOnly: true,
@@ -27,39 +28,43 @@ const routes = [
         redirect: "/tabs/leave-calendar",
       },
       {
-        path: "tab1",
+        path: "leave-types",
+        name: "leave-types",
         component: () => import("@/views/LeaveTypesPage.vue"),
       },
       {
-        path: "tab2",
-        redirect: "/tabs/tab4",
-      },
-      {
-        path: "tab3",
+        path: "profile",
+        name: "profile",
         component: () => import("@/views/ProfilePage.vue"),
       },
       {
-        path: "tab4",
+        path: "requests",
+        name: "requests",
         component: () => import("@/views/RequestListPage.vue"),
       },
       {
         path: "leave-balance",
+        name: "leave-balance",
         component: () => import("@/views/LeaveBalancePage.vue"),
       },
       {
         path: "leave-calendar",
+        name: "leave-calendar",
         component: () => import("@/views/LeaveCalendarPage.vue"),
       },
       {
         path: "admin-attendance",
+        name: "admin-attendance",
         component: () => import("@/views/AdminAttendancePage.vue"),
       },
       {
         path: "my-attendance",
+        name: "my-attendance",
         component: () => import("@/views/MyAttendancePage.vue"),
       },
       {
         path: "leave-approval",
+        name: "leave-approval",
         component: () => import("@/views/LeaveApprovalPage.vue"),
       },
     ],
@@ -73,7 +78,9 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore(pinia);
-  await authStore.hydrateSession();
+  if (!authStore.sessionReady) {
+    await authStore.hydrateSession();
+  }
   const loggedIn = authStore.isAuthenticated;
 
   if (to.meta.requiresAuth && !loggedIn) {

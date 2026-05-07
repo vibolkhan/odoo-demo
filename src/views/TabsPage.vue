@@ -27,10 +27,10 @@
           <ion-label>Attend</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="tab4" href="/tabs/tab4" @click="triggerTabHaptic">
+        <ion-tab-button tab="requests" href="/tabs/requests" @click="triggerTabHaptic">
           <ion-icon
             aria-hidden="true"
-            :icon="tabIcon('/tabs/tab4', receipt, receiptOutline)"
+            :icon="tabIcon('/tabs/requests', receipt, receiptOutline)"
           />
           <ion-label>Requests</ion-label>
         </ion-tab-button>
@@ -47,10 +47,10 @@
           <ion-label>Balance</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="tab3" href="/tabs/tab3" @click="triggerTabHaptic">
+        <ion-tab-button tab="profile" href="/tabs/profile" @click="triggerTabHaptic">
           <ion-icon
             aria-hidden="true"
-            :icon="tabIcon('/tabs/tab3', person, personOutline)"
+            :icon="tabIcon('/tabs/profile', person, personOutline)"
           />
           <ion-label>Me</ion-label>
         </ion-tab-button>

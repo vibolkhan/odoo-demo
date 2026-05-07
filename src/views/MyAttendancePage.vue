@@ -14,31 +14,64 @@
         </div>
 
         <!-- Stats Grid -->
-        <div class="stats-grid" v-if="records.length > 0 && !loading.myAttendances">
-          <div class="stat-card">
-            <span>Total Hours</span>
-            <strong>{{ totalWorkedHours.toFixed(1) }}</strong>
-          </div>
-          <div class="stat-card">
-            <span>Records</span>
-            <strong>{{ records.length }}</strong>
-          </div>
-          <div class="stat-card">
-            <span>OT Hours</span>
-            <strong>{{ totalOvertimeHours.toFixed(1) }}</strong>
+        <div v-if="showSkeleton" class="stats-summary stats-summary-skeleton">
+          <div v-for="i in 3" :key="`attendance-stat-skeleton-${i}`" class="stat-item">
+            <AppSkeleton width="42px" height="24px" />
+            <AppSkeleton width="60px" height="12px" margin="8px 0 0" />
           </div>
         </div>
 
-        <div v-if="loading.myAttendances" class="state-card">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Loading your attendances...</p>
+        <div
+          class="stats-summary"
+          v-else-if="records.length > 0 && !userStore.loading.myAttendances"
+        >
+          <div class="stat-item">
+            <span class="stat-value">{{ totalWorkedHours.toFixed(1) }}</span>
+            <span class="stat-label">Total Hours</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ records.length }}</span>
+            <span class="stat-label">Records</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ totalOvertimeHours.toFixed(1) }}</span>
+            <span class="stat-label">OT Hours</span>
+          </div>
         </div>
 
-        <div v-else-if="records.length === 0" class="state-card">
-          <ion-icon :icon="timeOutline" class="empty-icon"></ion-icon>
-          <h3>No records yet</h3>
-          <p>Your attendance history will appear here once you check in/out.</p>
+        <div v-if="showSkeleton" class="request-list">
+          <div v-for="i in 5" :key="i" class="request-card skeleton-card">
+            <div class="card-main">
+              <AppSkeleton shape="squircle" width="52px" height="52px" />
+              <div class="request-copy">
+                <AppSkeleton width="60%" height="18px" />
+                <AppSkeleton width="40%" height="14px" margin="8px 0 0" />
+                <div class="hours-tag">
+                  <AppSkeleton width="40px" height="20px" />
+                  <AppSkeleton width="40px" height="20px" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <div v-else-if="userStore.error.myAttendances" class="error-panel">
+          <ion-icon :icon="alertCircleOutline"></ion-icon>
+          <p>{{ userStore.error.myAttendances }}</p>
+          <ion-button fill="clear" size="small" @click="loadData">
+            Try Again
+          </ion-button>
+        </div>
+
+        <AppEmptyState
+          v-else-if="records.length === 0"
+          :icon="timeOutline"
+          title="No records yet"
+          description="Your attendance history will appear here once you check in or out for the day."
+          variant="blue"
+        />
 
         <div v-else class="request-list">
           <div
@@ -46,6 +79,10 @@
             :key="record.id"
             class="request-card"
             @click="openDetail(record.id)"
+            role="button"
+            tabindex="0"
+            @keydown.enter="openDetail(record.id)"
+            :aria-label="`Attendance on ${formatDate(record.check_in)}, from ${formatTime(record.check_in)} to ${record.check_out ? formatTime(record.check_out) : 'current'}`"
           >
             <div class="card-main">
               <div
@@ -72,8 +109,10 @@
 
                 <p class="request-dates">
                   {{ formatTime(record.check_in) }}
-                  <span class="separator">→</span>
-                  {{ record.check_out ? formatTime(record.check_out) : "..." }}
+                  <span class="separator" aria-hidden="true">
+                    <ion-icon :icon="chevronForwardOutline" style="font-size: 10px; opacity: 0.5; vertical-align: middle;" />
+                  </span>
+                  {{ record.check_out ? formatTime(record.check_out) : "Working" }}
                 </p>
 
                 <div
@@ -115,7 +154,6 @@ import {
   IonContent,
   IonRefresher,
   IonRefresherContent,
-  IonSpinner,
   IonIcon,
   modalController,
 } from "@ionic/vue";
@@ -128,9 +166,24 @@ import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useUserStore } from "@/stores/user.store";
 import AttendanceDetailModal from "@/components/AttendanceDetailModal.vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
+import AppEmptyState from "@/components/AppEmptyState.vue";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+
+import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
+import { useNotification } from "@/composables/useNotification";
+import { alertCircleOutline } from "ionicons/icons";
 
 const userStore = useUserStore();
-const { myAttendances: records, loading } = storeToRefs(userStore);
+const { myAttendances: records } = storeToRefs(userStore);
+
+const { showSkeleton } = useMinimumSkeleton(
+  () => userStore.loading.myAttendances,
+  1000,
+);
+
+const { formatTime, formatDate } = useDateTimeFormatter();
+const { showToast } = useNotification();
 
 const totalWorkedHours = computed(() =>
   records.value.reduce((sum, r) => sum + (r.worked_hours || 0), 0),
@@ -154,6 +207,7 @@ async function loadData() {
     await userStore.fetchMyAttendances();
   } catch (error) {
     console.error("Error fetching attendances:", error);
+    await showToast("Failed to load attendance records.", "danger");
   }
 }
 
@@ -169,22 +223,6 @@ async function openDetail(recordId) {
   await modal.present();
 }
 
-function formatTime(dateStr) {
-  if (!dateStr) return "";
-  const date = new Date(dateStr + "Z");
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const date = new Date(dateStr + "Z");
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 </script>
 
 <style scoped>
@@ -218,37 +256,51 @@ function formatDate(dateStr) {
 
 h1 {
   margin: 0;
-  font-size: 2.15rem;
-  line-height: 1.1;
-  font-weight: 850;
+  font-size: clamp(1.65rem, 5vw, 1.9rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+.stats-summary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  color: white;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25);
 }
 
-.stat-card {
-  padding: 14px 12px;
-  border-radius: 20px;
-  background: var(--card-bg);
-  box-shadow: 0 8px 22px rgba(55, 75, 105, 0.08);
+.stats-summary-skeleton {
+  min-height: 108px;
 }
 
-.stat-card span {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  font-weight: 650;
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.stat-card strong {
-  display: block;
-  margin-top: 4px;
-  font-size: 1.35rem;
-  color: var(--text-primary);
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.9;
+  text-transform: uppercase;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .request-list {
@@ -419,5 +471,28 @@ h1 {
   background: rgba(217, 119, 6, 0.1);
   padding: 2px 8px;
   border-radius: 6px;
+}
+
+.error-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+  text-align: center;
+  color: #e11d48;
+  background: rgba(225, 29, 72, 0.05);
+  border-radius: 24px;
+  border: 1px dashed rgba(225, 29, 72, 0.2);
+}
+
+.error-panel ion-icon {
+  font-size: 32px;
+}
+
+.error-panel p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 </style>

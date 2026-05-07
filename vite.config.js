@@ -24,6 +24,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['@capacitor/geolocation', '@capacitor/core']
+  },
   test: {
     globals: true,
     environment: 'jsdom'

@@ -18,31 +18,19 @@ import {
   updateLeaveType,
 } from "@/api/timeoff.api";
 import { useAuthStore } from "@/stores/auth.store";
+import { createAsyncState, runAsync } from "@/utils/async-state";
 
-const createLoadingState = () => ({
-  leaveRequests: false,
-  companyLeaveRequests: false,
-  leaveAllocations: false,
-  leaveTypes: false,
-  leaveTypeCatalog: false,
-  leaveTypeSave: false,
-  leaveTypeDelete: false,
-  leaveRequestSubmit: false,
-  leaveRequestAction: false,
-  calendar: false,
-});
-
-const createErrorState = () => ({
-  leaveRequests: "",
-  companyLeaveRequests: "",
-  leaveAllocations: "",
-  leaveTypes: "",
-  leaveTypeCatalog: "",
-  leaveTypeSave: "",
-  leaveTypeDelete: "",
-  leaveRequestSubmit: "",
-  leaveRequestAction: "",
-  calendar: "",
+const createAsyncStates = () => ({
+  leaveRequests: createAsyncState(),
+  companyLeaveRequests: createAsyncState(),
+  leaveAllocations: createAsyncState(),
+  leaveTypes: createAsyncState(),
+  leaveTypeCatalog: createAsyncState(),
+  leaveTypeSave: createAsyncState(),
+  leaveTypeDelete: createAsyncState(),
+  leaveRequestSubmit: createAsyncState(),
+  leaveRequestAction: createAsyncState(),
+  calendar: createAsyncState(),
 });
 
 export const useTimeoffStore = defineStore("timeoff", {
@@ -58,9 +46,78 @@ export const useTimeoffStore = defineStore("timeoff", {
       mandatoryDays: [],
       specialDays: [],
     },
-    loading: createLoadingState(),
-    error: createErrorState(),
+    asyncStates: createAsyncStates(),
   }),
+
+  getters: {
+    loading: (state) => ({
+      leaveRequests: state.asyncStates.leaveRequests.status === "loading",
+      companyLeaveRequests: state.asyncStates.companyLeaveRequests.status === "loading",
+      leaveAllocations: state.asyncStates.leaveAllocations.status === "loading",
+      leaveTypes: state.asyncStates.leaveTypes.status === "loading",
+      leaveTypeCatalog: state.asyncStates.leaveTypeCatalog.status === "loading",
+      leaveTypeSave: state.asyncStates.leaveTypeSave.status === "loading",
+      leaveTypeDelete: state.asyncStates.leaveTypeDelete.status === "loading",
+      leaveRequestSubmit: state.asyncStates.leaveRequestSubmit.status === "loading",
+      leaveRequestAction: state.asyncStates.leaveRequestAction.status === "loading",
+      calendar: state.asyncStates.calendar.status === "loading",
+    }),
+    error: (state) => ({
+      leaveRequests: state.asyncStates.leaveRequests.error,
+      companyLeaveRequests: state.asyncStates.companyLeaveRequests.error,
+      leaveAllocations: state.asyncStates.leaveAllocations.error,
+      leaveTypes: state.asyncStates.leaveTypes.error,
+      leaveTypeCatalog: state.asyncStates.leaveTypeCatalog.error,
+      leaveTypeSave: state.asyncStates.leaveTypeSave.error,
+      leaveTypeDelete: state.asyncStates.leaveTypeDelete.error,
+      leaveRequestSubmit: state.asyncStates.leaveRequestSubmit.error,
+      leaveRequestAction: state.asyncStates.leaveRequestAction.error,
+      calendar: state.asyncStates.calendar.error,
+    }),
+    totalEntitlement: (state) => {
+      return (state.leaveAllocations || [])
+        .filter((a) => a.state === "validate")
+        .reduce((sum, a) => sum + (a.numberOfDays || 0), 0);
+    },
+    totalTaken: (state) => {
+      return (state.leaveRequests || [])
+        .filter((r) => r.state !== "refuse" && r.state !== "cancel")
+        .reduce((sum, r) => sum + (r.numberOfDays || 0), 0);
+    },
+    totalRemaining: (state) => {
+      return Math.max(0, state.totalEntitlement - state.totalTaken);
+    },
+    usagePercentage: (state) => {
+      if (state.totalEntitlement === 0) return 0;
+      return Math.round((state.totalRemaining / state.totalEntitlement) * 100);
+    },
+    balances: (state) => {
+      return (state.leaveAllocations || []).map((alloc) => {
+        const allocated = alloc.numberOfDays || 0;
+
+        const taken = (state.leaveRequests || [])
+          .filter(
+            (r) =>
+              r.leaveType === alloc.leaveType &&
+              r.state !== "refuse" &&
+              r.state !== "cancel"
+          )
+          .reduce((sum, r) => sum + (r.numberOfDays || 0), 0);
+
+        const remaining = Math.max(0, allocated - taken);
+
+        return {
+          id: alloc.id,
+          name: alloc.leaveType || alloc.name || "Allocation",
+          entitlement: allocated,
+          taken: taken,
+          available: remaining,
+          dateTo: alloc.dateTo,
+          state: alloc.state,
+        };
+      });
+    },
+  },
 
   actions: {
     getRequiredUserId() {
@@ -72,14 +129,6 @@ export const useTimeoffStore = defineStore("timeoff", {
       }
 
       return userId;
-    },
-
-    setLoading(key, value) {
-      this.loading[key] = value;
-    },
-
-    setError(key, value) {
-      this.error[key] = value;
     },
 
     resetState() {
@@ -94,306 +143,178 @@ export const useTimeoffStore = defineStore("timeoff", {
         mandatoryDays: [],
         specialDays: [],
       };
-      this.loading = createLoadingState();
-      this.error = createErrorState();
+      this.asyncStates = createAsyncStates();
     },
 
     async fetchLeaveRequests() {
-      this.setLoading("leaveRequests", true);
-      this.setError("leaveRequests", "");
-
-      try {
-        const records = await fetchLeaveRequests(this.getRequiredUserId());
-        this.leaveRequests = records;
-        return records;
-      } catch (error) {
-        this.leaveRequests = [];
-        this.setError(
-          "leaveRequests",
-          error instanceof Error ? error.message : "Unable to load leave requests.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveRequests", false);
-      }
+      return runAsync(this.asyncStates.leaveRequests, async () => {
+        try {
+          const records = await fetchLeaveRequests(this.getRequiredUserId());
+          this.leaveRequests = records;
+          return records;
+        } catch (error) {
+          this.leaveRequests = [];
+          throw error;
+        }
+      });
     },
 
     async fetchCompanyLeaveRequests() {
-      this.setLoading("companyLeaveRequests", true);
-      this.setError("companyLeaveRequests", "");
-
-      try {
-        const records = await fetchCompanyLeaveRequests(this.getRequiredUserId());
-        this.companyLeaveRequests = records;
-        return records;
-      } catch (error) {
-        this.companyLeaveRequests = [];
-        this.setError(
-          "companyLeaveRequests",
-          error instanceof Error
-            ? error.message
-            : "Unable to load leave requests.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("companyLeaveRequests", false);
-      }
+      return runAsync(this.asyncStates.companyLeaveRequests, async () => {
+        try {
+          const records = await fetchCompanyLeaveRequests(this.getRequiredUserId());
+          this.companyLeaveRequests = records;
+          return records;
+        } catch (error) {
+          this.companyLeaveRequests = [];
+          throw error;
+        }
+      });
     },
 
     async fetchLeaveAllocations() {
-      this.setLoading("leaveAllocations", true);
-      this.setError("leaveAllocations", "");
-
-      try {
-        const records = await fetchLeaveAllocations(this.getRequiredUserId());
-        this.leaveAllocations = records;
-        return records;
-      } catch (error) {
-        this.leaveAllocations = [];
-        this.setError(
-          "leaveAllocations",
-          error instanceof Error
-            ? error.message
-            : "Unable to load leave allocations.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveAllocations", false);
-      }
+      return runAsync(this.asyncStates.leaveAllocations, async () => {
+        try {
+          const records = await fetchLeaveAllocations(this.getRequiredUserId());
+          this.leaveAllocations = records;
+          return records;
+        } catch (error) {
+          this.leaveAllocations = [];
+          throw error;
+        }
+      });
     },
 
     async fetchLeaveTypes(options = {}) {
-      this.setLoading("leaveTypes", true);
-      this.setError("leaveTypes", "");
-
-      try {
-        const records = await fetchLeaveTypes(this.getRequiredUserId(), options);
-        this.leaveTypes = records;
-        return records;
-      } catch (error) {
-        this.leaveTypes = [];
-        this.setError(
-          "leaveTypes",
-          error instanceof Error ? error.message : "Unable to load leave types.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveTypes", false);
-      }
+      return runAsync(this.asyncStates.leaveTypes, async () => {
+        try {
+          const records = await fetchLeaveTypes(this.getRequiredUserId(), options);
+          this.leaveTypes = records;
+          return records;
+        } catch (error) {
+          this.leaveTypes = [];
+          throw error;
+        }
+      });
     },
 
     async fetchLeaveTypeCatalog(options = {}, reset = true) {
-      this.setLoading("leaveTypeCatalog", true);
-      this.setError("leaveTypeCatalog", "");
-
-      try {
-        const records = await fetchLeaveTypeCatalog(this.getRequiredUserId(), options);
-        this.leaveTypeCatalog = reset
-          ? records
-          : [...this.leaveTypeCatalog, ...records];
-        return records;
-      } catch (error) {
-        if (reset) {
-          this.leaveTypeCatalog = [];
+      return runAsync(this.asyncStates.leaveTypeCatalog, async () => {
+        try {
+          const records = await fetchLeaveTypeCatalog(this.getRequiredUserId(), options);
+          this.leaveTypeCatalog = reset
+            ? records
+            : [...this.leaveTypeCatalog, ...records];
+          return records;
+        } catch (error) {
+          if (reset) {
+            this.leaveTypeCatalog = [];
+          }
+          throw error;
         }
-        this.setError(
-          "leaveTypeCatalog",
-          error instanceof Error ? error.message : "Unable to load leave types.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveTypeCatalog", false);
-      }
+      });
     },
 
     async createLeaveType(input) {
-      this.setLoading("leaveTypeSave", true);
-      this.setError("leaveTypeSave", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveTypeSave, async () => {
         return await createLeaveType(this.getRequiredUserId(), input);
-      } catch (error) {
-        this.setError(
-          "leaveTypeSave",
-          error instanceof Error ? error.message : "Unable to create leave type.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveTypeSave", false);
-      }
+      });
     },
 
     async updateLeaveType(leaveTypeId, input) {
-      this.setLoading("leaveTypeSave", true);
-      this.setError("leaveTypeSave", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveTypeSave, async () => {
         return await updateLeaveType(this.getRequiredUserId(), leaveTypeId, input);
-      } catch (error) {
-        this.setError(
-          "leaveTypeSave",
-          error instanceof Error ? error.message : "Unable to update leave type.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveTypeSave", false);
-      }
+      });
     },
 
     async deleteLeaveType(leaveTypeId) {
-      this.setLoading("leaveTypeDelete", true);
-      this.setError("leaveTypeDelete", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveTypeDelete, async () => {
         return await deleteLeaveType(this.getRequiredUserId(), leaveTypeId);
-      } catch (error) {
-        this.setError(
-          "leaveTypeDelete",
-          error instanceof Error ? error.message : "Unable to delete leave type.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveTypeDelete", false);
-      }
+      });
     },
 
     async saveLeaveRequest(input) {
-      this.setLoading("leaveRequestSubmit", true);
-      this.setError("leaveRequestSubmit", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveRequestSubmit, async () => {
         const result = await saveLeaveRequest(this.getRequiredUserId(), input);
         await this.fetchLeaveRequests();
         return result;
-      } catch (error) {
-        this.setError(
-          "leaveRequestSubmit",
-          error instanceof Error
-            ? error.message
-            : "Unable to submit leave request.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveRequestSubmit", false);
-      }
+      });
     },
 
     async updateLeaveRequest(id, input) {
-      this.setLoading("leaveRequestSubmit", true);
-      this.setError("leaveRequestSubmit", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveRequestSubmit, async () => {
         const result = await updateLeaveRequest(this.getRequiredUserId(), id, input);
         await this.fetchLeaveRequests();
         return result;
-      } catch (error) {
-        this.setError(
-          "leaveRequestSubmit",
-          error instanceof Error
-            ? error.message
-            : "Unable to update leave request.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveRequestSubmit", false);
-      }
+      });
     },
 
     async approveLeaveRequest(id) {
-      this.setLoading("leaveRequestAction", true);
-      this.setError("leaveRequestAction", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveRequestAction, async () => {
         const result = await approveLeaveRequest(this.getRequiredUserId(), id);
         await Promise.allSettled([
           this.fetchLeaveRequests(),
           this.fetchCompanyLeaveRequests(),
         ]);
         return result;
-      } catch (error) {
-        this.setError(
-          "leaveRequestAction",
-          error instanceof Error ? error.message : "Unable to approve request.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveRequestAction", false);
-      }
+      });
     },
 
     async refuseLeaveRequest(id) {
-      this.setLoading("leaveRequestAction", true);
-      this.setError("leaveRequestAction", "");
-
-      try {
+      return runAsync(this.asyncStates.leaveRequestAction, async () => {
         const result = await refuseLeaveRequest(this.getRequiredUserId(), id);
         await Promise.allSettled([
           this.fetchLeaveRequests(),
           this.fetchCompanyLeaveRequests(),
         ]);
         return result;
-      } catch (error) {
-        this.setError(
-          "leaveRequestAction",
-          error instanceof Error ? error.message : "Unable to refuse request.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("leaveRequestAction", false);
-      }
+      });
     },
 
     async fetchCalendarData({ startStr, endStr, startStrShort, endStrShort }) {
-      this.setLoading("calendar", true);
-      this.setError("calendar", "");
+      return runAsync(this.asyncStates.calendar, async () => {
+        try {
+          const userId = this.getRequiredUserId();
+          const results = await Promise.allSettled([
+            getUnusualDays(userId, startStr, endStr),
+            getLeaveReportCalendar(userId, startStr, endStr),
+            fetchLeaveRequests(userId),
+            getMandatoryDays(userId, startStrShort, endStrShort),
+            getSpecialDaysData(userId, startStrShort, endStrShort),
+          ]);
 
-      try {
-        const userId = this.getRequiredUserId();
-        const results = await Promise.allSettled([
-          getUnusualDays(userId, startStr, endStr),
-          getLeaveReportCalendar(userId, startStr, endStr),
-          fetchLeaveRequests(userId),
-          getMandatoryDays(userId, startStrShort, endStrShort),
-          getSpecialDaysData(userId, startStrShort, endStrShort),
-        ]);
+          this.calendarData = {
+            unusualDays:
+              results[0].status === "fulfilled" ? results[0].value || {} : {},
+            calendarLeaves:
+              results[1].status === "fulfilled" && Array.isArray(results[1].value)
+                ? results[1].value
+                : [],
+            mandatoryDays:
+              results[3].status === "fulfilled" && Array.isArray(results[3].value)
+                ? results[3].value
+                : [],
+            specialDays:
+              results[4].status === "fulfilled" ? results[4].value || [] : [],
+          };
 
-        this.calendarData = {
-          unusualDays:
-            results[0].status === "fulfilled" ? results[0].value || {} : {},
-          calendarLeaves:
-            results[1].status === "fulfilled" && Array.isArray(results[1].value)
-              ? results[1].value
-              : [],
-          mandatoryDays:
-            results[3].status === "fulfilled" && Array.isArray(results[3].value)
-              ? results[3].value
-              : [],
-          specialDays:
-            results[4].status === "fulfilled" ? results[4].value || [] : [],
-        };
+          if (results[2].status === "fulfilled") {
+            this.leaveRequests = Array.isArray(results[2].value)
+              ? results[2].value
+              : [];
+          }
 
-        if (results[2].status === "fulfilled") {
-          this.leaveRequests = Array.isArray(results[2].value)
-            ? results[2].value
-            : [];
+          return this.calendarData;
+        } catch (error) {
+          this.calendarData = {
+            unusualDays: {},
+            calendarLeaves: [],
+            mandatoryDays: [],
+            specialDays: [],
+          };
+          throw error;
         }
-
-        return this.calendarData;
-      } catch (error) {
-        this.calendarData = {
-          unusualDays: {},
-          calendarLeaves: [],
-          mandatoryDays: [],
-          specialDays: [],
-        };
-        this.setError(
-          "calendar",
-          error instanceof Error ? error.message : "Unable to load calendar.",
-        );
-        throw error;
-      } finally {
-        this.setLoading("calendar", false);
-      }
+      });
     },
   },
 });

@@ -4,6 +4,7 @@ import { Keyboard } from '@capacitor/keyboard'
 import App from './App.vue'
 import router from './router';
 import { pinia } from './stores';
+import { useAuthStore } from './stores/auth.store';
 
 import { IonicVue } from '@ionic/vue';
 
@@ -62,6 +63,8 @@ const app = createApp(App)
   .use(pinia)
   .use(router);
 
-router.isReady().then(() => {
+router.isReady().then(async () => {
+  const authStore = useAuthStore(pinia);
+  await authStore.hydrateSession();
   app.mount('#app');
 });

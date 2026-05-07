@@ -57,9 +57,16 @@
       {{ error.leaveRequests || error.companyLeaveRequests }}
     </p>
 
-    <div v-if="loading.leaveRequests || loading.companyLeaveRequests" class="state-card">
-      <ion-spinner name="crescent" />
-      <p>Loading leave requests...</p>
+    <div v-if="showSkeleton" class="month-stack">
+      <div v-for="i in 5" :key="i" class="request-card skeleton-card">
+        <div class="card-main">
+          <AppSkeleton shape="squircle" width="52px" height="52px" />
+          <div class="request-copy">
+            <AppSkeleton width="60%" height="18px" />
+            <AppSkeleton width="40%" height="14px" margin="8px 0 0" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <div
@@ -73,10 +80,13 @@
       </ion-button>
     </div>
 
-    <div v-else-if="!displayedRequests.length" class="state-card">
-      <ion-icon :icon="fileTrayOutline" aria-hidden="true" />
-      <p>No leave requests match the current filters.</p>
-    </div>
+    <AppEmptyState
+      v-else-if="!displayedRequests.length"
+      :icon="fileTrayOutline"
+      title="No requests found"
+      description="We couldn't find any leave requests matching your current filters."
+      variant="purple"
+    />
 
     <section v-else class="request-list">
       <section
@@ -170,6 +180,9 @@ import { storeToRefs } from "pinia";
 import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
 import { useUserStore } from "@/stores/user.store";
 import { useTimeoffStore } from "@/stores/timeoff.store";
+import AppSkeleton from "@/components/AppSkeleton.vue";
+import AppEmptyState from "@/components/AppEmptyState.vue";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 const props = defineProps({
   isManagerMode: Boolean,
@@ -208,6 +221,13 @@ const filters = computed(
 const requestRecords = computed(() =>
   props.isManagerMode ? companyLeaveRequests.value : leaveRequests.value,
 );
+
+const isRequestsLoading = computed(() =>
+  props.isManagerMode
+    ? loading.value.companyLeaveRequests
+    : loading.value.leaveRequests,
+);
+const { showSkeleton } = useMinimumSkeleton(isRequestsLoading, 1000);
 
 const statusFilteredRequests = computed(() => {
   switch (activeFilter.value) {

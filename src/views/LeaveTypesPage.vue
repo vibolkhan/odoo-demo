@@ -75,6 +75,18 @@
           {{ actionMessage }}
         </p>
 
+        <div v-if="showSkeleton && !leaveTypes.length" class="type-list">
+          <div v-for="i in 5" :key="i" class="type-card">
+            <div class="type-card-shell">
+              <div class="type-card-main">
+                <AppSkeleton width="60px" height="22px" margin="0 0 8px" />
+                <AppSkeleton width="180px" height="20px" />
+                <AppSkeleton width="120px" height="14px" margin="6px 0 0" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div
           v-else-if="!isLoading && !filteredLeaveTypes.length"
           class="empty-state"
@@ -284,6 +296,7 @@ import {
   IonSearchbar,
   onIonViewWillEnter,
 } from "@ionic/vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
 
 import {
   addOutline,
@@ -295,6 +308,7 @@ import {
 
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useTimeoffStore } from "@/stores/timeoff.store";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 const pageSize = 20;
 const timeoffStore = useTimeoffStore();
@@ -306,6 +320,7 @@ const activeFilter = ref("all");
 
 const isLoading = ref(false);
 const hasMore = ref(true);
+const { showSkeleton } = useMinimumSkeleton(isLoading, 1000);
 
 const errorMessage = ref("");
 const actionMessage = ref("");
@@ -593,9 +608,10 @@ onBeforeUnmount(() => {
 
 h1 {
   margin: 0;
-  font-size: 2.15rem;
-  line-height: 1.1;
-  font-weight: 850;
+  font-size: clamp(1.65rem, 5vw, 1.9rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 

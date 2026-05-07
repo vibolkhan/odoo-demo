@@ -158,7 +158,7 @@ const getRequiredUserId = (userId) => {
   const normalizedUserId = Number(userId);
 
   if (!Number.isFinite(normalizedUserId) || normalizedUserId <= 0) {
-    throw new Error("Missing user session. Please log in again.");
+    throw new Error("SESSION_EXPIRED");
   }
 
   return normalizedUserId;
@@ -210,11 +210,9 @@ const mapLeaveRecord = (record) => ({
   requestUnitHalf: Boolean(record.request_unit_half),
 });
 
-const ensureSuccess = (response, fallbackMessage) => {
+const ensureSuccess = (response) => {
   if (response.error) {
-    throw new Error(
-      response.error.data?.message || response.error.message || fallbackMessage,
-    );
+    throw new Error(response.error.data?.message || response.error.message);
   }
 };
 
@@ -255,7 +253,7 @@ export const fetchLeaveRequests = async (userId) => {
       });
 
       if (result.status < 200 || result.status >= 300) {
-        throw new Error(`Request failed with status ${result.status}.`);
+        throw new Error(String(result.status));
       }
 
       response = result.data;
@@ -266,24 +264,24 @@ export const fetchLeaveRequests = async (userId) => {
 
     if (isSessionExpiredError(response.error)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(
+        response.error.data?.message || response.error.message,
+      );
     }
   } catch (error) {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
-      throw createSessionExpiredError();
+      throw createSessionExpiredError(error.message);
     }
 
     if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw error;
     }
 
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load leave requests.");
+  ensureSuccess(response);
 
   return (response.result?.records ?? []).map(mapLeaveRecord);
 };
@@ -354,7 +352,7 @@ export const fetchCompanyLeaveRequests = async (userId) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load company-wide leave requests.");
+  ensureSuccess(response);
 
   return (response.result?.records ?? []).map(mapLeaveRecord);
 };
@@ -432,7 +430,7 @@ export const saveLeaveRequest = async (userId, input) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to submit leave request.");
+  ensureSuccess(response);
 
   return response.result;
 };
@@ -507,7 +505,7 @@ export const updateLeaveRequest = async (userId, id, input) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to update leave request.");
+  ensureSuccess(response);
 
   return response.result;
 };
@@ -575,7 +573,7 @@ const callButtonAction = async (userId, endpoint, id) => {
     throw error;
   }
 
-  ensureSuccess(response, `Unable to execute ${method}.`);
+  ensureSuccess(response);
 
   return response.result;
 };
@@ -664,7 +662,7 @@ export const fetchLeaveAllocations = async (userId) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load leave allocations.");
+  ensureSuccess(response);
 
   return (response.result?.records ?? []).map((record) => ({
     id: record.id,
@@ -787,7 +785,7 @@ export const fetchLeaveTypes = async (userId, options = {}) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load leave types.");
+  ensureSuccess(response);
 
   return (response.result?.records ?? []).map((record) => ({
     id: record.id,
@@ -868,7 +866,7 @@ export const fetchLeaveTypeCatalog = async (userId, options = {}) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load leave types.");
+  ensureSuccess(response);
 
   return (response.result?.records ?? []).map((record) => ({
     id: record.id,
@@ -940,7 +938,7 @@ export const createLeaveType = async (userId, input) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to create leave type.");
+  ensureSuccess(response);
 
   return response.result;
 };
@@ -1004,7 +1002,7 @@ export const updateLeaveType = async (userId, leaveTypeId, input) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to update leave type.");
+  ensureSuccess(response);
 
   return response.result;
 };
@@ -1068,7 +1066,7 @@ export const deleteLeaveType = async (userId, leaveTypeId) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to delete leave type.");
+  ensureSuccess(response);
 
   return response.result;
 };
@@ -1136,7 +1134,7 @@ export const getUnusualDays = async (userId, start, end) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load unusual days.");
+  ensureSuccess(response);
   return response.result;
 };
 
@@ -1223,7 +1221,7 @@ export const getLeaveReportCalendar = async (userId, start, end) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load leave calendar.");
+  ensureSuccess(response);
   return response.result;
 };
 
@@ -1289,7 +1287,7 @@ export const getMandatoryDays = async (userId, start, end) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load mandatory days.");
+  ensureSuccess(response);
   return response.result;
 };
 
@@ -1356,6 +1354,6 @@ export const getSpecialDaysData = async (userId, start, end) => {
     throw error;
   }
 
-  ensureSuccess(response, "Unable to load public holidays.");
+  ensureSuccess(response);
   return response.result;
 };

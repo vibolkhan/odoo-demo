@@ -10,11 +10,9 @@ const LEGACY_STORAGE_KEYS = {
   uid: "odoo-demo-uid",
 };
 
-const ODOO_DATABASE = "memot_rubber_plantation_staging";
+const ODOO_DATABASE = import.meta.env.VITE_ODOO_DATABASE;
 const AUTH_ENDPOINT = "/web/session/authenticate";
 const LOGOUT_ENDPOINT = "/web/session/destroy";
-const SESSION_EXPIRED_MESSAGE =
-  "Your session has expired. Please log in again.";
 
 export const DEFAULT_ALLOWED_COMPANY_IDS = [1];
 export const DEFAULT_COMPANY_ID = 1;
@@ -36,8 +34,8 @@ export const buildUrl = (path = "") => {
   return `${ODOO_BASE_URL}${path}`;
 };
 
-export const createSessionExpiredError = () => {
-  const error = new Error(SESSION_EXPIRED_MESSAGE);
+export const createSessionExpiredError = (message) => {
+  const error = new Error(message);
   error.code = SESSION_EXPIRED_ERROR_CODE;
   return error;
 };
@@ -208,8 +206,7 @@ export const handleExpiredSession = async () => {
   redirectToLoginPage();
 };
 
-const getOdooErrorMessage = (error) =>
-  error.data?.message || error.message || "Login failed. Please try again.";
+const getOdooErrorMessage = (error) => error.data?.message || error.message;
 
 export const loginRequest = async (username, password) => {
   const body = {
@@ -235,7 +232,7 @@ export const loginRequest = async (username, password) => {
       });
 
       if (response.status < 200 || response.status >= 300) {
-        throw new Error(`Request failed with status ${response.status}.`);
+        throw new Error(String(response.status));
       }
 
       payload = response.data;
@@ -245,9 +242,7 @@ export const loginRequest = async (username, password) => {
     }
   } catch (error) {
     if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
+      throw error;
     }
 
     throw error;
@@ -289,7 +284,7 @@ export const logoutRequest = async () => {
       });
 
       if (response.status < 200 || response.status >= 300) {
-        throw new Error(`Request failed with status ${response.status}.`);
+        throw new Error(String(response.status));
       }
     } else {
       await odooAxios.post(buildUrl(LOGOUT_ENDPOINT), body);

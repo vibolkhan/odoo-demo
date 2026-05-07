@@ -38,11 +38,19 @@
                 <input
                   v-model="password"
                   class="text-input"
-                  type="password"
+                  :type="showPassword ? 'text' : 'password'"
                   autocomplete="current-password"
-                  placeholder="••••••••"
+                  placeholder="Password"
                   required
                 />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  @click="showPassword = !showPassword"
+                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                >
+                  <ion-icon :icon="showPassword ? eyeOffOutline : eyeOutline" />
+                </button>
               </div>
             </label>
 
@@ -59,13 +67,6 @@
               {{ isSubmitting ? "Authenticating..." : "Sign In" }}
             </ion-button>
           </form>
-
-          <div class="card-footer">
-            <p class="hint">
-              <!-- Connected to <strong>memot_rubber_plantation_staging</strong> -->
-              {{ authStore.loginBaseUrl }}
-            </p>
-          </div>
         </section>
       </div>
     </ion-content>
@@ -73,8 +74,9 @@
 </template>
 
 <script setup>
-import { IonButton, IonContent, IonPage } from "@ionic/vue";
-import { computed, ref } from "vue";
+import { IonButton, IonContent, IonPage, IonIcon } from "@ionic/vue";
+import { eyeOutline, eyeOffOutline } from "ionicons/icons";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth.store";
@@ -86,6 +88,7 @@ const { loading: isSubmitting, isAuthenticated } = storeToRefs(authStore);
 
 const username = ref("vibol.khan@axivit.com");
 const password = ref("Admin@2026");
+const showPassword = ref(false);
 const errorMessage = ref("");
 
 const redirectPath = computed(() => {
@@ -95,11 +98,13 @@ const redirectPath = computed(() => {
     : "/tabs/leave-calendar";
 });
 
-await authStore.hydrateSession();
+onMounted(async () => {
+  await authStore.hydrateSession();
 
-if (isAuthenticated.value) {
-  router.replace(redirectPath.value);
-}
+  if (isAuthenticated.value) {
+    await router.replace(redirectPath.value);
+  }
+});
 
 const handleLogin = async () => {
   errorMessage.value = "";
@@ -232,7 +237,7 @@ const handleLogin = async () => {
 
 h1 {
   margin: 0;
-  font-size: 2.25rem;
+  font-size: clamp(1.75rem, 5vw, 2rem);
   line-height: 1.15;
   font-weight: 800;
   color: var(--text-primary);
@@ -294,6 +299,32 @@ h1 {
     0 0 0 4px rgba(59, 130, 246, 0.15),
     0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.password-toggle:active {
+  color: var(--ion-color-primary);
 }
 
 .error-container {

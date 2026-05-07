@@ -26,9 +26,11 @@
           <div>
             <p class="detail-eyebrow">Attendance Detail</p>
             <div class="employee-header-row">
-              <div class="employee-avatar-mini">
-                {{ getInitials(getEmployeeName()) }}
-              </div>
+              <AppAvatar
+                :name="getEmployeeName()"
+                :size="36"
+                variant="emerald"
+              />
               <h2>{{ getEmployeeName() }}</h2>
             </div>
             <p class="detail-subtitle">
@@ -258,6 +260,7 @@ import {
   IonSpinner,
   modalController,
 } from "@ionic/vue";
+import { useNotification } from "@/composables/useNotification";
 
 import {
   close,
@@ -274,6 +277,7 @@ import {
 
 import { ref, onMounted } from "vue";
 import { useUserStore } from "@/stores/user.store";
+import AppAvatar from "@/components/AppAvatar.vue";
 
 const props = defineProps({
   recordId: {
@@ -285,6 +289,7 @@ const props = defineProps({
 const loading = ref(true);
 const record = ref(null);
 const userStore = useUserStore();
+const { showToast } = useNotification();
 
 onMounted(() => {
   fetchDetail();
@@ -305,6 +310,7 @@ async function fetchDetail() {
     }
   } catch (error) {
     console.error("Error fetching attendance details:", error);
+    await showToast("Failed to load attendance details.", "danger");
   } finally {
     loading.value = false;
   }

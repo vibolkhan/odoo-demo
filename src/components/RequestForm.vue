@@ -115,6 +115,7 @@ import {
   IonSelectOption,
   IonTextarea,
 } from "@ionic/vue";
+import { useNotification } from "@/composables/useNotification";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -142,6 +143,7 @@ const emit = defineEmits(["submitted"]);
 const router = useRouter();
 const userStore = useUserStore();
 const timeoffStore = useTimeoffStore();
+const { showToast } = useNotification();
 const { leaveTypes, loading } = storeToRefs(timeoffStore);
 
 const leaveType = ref(null);
@@ -215,6 +217,7 @@ const loadCurrentUserEmployee = async () => {
     }
   } catch (error) {
     console.error("Failed to load current user employee:", error);
+    await showToast("Unable to identify your employee record.", "danger");
   }
 };
 
@@ -279,13 +282,14 @@ const handleSubmitRequest = async () => {
     emit("submitted");
 
     if (props.navigateAfterSubmit) {
-      await router.replace("/tabs/tab4");
+      await router.replace("/tabs/requests");
     }
   } catch (error) {
     submitErrorMessage.value =
       error instanceof Error
         ? error.message
         : "Unable to submit leave request.";
+    await showToast(submitErrorMessage.value, "danger");
   }
 };
 

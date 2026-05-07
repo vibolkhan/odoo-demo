@@ -26,13 +26,13 @@
 
         <div class="calendar-card">
           <div class="calendar-header">
-            <button class="nav-btn" @click="prevMonth">
+            <button class="nav-btn" @click="prevMonth" aria-label="Previous month">
               <ion-icon :icon="chevronBack" />
             </button>
             <div class="current-month">
               <h2>{{ currentMonthYear }}</h2>
             </div>
-            <button class="nav-btn" @click="nextMonth">
+            <button class="nav-btn" @click="nextMonth" aria-label="Next month">
               <ion-icon :icon="chevronForward" />
             </button>
           </div>
@@ -52,8 +52,8 @@
             </div>
           </div>
 
-          <div v-if="loading.calendar" class="loader-container">
-            <ion-spinner name="crescent" />
+          <div v-if="showSkeleton" class="loader-container">
+            <AppSkeleton width="100%" height="300px" />
           </div>
           <div v-else-if="errorMessage" class="error-container">
             <ion-icon :icon="alertCircleOutline" />
@@ -100,11 +100,23 @@
           </div>
         </div>
 
-        <div v-if="monthlyPublicHolidays.length > 0" class="holiday-section">
+        <div
+          v-if="showSkeleton || monthlyPublicHolidays.length > 0"
+          class="holiday-section"
+        >
           <div class="section-header">
             <h2>Public Holidays</h2>
           </div>
-          <div class="holiday-list">
+          <div v-if="showSkeleton" class="section-skeleton-list">
+            <div v-for="i in 3" :key="`holiday-skeleton-${i}`" class="section-skeleton-card">
+              <AppSkeleton shape="squircle" width="52px" height="52px" />
+              <div class="section-skeleton-content">
+                <AppSkeleton width="68%" height="16px" />
+                <AppSkeleton width="45%" height="12px" margin="8px 0 0" />
+              </div>
+            </div>
+          </div>
+          <div v-else class="holiday-list">
             <div
               v-for="holiday in monthlyPublicHolidays"
               :key="holiday.id"
@@ -135,8 +147,18 @@
             <button class="view-all" @click="goToMyRequests">View All</button>
           </div>
 
+          <div v-if="showSkeleton" class="section-skeleton-list">
+            <div v-for="i in 3" :key="`leave-skeleton-${i}`" class="section-skeleton-card">
+              <AppSkeleton shape="squircle" width="52px" height="52px" />
+              <div class="section-skeleton-content">
+                <AppSkeleton width="58%" height="16px" />
+                <AppSkeleton width="72%" height="12px" margin="8px 0 0" />
+              </div>
+              <AppSkeleton width="6px" height="24px" />
+            </div>
+          </div>
           <div
-            v-if="monthlyLeaves.length === 0 && !loading.calendar"
+            v-else-if="monthlyLeaves.length === 0 && !loading.calendar"
             class="empty-state"
           >
             <ion-icon :icon="calendarOutline" />
@@ -181,29 +203,38 @@ import {
   IonContent,
   IonPage,
   IonIcon,
-  IonSpinner,
   IonRefresher,
   IonRefresherContent,
   onIonViewWillEnter,
 } from "@ionic/vue";
+import { ref, watch, computed } from "vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
 import {
   chevronBack,
   chevronForward,
   calendarOutline,
   alertCircleOutline,
 } from "ionicons/icons";
-import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
+import { useNotification } from "@/composables/useNotification";
 import LeaveRequestDetailModal from "@/components/LeaveRequestDetailModal.vue";
 import PublicHolidayDetailModal from "@/components/PublicHolidayDetailModal.vue";
 import { useTimeoffStore } from "@/stores/timeoff.store";
 import { useUserStore } from "@/stores/user.store";
+import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const router = useRouter();
-const timeoffStore = useTimeoffStore();
 const userStore = useUserStore();
+const timeoffStore = useTimeoffStore();
+
+const { showSkeleton } = useMinimumSkeleton(
+  () => timeoffStore.loading.calendar,
+  1000,
+);
+
+const router = useRouter();
+const { showToast } = useNotification();
 const { leaveRequests, calendarData, loading } = storeToRefs(timeoffStore);
 const { currentEmployee } = storeToRefs(userStore);
 const currentDate = ref(new Date());
@@ -496,6 +527,7 @@ const fetchCalendarData = async () => {
   } catch (error) {
     console.error("Critical failure in fetchCalendarData:", error);
     errorMessage.value = "Failed to sync with server.";
+    await showToast("Failed to load calendar data.", "danger");
   }
 };
 
@@ -726,7 +758,7 @@ const handleDayClick = (dateObj) => {
 };
 
 const goToMyRequests = () => {
-  void router.push("/tabs/tab4");
+  void router.push("/tabs/requests");
 };
 
 const goToRequestDetail = (leave) => {
@@ -794,8 +826,10 @@ onIonViewWillEnter(async () => {
 
 h1 {
   margin: 0;
-  font-size: 2.25rem;
-  font-weight: 850;
+  font-size: clamp(1.65rem, 5vw, 1.95rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
@@ -970,6 +1004,26 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.section-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-skeleton-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.section-skeleton-content {
+  flex: 1;
 }
 
 .holiday-item, .upcoming-item {
