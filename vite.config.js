@@ -26,9 +26,5 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['@capacitor/geolocation', '@capacitor/core']
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom'
   }
 })
