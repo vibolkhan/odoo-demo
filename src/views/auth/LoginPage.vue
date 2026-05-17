@@ -1,6 +1,9 @@
 <template>
   <ion-page>
-    <ion-content class="login-content" :fullscreen="true">
+    <ion-content
+      class="login-content"
+      :fullscreen="true"
+    >
       <div class="login-shell">
         <div class="background-orbs">
           <div class="orb orb-1"></div>
@@ -10,14 +13,14 @@
 
         <section class="login-card">
           <div class="card-header">
-            <p class="eyebrow">TimeNest</p>
-            <h1>Welcome Back</h1>
-            <p class="intro">
-              Sign in to manage your leave requests and profile.
-            </p>
+            <!-- <p class="eyebrow">TimeNest</p> -->
+            <h1>Welcome to idk</h1>
           </div>
 
-          <form class="login-form" @submit.prevent="handleLogin">
+          <form
+            class="login-form"
+            @submit.prevent="handleLogin"
+          >
             <label class="field">
               <span class="field-label">Email Address</span>
               <div class="input-wrapper">
@@ -54,7 +57,10 @@
               </div>
             </label>
 
-            <div v-if="errorMessage" class="error-container">
+            <div
+              v-if="errorMessage"
+              class="error-container"
+            >
               <p class="error-message">{{ errorMessage }}</p>
             </div>
 
@@ -64,7 +70,7 @@
               type="submit"
               :disabled="isSubmitting"
             >
-              {{ isSubmitting ? "Authenticating..." : "Sign In" }}
+              {{ isSubmitting ? 'Authenticating...' : 'Sign In' }}
             </ion-button>
           </form>
         </section>
@@ -74,56 +80,49 @@
 </template>
 
 <script setup>
-import { IonButton, IonContent, IonPage, IonIcon } from "@ionic/vue";
-import { eyeOutline, eyeOffOutline } from "ionicons/icons";
-import { computed, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { storeToRefs } from "pinia";
-import { useAuthStore } from "@/stores/auth.store";
+import { IonButton, IonContent, IonPage, IonIcon } from '@ionic/vue'
+import { eyeOutline, eyeOffOutline } from 'ionicons/icons'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '@/stores/auth.store'
 
-const router = useRouter();
-const route = useRoute();
-const authStore = useAuthStore();
-const { loading: isSubmitting, isAuthenticated } = storeToRefs(authStore);
+const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+const { loading: isSubmitting, isAuthenticated } = storeToRefs(authStore)
 
-const username = ref("vibol.khan@axivit.com");
-const password = ref("Admin@2026");
-const showPassword = ref(false);
-const errorMessage = ref("");
+const username = ref('vibol.khan@axivit.com')
+const password = ref('Admin@2026')
+const showPassword = ref(false)
+const errorMessage = ref('')
 
 const redirectPath = computed(() => {
-  const redirect = route.query.redirect;
-  return typeof redirect === "string" && redirect.startsWith("/")
+  const redirect = route.query.redirect
+  return typeof redirect === 'string' && redirect.startsWith('/')
     ? redirect
-    : "/tabs/leave-calendar";
-});
+    : '/tabs/leave-calendar'
+})
 
 onMounted(async () => {
-  await authStore.hydrateSession();
+  await authStore.hydrateSession()
 
   if (isAuthenticated.value) {
-    await router.replace(redirectPath.value);
+    await router.replace(redirectPath.value)
   }
-});
+})
 
 const handleLogin = async () => {
-  errorMessage.value = "";
-
-  if (!username.value.trim() || !password.value.trim()) {
-    errorMessage.value = "Please enter both email and password.";
-    return;
-  }
-
   try {
-    await authStore.login(username.value.trim(), password.value);
-    await router.replace(redirectPath.value);
+    await authStore.login(username.value.trim(), password.value)
+    await router.replace(redirectPath.value)
   } catch (error) {
     errorMessage.value =
       error instanceof Error
         ? error.message
-        : "Unable to sign in right now. Please try again.";
+        : 'Unable to sign in right now. Please try again.'
   }
-};
+}
 </script>
 
 <style scoped>

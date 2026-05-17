@@ -24,10 +24,14 @@
             aria-hidden="true"
             :icon="tabIcon('/tabs/my-attendance', time, timeOutline)"
           />
-          <ion-label>Attend</ion-label>
+          <ion-label>Attendance</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="requests" href="/tabs/requests" @click="triggerTabHaptic">
+        <ion-tab-button
+          tab="requests"
+          href="/tabs/requests"
+          @click="triggerTabHaptic"
+        >
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/requests', receipt, receiptOutline)"
@@ -47,7 +51,11 @@
           <ion-label>Balance</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="profile" href="/tabs/profile" @click="triggerTabHaptic">
+        <ion-tab-button
+          tab="profile"
+          href="/tabs/profile"
+          @click="triggerTabHaptic"
+        >
           <ion-icon
             aria-hidden="true"
             :icon="tabIcon('/tabs/profile', person, personOutline)"
@@ -68,7 +76,7 @@ import {
   IonIcon,
   IonPage,
   IonRouterOutlet,
-} from "@ionic/vue";
+} from '@ionic/vue'
 import {
   receipt,
   receiptOutline,
@@ -80,21 +88,21 @@ import {
   calendarOutline,
   time,
   timeOutline,
-} from "ionicons/icons";
-import { useRoute } from "vue-router";
+} from 'ionicons/icons'
+import { useRoute } from 'vue-router'
 
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { Haptics, ImpactStyle } from '@capacitor/haptics'
 
-const route = useRoute();
+const route = useRoute()
 
 const tabIcon = (path, activeIcon, inactiveIcon) =>
   route.path === path || route.path.startsWith(`${path}/`)
     ? activeIcon
-    : inactiveIcon;
+    : inactiveIcon
 
 const triggerTabHaptic = async () => {
-  await Haptics.impact({ style: ImpactStyle.Light });
-};
+  await Haptics.impact({ style: ImpactStyle.Light })
+}
 </script>
 
 <style scoped>
@@ -132,7 +140,7 @@ ion-label {
 
 /* Custom indicator for active tab */
 ion-tab-button.tab-selected::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 50%;
@@ -153,7 +161,7 @@ ion-icon {
 }
 
 ion-tab-button.tab-selected::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 6px;
   background: rgba(var(--ion-color-primary-rgb), 0.12);

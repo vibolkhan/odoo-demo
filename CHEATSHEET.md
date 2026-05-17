@@ -10,7 +10,7 @@
 - Ionic Vue for UI components
 - Pinia for state management
 - CapacitorHttp for network requests
-- Capacitor plugins: Preferences, Keyboard, Haptics, Geolocation, App
+- Capacitor plugins: Preferences, Haptics, Geolocation, App
 - Vite for build/dev server
 
 ## 3. App Bootstrap
@@ -18,7 +18,6 @@
   - Creates Vue app and mounts once router is ready.
   - Applies IonicVue, Pinia, Vue Router.
   - Hydrates auth session before mount.
-  - Adds Android keyboard focus handler.
 - `src/App.vue`
   - Global shell with splash screen until auth session is ready.
   - Applies theme from `theme.store` on mount.
@@ -156,7 +155,7 @@
   - Includes legacy support plugin.
 - `capacitor.config.json`
   - App ID `io.ionic.starter`, app name `TimeNest`.
-  - Enables `Keyboard` and `CapacitorHttp` plugins.
+  - Enables `CapacitorHttp` plugin.
 - `.env-example` / `.env`
   - Contains environment variables for Odoo base URL and database.
 
@@ -164,7 +163,6 @@
 - Capacitor native support for:
   - HTTP requests via `CapacitorHttp`.
   - Persistent storage via `Preferences`.
-  - Keyboard visibility on Android.
   - Haptics vibration on tab changes.
   - Geolocation plugin for attendance toggle (likely used in attendance flows).
 
@@ -198,7 +196,39 @@
 - `src/views/attendance/AdminAttendancePage.vue` for the most complex UI flow.
 - `src/views/leave/LeaveCalendarPage.vue` for calendar interactions and date handling.
 
-## 16. Complete File-by-File Matrix
+## 16. JavaScript Function Cheat Sheet
+
+### Normal Function vs Arrow Function
+```js
+function formatName(name) {
+  return name.trim().toUpperCase();
+}
+
+const formatName = (name) => {
+  return name.trim().toUpperCase();
+};
+
+const double = (number) => number * 2;
+```
+
+| Feature | Normal function | Arrow function |
+| --- | --- | --- |
+| Syntax | `function name() {}` | `const name = () => {}` |
+| `this` | Has its own `this` | Uses `this` from outside |
+| Hoisting | Can be called before declaration | Cannot be used before assignment |
+| Best for | Reusable helpers, object methods | Callbacks, short helpers, Vue Composition API |
+
+Use a normal function when you need a named helper or method behavior. Use an arrow function for short callbacks and local logic.
+
+```js
+export function formatDays(days) {
+  return `${days} days`;
+}
+
+const approvedRequests = requests.filter((request) => request.state === 'validate');
+```
+
+## 17. Complete File-by-File Matrix
 
 ### Root / Config
 | File | Area | Purpose | Notes |
@@ -295,7 +325,7 @@
 | `src/utils/date.js` | Utilities | Date formatting/helpers | Shared date manipulation layer. |
 | `src/utils/format.js` | Utilities | Number/string formatting helpers | Small presentation helper set. |
 
-## 17. Risk / Technical Debt Assessment
+## 18. Risk / Technical Debt Assessment
 
 ### Highest-Risk Hotspots
 | Area | Why it is risky | Evidence |

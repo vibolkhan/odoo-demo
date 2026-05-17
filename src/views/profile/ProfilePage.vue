@@ -1,11 +1,20 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true" class="profile-page-content">
-      <ion-refresher slot="fixed" @ionRefresh="handleRefresh">
+    <ion-content
+      :fullscreen="true"
+      class="profile-page-content"
+    >
+      <ion-refresher
+        slot="fixed"
+        @ionRefresh="handleRefresh"
+      >
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <div class="profile-hero" v-if="!showSkeleton">
+      <div
+        class="profile-hero"
+        v-if="!showSkeleton"
+      >
         <div class="hero-bg"></div>
         <div class="hero-content">
           <AppAvatar
@@ -17,50 +26,82 @@
           <div class="user-info">
             <h1>{{ username }}</h1>
             <div class="badge-row">
-              <span v-if="userId" class="user-id-tag">ID: {{ userId }}</span>
+              <span
+                v-if="userId"
+                class="user-id-tag"
+                >ID: {{ userId }}</span
+              >
               <span class="role-tag">{{
-                isManager ? "Manager" : "Employee"
+                isManager ? 'Manager' : 'Employee'
               }}</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="profile-hero skeleton" v-else>
+      <div
+        class="profile-hero skeleton"
+        v-else
+      >
         <div class="hero-bg"></div>
         <div class="hero-content">
-          <AppSkeleton shape="circle" width="100px" height="100px" />
+          <AppSkeleton
+            shape="circle"
+            width="100px"
+            height="100px"
+          />
           <div class="user-info">
-            <AppSkeleton width="200px" height="32px" />
+            <AppSkeleton
+              width="200px"
+              height="32px"
+            />
             <div class="badge-row">
-              <AppSkeleton width="60px" height="20px" />
-              <AppSkeleton width="80px" height="20px" />
+              <AppSkeleton
+                width="60px"
+                height="20px"
+              />
+              <AppSkeleton
+                width="80px"
+                height="20px"
+              />
             </div>
           </div>
         </div>
       </div>
 
       <template v-if="!showSkeleton">
-        <div class="attendance-section" v-if="employeeId">
+        <div
+          class="attendance-section"
+          v-if="employeeId"
+        >
           <div
             class="attendance-card"
             :class="{ 'is-checked-in': isCheckedIn }"
           >
-            <div class="attendance-accent" aria-hidden="true"></div>
+            <div
+              class="attendance-accent"
+              aria-hidden="true"
+            ></div>
             <div class="attendance-info">
               <div
                 class="attendance-status-chip"
                 :class="{ active: isCheckedIn }"
               >
-                <div v-if="isCheckedIn" class="pulse-dot"></div>
-                <ion-icon v-else :icon="timeOutline" />
+                <div
+                  v-if="isCheckedIn"
+                  class="pulse-dot"
+                ></div>
+                <ion-icon
+                  v-else
+                  :icon="timeOutline"
+                />
                 <span>{{
-                  isCheckedIn ? "Live Session" : "Ready to Start"
+                  isCheckedIn ? 'Live Session' : 'Ready to Start'
                 }}</span>
               </div>
               <div class="status-indicator-row">
                 <div class="attendance-copy">
                   <h3>
-                    {{ isCheckedIn ? "Currently Working" : "Not Checked In" }}
+                    {{ isCheckedIn ? 'Currently Working' : 'Not Checked In' }}
                   </h3>
                   <p v-if="isCheckedIn && checkInTime">
                     Since {{ formatDisplayTime(checkInTime) }}
@@ -69,7 +110,10 @@
                     Check in to start tracking your work time for today.
                   </p>
                 </div>
-                <div v-if="isCheckedIn" class="timer-pill">
+                <div
+                  v-if="isCheckedIn"
+                  class="timer-pill"
+                >
                   <span class="timer-label">Elapsed</span>
                   <strong>{{ workingDuration }}</strong>
                 </div>
@@ -86,7 +130,10 @@
                 name="crescent"
                 class="btn-spinner"
               ></ion-spinner>
-              <ion-icon v-else :icon="logInOutline" />
+              <ion-icon
+                v-else
+                :icon="logInOutline"
+              />
               Check In
             </button>
             <button
@@ -100,14 +147,20 @@
                 name="crescent"
                 class="btn-spinner"
               ></ion-spinner>
-              <ion-icon v-else :icon="logOutOutline" />
+              <ion-icon
+                v-else
+                :icon="logOutOutline"
+              />
               Check Out
             </button>
           </div>
         </div>
 
         <div class="profile-actions">
-          <section v-if="isManager" class="action-section">
+          <section
+            v-if="isManager"
+            class="action-section"
+          >
             <h3 class="section-title">Team Management</h3>
             <div class="action-grid">
               <button
@@ -122,7 +175,10 @@
                   <h4>Manager Approvals</h4>
                   <p>Review and process team requests</p>
                 </div>
-                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+                <ion-icon
+                  :icon="chevronForwardOutline"
+                  class="chevron"
+                />
               </button>
 
               <button
@@ -137,12 +193,15 @@
                   <h4>All Attendances</h4>
                   <p>View all employee attendances</p>
                 </div>
-                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+                <ion-icon
+                  :icon="chevronForwardOutline"
+                  class="chevron"
+                />
               </button>
             </div>
           </section>
 
-          <section class="action-section">
+          <!-- <section class="action-section">
             <h3 class="section-title">Self Service</h3>
             <div class="action-grid">
               <button 
@@ -205,30 +264,33 @@
                 <ion-icon :icon="chevronForwardOutline" class="chevron" />
               </button>
             </div>
-          </section>
+          </section> -->
 
           <section class="action-section">
             <h3 class="section-title">Account</h3>
             <div class="action-grid">
-              <button 
-                class="action-card" 
+              <button
+                class="action-card"
                 @click="themeStore.toggleTheme"
                 :aria-label="`Switch to ${isDarkMode ? 'light' : 'dark'} mode`"
               >
-                <div class="icon-box" :class="isDarkMode ? 'amber' : 'blue'">
+                <div
+                  class="icon-box"
+                  :class="isDarkMode ? 'amber' : 'blue'"
+                >
                   <ion-icon :icon="isDarkMode ? sunnyOutline : moonOutline" />
                 </div>
                 <div class="card-copy">
-                  <h4>{{ isDarkMode ? "Light Mode" : "Dark Mode" }}</h4>
+                  <h4>{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</h4>
                   <p>Switch between light and dark themes</p>
                 </div>
                 <div class="theme-toggle-status">
-                  {{ isDarkMode ? "ON" : "OFF" }}
+                  {{ isDarkMode ? 'ON' : 'OFF' }}
                 </div>
               </button>
 
-              <button 
-                class="action-card logout" 
+              <button
+                class="action-card logout"
                 @click="handleLogout"
                 aria-label="Sign Out: End your current session"
               >
@@ -239,22 +301,47 @@
                   <h4>Sign Out</h4>
                   <p>End your current session</p>
                 </div>
-                <ion-icon :icon="chevronForwardOutline" class="chevron" />
+                <ion-icon
+                  :icon="chevronForwardOutline"
+                  class="chevron"
+                />
               </button>
             </div>
           </section>
         </div>
       </template>
 
-      <div v-if="showSkeleton" class="profile-actions skeleton">
+      <div
+        v-if="showSkeleton"
+        class="profile-actions skeleton"
+      >
         <section class="action-section">
-          <AppSkeleton width="140px" height="24px" margin="0 0 16px" />
+          <AppSkeleton
+            width="140px"
+            height="24px"
+            margin="0 0 16px"
+          />
           <div class="action-grid">
-            <div v-for="i in 6" :key="i" class="action-card skeleton-card">
-              <AppSkeleton shape="squircle" width="48px" height="48px" />
+            <div
+              v-for="i in 6"
+              :key="i"
+              class="action-card skeleton-card"
+            >
+              <AppSkeleton
+                shape="squircle"
+                width="48px"
+                height="48px"
+              />
               <div class="card-copy">
-                <AppSkeleton width="120px" height="18px" />
-                <AppSkeleton width="180px" height="14px" margin="6px 0 0" />
+                <AppSkeleton
+                  width="120px"
+                  height="18px"
+                />
+                <AppSkeleton
+                  width="180px"
+                  height="14px"
+                  margin="6px 0 0"
+                />
               </div>
             </div>
           </div>
@@ -272,9 +359,9 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonSpinner,
-} from "@ionic/vue";
-import { useNotification } from "@/composables/useNotification";
-import { Geolocation } from "@capacitor/geolocation";
+} from '@ionic/vue'
+import { useNotification } from '@/composables/useNotification'
+import { Geolocation } from '@capacitor/geolocation'
 import {
   checkmarkDoneOutline,
   chevronForwardOutline,
@@ -286,79 +373,78 @@ import {
   timeOutline,
   moonOutline,
   sunnyOutline,
-} from "ionicons/icons";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import { storeToRefs } from "pinia";
-import { useAuthStore } from "@/stores/auth.store";
-import { useUserStore } from "@/stores/user.store";
-import { useThemeStore } from "@/stores/theme.store";
-import AppAvatar from "@/components/common/AppAvatar.vue";
-import AppSkeleton from "@/components/common/AppSkeleton.vue";
-import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+} from 'ionicons/icons'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUserStore } from '@/stores/user.store'
+import { useThemeStore } from '@/stores/theme.store'
+import AppAvatar from '@/components/common/AppAvatar.vue'
+import AppSkeleton from '@/components/common/AppSkeleton.vue'
+import { useMinimumSkeleton } from '@/composables/useMinimumSkeleton'
 
-import { useAttendanceTimer } from "@/composables/useAttendanceTimer";
-import { useAttendanceActions } from "@/composables/useAttendanceActions";
-import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
+import { useAttendanceTimer } from '@/composables/useAttendanceTimer'
+import { useAttendanceActions } from '@/composables/useAttendanceActions'
+import { useDateTimeFormatter } from '@/composables/useDateTimeFormatter'
 
-const router = useRouter();
-const authStore = useAuthStore();
-const userStore = useUserStore();
-const themeStore = useThemeStore();
-const { isDarkMode } = storeToRefs(themeStore);
-const { displayName: username, userId } = storeToRefs(authStore);
-const { currentEmployee, isManager, loading } = storeToRefs(userStore);
+const router = useRouter()
+const authStore = useAuthStore()
+const userStore = useUserStore()
+const themeStore = useThemeStore()
+const { isDarkMode } = storeToRefs(themeStore)
+const { displayName: username, userId } = storeToRefs(authStore)
+const { currentEmployee, isManager, loading } = storeToRefs(userStore)
 const { showSkeleton } = useMinimumSkeleton(
   () => loading.value.currentEmployee,
   1000,
-);
+)
 
-const { formatTime: formatDisplayTime } = useDateTimeFormatter();
-const { isToggling, toggleAttendance } = useAttendanceActions();
-const { showToast } = useNotification();
+const { formatTime: formatDisplayTime } = useDateTimeFormatter()
+const { isToggling, toggleAttendance } = useAttendanceActions()
+const { showToast } = useNotification()
 
 const userInitials = computed(() => {
-  const name = username.value;
-  if (!name || name === "Guest User") return "U";
-  return name.charAt(0).toUpperCase();
-});
+  const name = username.value
+  if (!name || name === 'Guest User') return 'U'
+  return name.charAt(0).toUpperCase()
+})
 
-const employeeId = computed(() => currentEmployee.value?.id ?? null);
+const employeeId = computed(() => currentEmployee.value?.id ?? null)
 const isCheckedIn = computed(
-  () => currentEmployee.value?.attendanceState === "checked_in",
-);
+  () => currentEmployee.value?.attendanceState === 'checked_in',
+)
 const checkInTime = computed(() => {
   if (!isCheckedIn.value || !currentEmployee.value?.lastCheckIn) {
-    return null;
+    return null
   }
 
-  return new Date(`${currentEmployee.value.lastCheckIn}Z`);
-});
+  return new Date(`${currentEmployee.value.lastCheckIn}Z`)
+})
 
-const { workingDuration } = useAttendanceTimer(isCheckedIn, checkInTime);
+const { workingDuration } = useAttendanceTimer(isCheckedIn, checkInTime)
 
 onMounted(async () => {
-  await userStore.fetchCurrentEmployee();
-});
+  await userStore.fetchCurrentEmployee()
+})
 
 const handleRefresh = async (event) => {
   try {
-    await userStore.fetchCurrentEmployee({ force: true });
+    await userStore.fetchCurrentEmployee({ force: true })
   } finally {
-    event.target.complete();
+    event.target.complete()
   }
-};
+}
 
 const handleLogout = async () => {
   try {
-    await authStore.logout();
-    await router.replace("/login");
+    await authStore.logout()
+    await router.replace('/login')
   } catch (error) {
-    console.error("Logout failed:", error);
-    await showToast("Failed to sign out. Please try again.", "danger");
+    console.error('Logout failed:', error)
+    await showToast('Failed to sign out. Please try again.', 'danger')
   }
-};
-
+}
 </script>
 
 <style scoped>
@@ -525,7 +611,7 @@ const handleLogout = async () => {
 }
 
 .pulse-dot::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;

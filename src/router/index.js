@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
-import TabsPage from "../views/layout/TabsPage.vue";
+import TabsPage from "@/views/leave/TabsPage.vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { pinia } from "@/stores";
 

@@ -42,13 +42,12 @@
 
             <ion-button
               fill="clear"
-              class="detail-close-button"
+              class="detail-close-button app-modal-close-button"
               aria-label="Close date picker"
               @click="closePicker"
             >
               <ion-icon
                 :icon="close"
-                size="large"
                 aria-hidden="true"
                 class="close-icon"
               />
@@ -289,24 +288,6 @@ const handleClear = () => {
 .date-picker-clear {
   --color: var(--text-secondary);
   --border-color: var(--border-color);
-}
-
-.detail-close-button {
-  width: 48px;
-  height: 48px;
-  margin: 0;
-  --color: var(--text-secondary);
-  --border-radius: 16px;
-  --background: var(--card-bg);
-  --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
-}
-
-.detail-close-button ion-icon {
-  font-size: 1.6rem;
-}
-
-.close-icon {
-  font-size: 1.6rem;
 }
 
 @media (max-width: 480px) {

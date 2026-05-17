@@ -414,6 +414,18 @@ export const fetchMyAttendances = async (userId, options = {}) => {
   const storedUserId = getRequiredUserId(userId);
   const limit = options.limit ?? 10;
   const offset = options.offset ?? 0;
+  const domain = [
+    ["employee_id.user_id", "=", storedUserId],
+    ["employee_id.active", "=", true],
+  ];
+
+  if (options.dateFrom) {
+    domain.push(["check_in", ">=", `${options.dateFrom} 00:00:00`]);
+  }
+
+  if (options.dateTo) {
+    domain.push(["check_in", "<=", `${options.dateTo} 23:59:59`]);
+  }
 
   const body = {
     jsonrpc: "2.0",
@@ -432,10 +444,7 @@ export const fetchMyAttendances = async (userId, options = {}) => {
           current_company_id: DEFAULT_COMPANY_ID,
         }),
         count_limit: 10001,
-        domain: [
-          ["employee_id.user_id", "=", storedUserId],
-          ["employee_id.active", "=", true],
-        ],
+        domain,
       },
     },
     id: 1,

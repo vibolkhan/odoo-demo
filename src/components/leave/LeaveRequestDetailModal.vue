@@ -19,10 +19,11 @@
 
           <ion-button
             fill="clear"
-            class="detail-close-button"
+            class="detail-close-button app-modal-close-button"
+            aria-label="Close request details"
             @click="$emit('close')"
           >
-            <ion-icon :icon="close" size="large" />
+            <ion-icon :icon="close" aria-hidden="true" />
           </ion-button>
         </div>
 
@@ -53,13 +54,12 @@
 
           <ion-button
             fill="clear"
-            class="detail-close-button"
+            class="detail-close-button app-modal-close-button"
             aria-label="Close request details"
             @click="$emit('close')"
           >
             <ion-icon
               :icon="close"
-              size="large"
               aria-hidden="true"
               class="close-icon"
             />
@@ -186,20 +186,23 @@
 <script setup>
 import { IonButton, IonContent, IonIcon, IonModal } from "@ionic/vue";
 import {
-  airplaneOutline,
-  calendarClearOutline,
   checkmarkCircleOutline,
   close,
   closeCircleOutline,
   createOutline,
-  medkitOutline,
-  personOutline,
-  sparklesOutline,
 } from "ionicons/icons";
 import { ref, computed, watch } from "vue";
 import { toastController } from "@ionic/vue";
 import RequestForm from "@/components/leave/RequestForm.vue";
 import { useTimeoffStore } from "@/stores/timeoff.store";
+import {
+  formatLeaveStateLabel as formatStateLabel,
+  getLeaveStatusClass as badgeClass,
+  getLeaveTypeEnglishName,
+  getLeaveTypeKhmerName,
+  leaveTypeTone as tileTone,
+  requestTypeIcon,
+} from "@/utils/leave";
 
 const props = defineProps({
   isOpen: Boolean,
@@ -286,14 +289,6 @@ const handleRefuse = async () => {
   }
 };
 
-const getLeaveTypeEnglishName = (name) => {
-  return name.split(" - ")[0] || name;
-};
-
-const getLeaveTypeKhmerName = (name) => {
-  return name.split(" - ")[1] || "";
-};
-
 const parseRequestDate = (value) => {
   if (!value) return null;
   const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
@@ -317,44 +312,6 @@ const formatDateRange = (start, end) => {
   return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
-const formatStateLabel = (state) => {
-  switch (state) {
-    case "confirm": return "Pending";
-    case "validate1": return "Review";
-    case "validate": return "Approved";
-    case "refuse": return "Refused";
-    case "cancel": return "Cancelled";
-    case "draft": return "Draft";
-    default: return state.charAt(0).toUpperCase() + state.slice(1);
-  }
-};
-
-const badgeClass = (state) => {
-  switch (state) {
-    case "validate1": return "status-review";
-    case "validate": return "status-approved";
-    case "refuse":
-    case "cancel": return "status-refused";
-    default: return "status-pending";
-  }
-};
-
-const requestTypeIcon = (leaveType) => {
-  const normalizedType = leaveType.toLowerCase();
-  if (normalizedType.includes("sick")) return medkitOutline;
-  if (normalizedType.includes("personal")) return personOutline;
-  if (normalizedType.includes("annual")) return calendarClearOutline;
-  if (normalizedType.includes("unpaid")) return airplaneOutline;
-  return sparklesOutline;
-};
-
-const tileTone = (leaveType) => {
-  const normalizedType = leaveType.toLowerCase();
-  if (normalizedType.includes("sick")) return "tone-blue";
-  if (normalizedType.includes("personal")) return "tone-coral";
-  if (normalizedType.includes("annual")) return "tone-lilac";
-  return "tone-sand";
-};
 </script>
 
 <style scoped>
@@ -413,24 +370,6 @@ const tileTone = (leaveType) => {
   font-size: 0.92rem;
   line-height: 1.45;
   color: var(--text-secondary);
-}
-
-.detail-close-button {
-  width: 48px;
-  height: 48px;
-  margin: 0;
-  --color: var(--text-secondary);
-  --border-radius: 16px;
-  --background: var(--card-bg);
-  --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-.detail-close-button ion-icon {
-  font-size: 1.6rem;
-}
-
-.close-icon {
-  font-size: 1.6rem;
 }
 
 .detail-hero-card,

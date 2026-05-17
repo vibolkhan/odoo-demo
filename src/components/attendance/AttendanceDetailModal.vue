@@ -38,8 +38,13 @@
             </p>
           </div>
 
-          <ion-button fill="clear" class="detail-close-button" @click="dismiss">
-            <ion-icon :icon="close" />
+          <ion-button
+            fill="clear"
+            class="detail-close-button app-modal-close-button"
+            aria-label="Close attendance details"
+            @click="dismiss"
+          >
+            <ion-icon :icon="close" aria-hidden="true" />
           </ion-button>
         </div>
 
@@ -524,21 +529,6 @@ function formatLocalisation(city, country) {
   font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 500;
-}
-
-.detail-close-button {
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  --color: var(--text-secondary);
-  --border-radius: 16px;
-  --background: var(--card-bg);
-  --box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
-  border: 1px solid var(--border-color);
-}
-
-.detail-close-button ion-icon {
-  font-size: 1.4rem;
 }
 
 .detail-hero-card,

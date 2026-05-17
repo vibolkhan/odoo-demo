@@ -21,6 +21,15 @@
             <p class="eyebrow">Leave Management</p>
             <h1>Request History</h1>
           </div>
+          <button
+            type="button"
+            class="filter-toggle-button"
+            :class="{ active: showFilters }"
+            :aria-label="showFilters ? 'Hide filters' : 'Show filters'"
+            @click="showFilters = !showFilters"
+          >
+            <ion-icon :icon="showFilters ? closeOutline : filterOutline" />
+          </button>
         </div>
 
         <div v-if="showSummarySkeleton" class="stats-summary stats-summary-skeleton">
@@ -53,6 +62,7 @@
 
         <RequestLst
           ref="requestListRef"
+          :show-filters="showFilters"
           @summary-change="handleSummaryChange"
         />
       </section>
@@ -81,13 +91,12 @@
 
               <ion-button
                 fill="clear"
-                class="detail-close-button"
+                class="detail-close-button app-modal-close-button"
                 aria-label="Close create request form"
                 @click="closeCreateModal"
               >
                 <ion-icon
                   :icon="close"
-                  size="large"
                   aria-hidden="true"
                   class="close-icon"
                 />
@@ -118,7 +127,13 @@ import {
   IonRefresherContent,
   onIonViewWillEnter,
 } from "@ionic/vue";
-import { addOutline, close, notificationsOutline } from "ionicons/icons";
+import {
+  addOutline,
+  close,
+  closeOutline,
+  filterOutline,
+  notificationsOutline,
+} from "ionicons/icons";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import RequestForm from "@/components/leave/RequestForm.vue";
@@ -133,6 +148,7 @@ const timeoffStore = useTimeoffStore();
 const requestListRef = ref(null);
 const isCreateModalOpen = ref(false);
 const actionMessage = ref("");
+const showFilters = ref(false);
 const summary = ref({
   total: 0,
   pending: 0,
@@ -242,6 +258,7 @@ onIonViewWillEnter(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 12px;
 }
 
 .eyebrow {
@@ -259,6 +276,25 @@ h1 {
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+}
+
+.filter-toggle-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.filter-toggle-button.active {
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .stats-summary {
@@ -359,24 +395,6 @@ h1 {
   font-size: 0.92rem;
   line-height: 1.45;
   color: var(--text-secondary);
-}
-
-.detail-close-button {
-  width: 48px;
-  height: 48px;
-  margin: 0;
-  --color: #1d4ed8;
-  --border-radius: 16px;
-  --background: var(--card-bg);
-  --box-shadow: 0 10px 25px rgba(55, 75, 105, 0.12);
-}
-
-.detail-close-button ion-icon {
-  font-size: 1.6rem;
-}
-
-.close-icon {
-  font-size: 1.6rem;
 }
 
 @media (max-width: 640px) {

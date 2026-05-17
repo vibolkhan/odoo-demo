@@ -9,7 +9,7 @@
 export function splitLeaveLabel(label) {
   if (!label) return { english: '', khmer: '' };
   
-  const parts = label.split(' - ');
+  const parts = label.split('-');
   return {
     english: parts[0] || '',
     khmer: parts[1] || ''

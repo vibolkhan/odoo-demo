@@ -11,7 +11,48 @@
             <p class="eyebrow">Attendance Tracking</p>
             <h1>My Attendances</h1>
           </div>
+          <button
+            type="button"
+            class="filter-toggle-button"
+            :class="{ active: showFilters }"
+            :aria-label="showFilters ? 'Hide filters' : 'Show filters'"
+            @click="showFilters = !showFilters"
+          >
+            <ion-icon :icon="showFilters ? closeOutline : filterOutline" />
+          </button>
         </div>
+
+        <section
+          v-if="showFilters"
+          class="filter-panel"
+          aria-label="Attendance date filters"
+        >
+          <div class="date-grid">
+            <DateInput
+              v-model="dateFrom"
+              label="From"
+              placeholder="Start Date"
+            />
+            <DateInput
+              v-model="dateTo"
+              label="To"
+              placeholder="End Date"
+            />
+          </div>
+
+          <div
+            v-if="dateFrom || dateTo"
+            class="filter-actions"
+          >
+            <ion-button
+              fill="clear"
+              size="small"
+              @click="resetFilters"
+            >
+              Reset Filters
+            </ion-button>
+          </div>
+        </section>
 
         <!-- Stats Grid -->
         <div v-if="showSkeleton" class="stats-summary stats-summary-skeleton">
@@ -176,13 +217,16 @@ import {
   timeOutline,
   locationOutline,
   chevronForwardOutline,
+  closeOutline,
+  filterOutline,
 } from "ionicons/icons";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useUserStore } from "@/stores/user.store";
 import AttendanceDetailModal from "@/components/attendance/AttendanceDetailModal.vue";
 import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import AppEmptyState from "@/components/common/AppEmptyState.vue";
+import DateInput from "@/components/common/DateInput.vue";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
 
 import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
@@ -194,6 +238,9 @@ const { myAttendances: records } = storeToRefs(userStore);
 const pageSize = 10;
 const isLoadingMore = ref(false);
 const infiniteScrollKey = ref(0);
+const showFilters = ref(false);
+const dateFrom = ref("");
+const dateTo = ref("");
 
 const { showSkeleton } = useMinimumSkeleton(
   () => userStore.loading.myAttendances && records.value.length === 0,
@@ -215,14 +262,27 @@ onMounted(() => {
   loadData();
 });
 
+watch([dateFrom, dateTo], () => {
+  loadData();
+});
+
 const handleRefresh = async (event) => {
   await loadData();
   event.target.complete();
 };
 
+const buildAttendanceOptions = (extraOptions = {}) => ({
+  dateFrom: dateFrom.value,
+  dateTo: dateTo.value,
+  ...extraOptions,
+});
+
 async function loadData() {
   try {
-    await userStore.fetchMyAttendances({ limit: pageSize }, true);
+    await userStore.fetchMyAttendances(
+      buildAttendanceOptions({ limit: pageSize }),
+      true,
+    );
     infiniteScrollKey.value += 1;
   } catch (error) {
     console.error("Error fetching attendances:", error);
@@ -242,10 +302,10 @@ async function loadMore(event) {
 
   try {
     await userStore.fetchMyAttendances(
-      {
+      buildAttendanceOptions({
         limit: pageSize,
         offset: userStore.myAttendancePagination.offset,
-      },
+      }),
       false,
     );
   } catch (error) {
@@ -269,6 +329,10 @@ async function openDetail(recordId) {
   await modal.present();
 }
 
+function resetFilters() {
+  dateFrom.value = "";
+  dateTo.value = "";
+}
 </script>
 
 <style scoped>
@@ -290,6 +354,7 @@ async function openDetail(recordId) {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 12px;
 }
 
 .eyebrow {
@@ -307,6 +372,52 @@ h1 {
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+}
+
+.filter-toggle-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.filter-toggle-button.active {
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.filter-panel {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  display: grid;
+  gap: 12px;
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 380px) {
+  .date-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .stats-summary {

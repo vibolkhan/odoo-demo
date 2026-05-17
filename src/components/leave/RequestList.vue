@@ -13,23 +13,8 @@
       </button>
     </section>
 
-    <div class="filter-toggle-row">
-      <button
-        type="button"
-        class="filter-toggle-button"
-        :class="{ active: showFilters }"
-        :aria-label="showFilters ? 'Hide filters' : 'Show filters'"
-        @click="showFilters = !showFilters"
-      >
-        <ion-icon
-          :icon="showFilters ? closeOutline : funnelOutline"
-          aria-hidden="true"
-        />
-      </button>
-    </div>
-
     <section
-      v-if="showFilters"
+      v-if="showDateFilters"
       class="filter-panel"
       aria-label="Advanced request filters"
     >
@@ -43,9 +28,12 @@
         <DateInput v-model="dateToFilter" label="To" placeholder="End Date" />
       </div>
 
-      <div class="filter-actions">
+      <div
+        v-if="dateFromFilter || dateToFilter"
+        class="filter-actions"
+      >
         <ion-button fill="clear" size="small" @click="resetFilters"
-          >Reset All Filters</ion-button
+          >Reset Filters</ion-button
         >
       </div>
     </section>
@@ -180,16 +168,9 @@ import {
   IonInfiniteScrollContent,
 } from "@ionic/vue";
 import {
-  airplaneOutline,
   alertCircleOutline,
-  calendarClearOutline,
   chevronForwardOutline,
-  closeOutline,
   fileTrayOutline,
-  funnelOutline,
-  medkitOutline,
-  personOutline,
-  sparklesOutline,
 } from "ionicons/icons";
 import DateInput from "@/components/common/DateInput.vue";
 import { computed, onMounted, ref, watch } from "vue";
@@ -200,12 +181,22 @@ import { useTimeoffStore } from "@/stores/timeoff.store";
 import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import AppEmptyState from "@/components/common/AppEmptyState.vue";
 import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+import {
+  formatLeaveStateLabel as formatStateLabel,
+  getLeaveStatusClass as badgeClass,
+  getLeaveTypeEnglishName,
+  getLeaveTypeKhmerName,
+  leaveTypeTone as tileTone,
+  matchesLeaveStatusFilter,
+  requestTypeIcon,
+} from "@/utils/leave";
 
 const props = defineProps({
   isManagerMode: Boolean,
+  showFilters: Boolean,
 });
 
-const emit = defineEmits(['summaryChange']);
+const emit = defineEmits(["summaryChange"]);
 
 const userStore = useUserStore();
 const timeoffStore = useTimeoffStore();
@@ -224,7 +215,6 @@ const dateToFilter = ref("");
 const isDetailModalOpen = ref(false);
 const selectedRequest = ref(null);
 
-const showFilters = ref(false);
 const pageSize = 10;
 const isLoadingMore = ref(false);
 const infiniteScrollKey = ref(0);
@@ -256,29 +246,13 @@ const hasMoreRequests = computed(() =>
     ? timeoffStore.companyLeaveRequestPagination.hasMore
     : timeoffStore.leaveRequestPagination.hasMore,
 );
+const showDateFilters = computed(() => props.showFilters);
 
-const statusFilteredRequests = computed(() => {
-  switch (activeFilter.value) {
-    case "pending":
-      return requestRecords.value.filter(
-        (request) =>
-          request.state === "confirm" || request.state === "validate1",
-      );
-
-    case "approved":
-      return requestRecords.value.filter(
-        (request) => request.state === "validate",
-      );
-
-    case "rejected":
-      return requestRecords.value.filter(
-        (request) => request.state === "refuse",
-      );
-
-    default:
-      return requestRecords.value;
-  }
-});
+const statusFilteredRequests = computed(() =>
+  requestRecords.value.filter((request) =>
+    matchesLeaveStatusFilter(request, activeFilter.value),
+  ),
+);
 
 const displayedRequests = computed(() => {
   const startBoundary = parseFilterDate(dateFromFilter.value);
@@ -434,14 +408,6 @@ const closeRequestDetail = () => {
   selectedRequest.value = null;
 };
 
-const getLeaveTypeEnglishName = (name) => {
-  return name.split(" - ")[0] || name;
-};
-
-const getLeaveTypeKhmerName = (name) => {
-  return name.split(" - ")[1] || "";
-};
-
 const formatDate = (value) => {
   const date = parseRequestDate(value);
 
@@ -461,39 +427,6 @@ const formatDateRange = (start, end) => {
   return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
-const formatStateLabel = (state) => {
-  switch (state) {
-    case "confirm":
-      return "Pending";
-    case "validate1":
-      return "Review";
-    case "validate":
-      return "Approved";
-    case "refuse":
-      return "Refused";
-    case "cancel":
-      return "Cancelled";
-    case "draft":
-      return "Draft";
-    default:
-      return state.charAt(0).toUpperCase() + state.slice(1);
-  }
-};
-
-const badgeClass = (state) => {
-  switch (state) {
-    case "validate1":
-      return "status-review";
-    case "validate":
-      return "status-approved";
-    case "refuse":
-    case "cancel":
-      return "status-refused";
-    default:
-      return "status-pending";
-  }
-};
-
 const parseRequestDate = (value) => {
   if (!value) return null;
   const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
@@ -509,23 +442,6 @@ const parseFilterDate = (value) => {
 
 const getRequestSortValue = (request) =>
   parseRequestDate(request.dateFrom)?.getTime() ?? 0;
-
-const requestTypeIcon = (leaveType) => {
-  const normalizedType = leaveType.toLowerCase();
-  if (normalizedType.includes("sick")) return medkitOutline;
-  if (normalizedType.includes("personal")) return personOutline;
-  if (normalizedType.includes("annual")) return calendarClearOutline;
-  if (normalizedType.includes("unpaid")) return airplaneOutline;
-  return sparklesOutline;
-};
-
-const tileTone = (leaveType) => {
-  const normalizedType = leaveType.toLowerCase();
-  if (normalizedType.includes("sick")) return "tone-blue";
-  if (normalizedType.includes("personal")) return "tone-coral";
-  if (normalizedType.includes("annual")) return "tone-lilac";
-  return "tone-sand";
-};
 
 onMounted(async () => {
   void loadLeaveRequests();
@@ -590,45 +506,31 @@ defineExpose({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.filter-toggle-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -8px;
-}
-
-.filter-toggle-button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  background: var(--card-bg);
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-
-.filter-toggle-button.active {
-  background: var(--ion-color-primary);
-  color: #ffffff;
-  border-color: var(--ion-color-primary);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-}
-
 .filter-panel {
   display: grid;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 28px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .date-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 380px) {
+  .date-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .month-group {

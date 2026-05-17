@@ -92,3 +92,58 @@ http://ionicframework.com/docs/theming/ */
   --text-secondary: #94a3b8;
   --border-color: #334155;
 }
+
+ion-button.app-modal-close-button {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px;
+  margin: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 14px;
+  --background: var(--card-bg);
+  --background-activated: var(--border-color);
+  --background-hover: var(--border-color);
+  --color: var(--text-secondary);
+  --box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  flex-shrink: 0;
+  transition: transform 0.16s ease;
+}
+
+ion-button.app-modal-close-button::part(native) {
+  border: 1px solid var(--border-color);
+}
+
+ion-button.app-modal-close-button:active {
+  transform: scale(0.94);
+}
+
+ion-button.app-modal-close-button ion-icon,
+button.app-modal-close-button ion-icon {
+  font-size: 1.35rem;
+}
+
+button.app-modal-close-button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+button.app-modal-close-button:active {
+  transform: scale(0.94);
+  background: var(--border-color);
+}

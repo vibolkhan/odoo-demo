@@ -19,61 +19,22 @@
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <!-- Filter Panel -->
-      <div v-if="showFilters" class="filter-panel">
-        <div class="filter-item full">
-          <label>Employee</label>
-          <ion-searchbar
-            v-model="employeeSearch"
-            placeholder="Search employee..."
-            @ionInput="onEmployeeSearch"
-            @ionFocus="onEmployeeFocus"
-            @ionBlur="onEmployeeBlur"
-            class="custom-searchbar"
-          ></ion-searchbar>
-          <div
-            v-if="
-              employeeOptions.length > 0 &&
-              (employeeSearch || showAllEmployees)
-            "
-            class="employee-suggestions"
-            @scroll="onEmployeeScroll"
-          >
-            <div
-              v-for="emp in employeeOptions"
-              :key="emp.id"
-              class="suggestion-item"
-              @click="selectEmployee(emp)"
-            >
-              {{ emp.name }}
-            </div>
-            <div v-if="loadingEmployees" class="suggestion-loading">
-              <ion-spinner name="dots"></ion-spinner>
-            </div>
-          </div>
-          <div
-            v-if="selectedEmployees.length > 0"
-            class="selected-tags-container"
-          >
-            <div
-              v-for="emp in selectedEmployees"
-              :key="emp.id"
-              class="selected-tag"
-            >
-              <span>{{ emp.name }}</span>
-              <ion-icon
-                :icon="closeCircle"
-                @click="removeEmployee(emp.id)"
-              ></ion-icon>
-            </div>
-          </div>
-        </div>
-
-        <div class="date-grid">
-          <DateInput v-model="dateFrom" placeholder="From" />
-          <DateInput v-model="dateTo" placeholder="To" />
-        </div>
-      </div>
+      <EmployeeFilterPanel
+        v-if="showFilters"
+        v-model:date-from="dateFrom"
+        v-model:date-to="dateTo"
+        :employee-search="employeeSearch"
+        :employee-options="employeeOptions"
+        :selected-employees="selectedEmployees"
+        :loading-employees="loadingEmployees"
+        :show-all-employees="showAllEmployees"
+        @employee-search="onEmployeeSearch"
+        @employee-focus="onEmployeeFocus"
+        @employee-blur="onEmployeeBlur"
+        @employee-scroll="onEmployeeScroll"
+        @select-employee="selectEmployee"
+        @remove-employee="removeEmployee"
+      />
 
       <AppAsyncState :state="attendanceState" @retry="fetchAttendances">
         <template #loading>
@@ -134,52 +95,13 @@
           />
 
           <div v-else class="record-grid">
-            <div
+            <AdminAttendanceCard
               v-for="record in records"
               :key="record.id"
-              class="record-card"
-              @click="openDetail(record.id)"
-            >
-              <div class="card-header">
-                <div class="header-left">
-                  <AppAvatar :name="getEmployeeName(record)" :size="32" variant="slate" />
-                  <h3>{{ getEmployeeName(record) }}</h3>
-                </div>
-                <span
-                  class="status-badge"
-                  :class="record.check_out ? 'checked-out' : 'checked-in'"
-                >
-                  {{ record.check_out ? "Completed" : "Working" }}
-                </span>
-              </div>
-
-              <div class="card-body">
-                <div class="time-row">
-                  <div class="time-col">
-                    <span class="label">Check In</span>
-                    <span class="value">{{
-                      formatDateTime(record.check_in)
-                    }}</span>
-                  </div>
-                  <div class="time-col" v-if="record.check_out">
-                    <span class="label">Check Out</span>
-                    <span class="value">{{
-                      formatDateTime(record.check_out)
-                    }}</span>
-                  </div>
-                </div>
-
-                <div class="stats-row" v-if="record.worked_hours">
-                  <span class="worked-hours">
-                    <ion-icon :icon="timeOutline"></ion-icon>
-                    {{ formatHours(record.worked_hours) }} hrs
-                  </span>
-                  <span class="overtime" v-if="record.overtime_hours > 0">
-                    +{{ formatHours(record.overtime_hours) }} OT
-                  </span>
-                </div>
-              </div>
-            </div>
+              :record="record"
+              :employee-name="getEmployeeName(record)"
+              @open="openDetail"
+            />
           </div>
 
           <ion-infinite-scroll
@@ -210,261 +132,51 @@ import {
   IonBackButton,
   IonRefresher,
   IonRefresherContent,
-  IonSpinner,
   IonIcon,
   IonButton,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-  IonSearchbar,
-  modalController,
 } from "@ionic/vue";
-import { useNotification } from "@/composables/useNotification";
 import {
-  timeOutline,
   listOutline,
   filterOutline,
-  closeCircle,
 } from "ionicons/icons";
-import { ref, onMounted, watch, computed } from "vue";
-import { useAuthStore } from "@/stores/auth.store";
-import { useUserStore } from "@/stores/user.store";
-import { storeToRefs } from "pinia";
-import AttendanceDetailModal from "@/components/attendance/AttendanceDetailModal.vue";
-import DateInput from "@/components/common/DateInput.vue";
-import AppAvatar from "@/components/common/AppAvatar.vue";
 import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import AppEmptyState from "@/components/common/AppEmptyState.vue";
 import AppAsyncState from "@/components/common/AppAsyncState.vue";
+import EmployeeFilterPanel from "@/components/common/EmployeeFilterPanel.vue";
+import AdminAttendanceCard from "@/components/attendance/AdminAttendanceCard.vue";
+import { useAdminAttendancePage } from "@/composables/useAdminAttendancePage";
 
-import { 
-  formatDisplayDateTime as formatDateTime, 
-  formatHours 
-} from "@/utils/date";
-
-const authStore = useAuthStore();
-const userStore = useUserStore();
-const { allAttendances: records } = storeToRefs(userStore);
-const pageSize = 10;
-const isLoadingMore = ref(false);
-const infiniteScrollKey = ref(0);
-
-const { showToast } = useNotification();
-
-// Computed Totals
-const totalWorkedHours = computed(() =>
-  records.value.reduce((sum, r) => sum + (r.worked_hours || 0), 0),
-);
-
-const totalOvertimeHours = computed(() =>
-  records.value.reduce((sum, r) => sum + (r.overtime_hours || 0), 0),
-);
-
-const attendanceState = computed(() => {
-  if (
-    isLoadingMore.value &&
-    userStore.asyncStates.allAttendances.status === "loading"
-  ) {
-    return { status: "success" };
-  }
-
-  return userStore.asyncStates.allAttendances;
-});
-
-// Filter State
-const showFilters = ref(false);
-const dateFrom = ref("");
-const dateTo = ref("");
-const isMyTeam = ref(false);
-const employeeSearch = ref("");
-const employeeOptions = ref([]);
-const selectedEmployees = ref([]);
-
-const toggleFilters = () => {
-  showFilters.value = !showFilters.value;
-};
-
-const onEmployeeFocus = () => {
-  if (employeeOptions.value.length === 0) {
-    loadEmployees(true);
-  } else {
-    showAllEmployees.value = true;
-  }
-};
-
-const onEmployeeBlur = () => {
-  setTimeout(() => {
-    showAllEmployees.value = false;
-  }, 200);
-};
-
-const employeeOffset = ref(0);
-const hasMoreEmployees = ref(true);
-const loadingEmployees = ref(false);
-const showAllEmployees = ref(false);
-
-const loadEmployees = async (reset = false) => {
-  if (loadingEmployees.value) return;
-  if (!reset && !hasMoreEmployees.value) return;
-
-  loadingEmployees.value = true;
-  if (reset) {
-    employeeOffset.value = 0;
-    employeeOptions.value = [];
-  }
-
-  try {
-    const result = await userStore.fetchEmployees({
-      query: employeeSearch.value,
-      offset: employeeOffset.value,
-      limit: 10,
-    });
-
-    employeeOptions.value = [...employeeOptions.value, ...result.records];
-    hasMoreEmployees.value = result.hasMore;
-    employeeOffset.value += 10;
-    showAllEmployees.value = !employeeSearch.value;
-  } catch (error) {
-    console.error("Error loading employees:", error);
-    await showToast("Failed to load employees list.", "danger");
-  } finally {
-    loadingEmployees.value = false;
-  }
-};
-
-const onEmployeeSearch = async (event) => {
-  employeeSearch.value = event.target.value;
-  loadEmployees(true);
-};
-
-const onEmployeeScroll = (event) => {
-  const target = event.target;
-  if (target.scrollTop + target.clientHeight >= target.scrollHeight - 20) {
-    loadEmployees();
-  }
-};
-
-const selectEmployee = (emp) => {
-  if (!selectedEmployees.value.find((e) => e.id === emp.id)) {
-    selectedEmployees.value.push(emp);
-  }
-  employeeSearch.value = "";
-  employeeOptions.value = [];
-  showAllEmployees.value = false;
-};
-
-const removeEmployee = (empId) => {
-  selectedEmployees.value = selectedEmployees.value.filter(
-    (e) => e.id !== empId,
-  );
-};
-
-// Automatic filter application
-watch(
-  [selectedEmployees, dateFrom, dateTo, isMyTeam],
-  () => {
-    fetchAttendances();
-  },
-  { deep: true },
-);
-
-onMounted(() => {
-  fetchAttendances();
-});
-
-const handleRefresh = async (event) => {
-  await fetchAttendances();
-  event.target.complete();
-};
-
-async function fetchAttendances() {
-  try {
-    await userStore.fetchAllAttendances(
-      buildAttendanceDomain(),
-      { limit: pageSize },
-      true,
-    );
-    infiniteScrollKey.value += 1;
-  } catch (error) {
-    console.error("Error fetching attendances:", error);
-    await showToast("Failed to load attendance records.", "danger");
-  }
-}
-
-async function loadMore(event) {
-  const infiniteScroll = event.target;
-
-  if (isLoadingMore.value || !userStore.allAttendancePagination.hasMore) {
-    await infiniteScroll?.complete();
-    return;
-  }
-
-  isLoadingMore.value = true;
-
-  try {
-    await userStore.fetchAllAttendances(
-      buildAttendanceDomain(),
-      {
-        limit: pageSize,
-        offset: userStore.allAttendancePagination.offset,
-      },
-      false,
-    );
-  } catch (error) {
-    console.error("Error fetching more attendances:", error);
-    await showToast("Failed to load more attendance records.", "danger");
-  } finally {
-    isLoadingMore.value = false;
-    await infiniteScroll?.complete();
-  }
-}
-
-function buildAttendanceDomain() {
-  const uid = Number(authStore.userId);
-  const domain = [["employee_id.active", "=", true]];
-
-  if (selectedEmployees.value.length > 0) {
-    domain.push([
-      "employee_id",
-      "in",
-      selectedEmployees.value.map((e) => e.id),
-    ]);
-  }
-
-  if (isMyTeam.value) {
-    domain.push(["employee_id.parent_id.user_id", "=", uid]);
-  }
-
-  if (dateFrom.value) {
-    domain.push(["check_in", ">=", dateFrom.value + " 00:00:00"]);
-  }
-
-  if (dateTo.value) {
-    domain.push(["check_in", "<=", dateTo.value + " 23:59:59"]);
-  }
-
-  return domain;
-}
-
-async function openDetail(recordId) {
-  const modal = await modalController.create({
-    component: AttendanceDetailModal,
-    componentProps: {
-      recordId,
-    },
-  });
-  await modal.present();
-}
-
-function getEmployeeName(record) {
-  if (
-    record.employee_id &&
-    typeof record.employee_id === "object" &&
-    record.employee_id.display_name
-  ) {
-    return record.employee_id.display_name;
-  }
-  return "Unknown Employee";
-}
+const {
+  userStore,
+  records,
+  isLoadingMore,
+  infiniteScrollKey,
+  showFilters,
+  dateFrom,
+  dateTo,
+  employeeSearch,
+  employeeOptions,
+  selectedEmployees,
+  loadingEmployees,
+  showAllEmployees,
+  totalWorkedHours,
+  totalOvertimeHours,
+  attendanceState,
+  toggleFilters,
+  fetchAttendances,
+  loadMore,
+  handleRefresh,
+  openDetail,
+  getEmployeeName,
+  onEmployeeSearch,
+  onEmployeeFocus,
+  onEmployeeBlur,
+  onEmployeeScroll,
+  selectEmployee,
+  removeEmployee,
+} = useAdminAttendancePage();
 </script>
 
 <style scoped>

@@ -1,11 +1,10 @@
 <template>
   <ion-modal
     :is-open="isOpen"
-    :breakpoints="[0, 0.6, 0.92]"
-    :initial-breakpoint="0.6"
+    :breakpoints="[0, 1]"
+    :initial-breakpoint="1"
     :backdrop-breakpoint="0"
     :expand-to-scroll="false"
-    handle="true"
     @didDismiss="$emit('close')"
   >
     <ion-content class="holiday-detail-modal" :scroll-y="true">
@@ -27,7 +26,11 @@
             </h3>
           </div>
 
-          <button class="close-fab" @click="$emit('close')" aria-label="Close">
+          <button
+            class="close-fab app-modal-close-button"
+            aria-label="Close holiday details"
+            @click="$emit('close')"
+          >
             <ion-icon :icon="close" />
           </button>
         </div>
@@ -189,25 +192,7 @@ const getKhmerName = (name) => {
 }
 
 .close-fab {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--border-color);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
   margin-left: 16px;
-}
-
-.close-fab:active {
-  transform: scale(0.9);
-  background: var(--border-color);
-  opacity: 0.8;
 }
 
 .detail-cards-grid {

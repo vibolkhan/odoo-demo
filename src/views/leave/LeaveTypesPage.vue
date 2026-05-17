@@ -205,13 +205,12 @@
 
               <ion-button
                 fill="clear"
-                class="detail-close-button"
+                class="detail-close-button app-modal-close-button"
                 aria-label="Close leave type form"
                 @click="closeFormModal"
               >
                 <ion-icon
                   :icon="close"
-                  size="large"
                   aria-hidden="true"
                   class="close-icon"
                 />
@@ -860,11 +859,6 @@ h1 {
   font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.5;
-}
-
-.detail-close-button {
-  margin: -10px -10px 0 0;
-  --color: var(--text-secondary);
 }
 
 .form-card {

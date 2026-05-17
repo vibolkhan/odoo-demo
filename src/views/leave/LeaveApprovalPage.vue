@@ -19,60 +19,22 @@
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <!-- Filter Panel -->
-      <div v-if="showFilters" class="filter-panel">
-        <div class="filter-item full">
-          <label>Employee</label>
-          <ion-searchbar
-            v-model="employeeSearch"
-            placeholder="Search employee..."
-            @ionInput="onEmployeeSearch"
-            @ionFocus="onEmployeeFocus"
-            @ionBlur="onEmployeeBlur"
-            class="custom-searchbar"
-          ></ion-searchbar>
-          <div
-            v-if="
-              employeeOptions.length > 0 && (employeeSearch || showAllEmployees)
-            "
-            class="employee-suggestions"
-            @scroll="onEmployeeScroll"
-          >
-            <div
-              v-for="emp in employeeOptions"
-              :key="emp.id"
-              class="suggestion-item"
-              @click="selectEmployee(emp)"
-            >
-              {{ emp.name }}
-            </div>
-            <div v-if="loadingEmployees" class="suggestion-loading">
-              <ion-spinner name="dots"></ion-spinner>
-            </div>
-          </div>
-          <div
-            v-if="selectedEmployees.length > 0"
-            class="selected-tags-container"
-          >
-            <div
-              v-for="emp in selectedEmployees"
-              :key="emp.id"
-              class="selected-tag"
-            >
-              <span>{{ emp.name }}</span>
-              <ion-icon
-                :icon="closeCircle"
-                @click="removeEmployee(emp.id)"
-              ></ion-icon>
-            </div>
-          </div>
-        </div>
-
-        <div class="date-grid">
-          <DateInput v-model="dateFrom" placeholder="From" />
-          <DateInput v-model="dateTo" placeholder="To" />
-        </div>
-      </div>
+      <EmployeeFilterPanel
+        v-if="showFilters"
+        v-model:date-from="dateFrom"
+        v-model:date-to="dateTo"
+        :employee-search="employeeSearch"
+        :employee-options="employeeOptions"
+        :selected-employees="selectedEmployees"
+        :loading-employees="loadingEmployees"
+        :show-all-employees="showAllEmployees"
+        @employee-search="onEmployeeSearch"
+        @employee-focus="onEmployeeFocus"
+        @employee-blur="onEmployeeBlur"
+        @employee-scroll="onEmployeeScroll"
+        @select-employee="selectEmployee"
+        @remove-employee="removeEmployee"
+      />
 
       <!-- Summary Stats -->
       <div v-if="showSkeleton" class="stats-summary stats-summary-skeleton">
@@ -139,35 +101,13 @@
         </div>
 
         <div v-else class="record-grid">
-          <div
-            v-for="request in finalRequests"
-            :key="request.id"
-            class="record-card"
-            @click="openDetail(request)"
-          >
-            <div class="card-header">
-              <div class="type-info">
-                <h3>{{ getLeaveTypeEnglishName(request.leaveType) }}</h3>
-                <span class="employee-name">{{ request.employeeName }}</span>
-              </div>
-              <span class="status-badge" :class="badgeClass(request.state)">
-                {{ formatStateLabel(request.state) }}
-              </span>
-            </div>
-
-            <div class="card-body">
-              <div class="date-row">
-                <ion-icon :icon="calendarOutline"></ion-icon>
-                <span>{{
-                  formatDateRange(request.dateFrom, request.dateTo)
-                }}</span>
-              </div>
-
-              <div class="duration-tag">
-                {{ request.durationDisplay }}
-              </div>
-            </div>
-          </div>
+            <LeaveApprovalCard
+              v-for="request in finalRequests"
+              :key="request.id"
+              :request="request"
+              :format-date-range="formatDateRange"
+              @open="openDetail"
+            />
         </div>
 
         <ion-infinite-scroll
@@ -205,309 +145,57 @@ import {
   IonBackButton,
   IonRefresher,
   IonRefresherContent,
-  IonSpinner,
   IonIcon,
   IonButton,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-  IonSearchbar,
 } from "@ionic/vue";
-import { useNotification } from "@/composables/useNotification";
 import {
   filterOutline,
-  closeCircle,
   fileTrayOutline,
-  calendarOutline,
-  sparklesOutline,
 } from "ionicons/icons";
-import { ref, onMounted, watch, computed } from "vue";
-import { useUserStore } from "@/stores/user.store";
-import { useTimeoffStore } from "@/stores/timeoff.store";
-import DateInput from "@/components/common/DateInput.vue";
 import LeaveRequestDetailModal from "@/components/leave/LeaveRequestDetailModal.vue";
 import AppSkeleton from "@/components/common/AppSkeleton.vue";
-import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+import EmployeeFilterPanel from "@/components/common/EmployeeFilterPanel.vue";
+import LeaveApprovalCard from "@/components/leave/LeaveApprovalCard.vue";
+import { useLeaveApprovalsPage } from "@/composables/useLeaveApprovalsPage";
 
-import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
-
-const userStore = useUserStore();
-const timeoffStore = useTimeoffStore();
-const requests = ref([]);
-const loading = ref(true);
-const pageSize = 10;
-const isLoadingMore = ref(false);
-const infiniteScrollKey = ref(0);
-const { showToast } = useNotification();
-const { showSkeleton } = useMinimumSkeleton(
-  () => loading.value && requests.value.length === 0,
-  1000,
-);
-const hasMoreRequests = computed(
-  () => timeoffStore.companyLeaveRequestPagination.hasMore,
-);
-
-const { formatDateRange } = (function() {
-  const { formatDate } = useDateTimeFormatter();
-  return {
-    formatDateRange: (start, end) => {
-      const s = formatDate(start);
-      // Remove year for start if it's the same year
-      const e = formatDate(end);
-      return s === e ? s : `${s} - ${e}`;
-    }
-  };
-})();
-
-
-// Filter State
-const showFilters = ref(false);
-const dateFrom = ref("");
-const dateTo = ref("");
-const employeeSearch = ref("");
-const employeeOptions = ref([]);
-const selectedEmployees = ref([]);
-const activeStatus = ref("pending");
-
-const statusFilters = [
-  { id: "all", label: "All" },
-  { id: "pending", label: "Pending" },
-  { id: "approved", label: "Approved" },
-  { id: "rejected", label: "Rejected" },
-];
-
-const toggleFilters = () => {
-  showFilters.value = !showFilters.value;
-};
-
-// Employee Search Logic
-const employeeOffset = ref(0);
-const hasMoreEmployees = ref(true);
-const loadingEmployees = ref(false);
-const showAllEmployees = ref(false);
-
-const loadEmployees = async (reset = false) => {
-  if (loadingEmployees.value) return;
-  if (!reset && !hasMoreEmployees.value) return;
-
-  loadingEmployees.value = true;
-  if (reset) {
-    employeeOffset.value = 0;
-    employeeOptions.value = [];
-  }
-
-  try {
-    const result = await userStore.fetchEmployees({
-      query: employeeSearch.value,
-      offset: employeeOffset.value,
-      limit: 10,
-    });
-
-    employeeOptions.value = [...employeeOptions.value, ...result.records];
-    hasMoreEmployees.value = result.hasMore;
-    employeeOffset.value += 10;
-    showAllEmployees.value = !employeeSearch.value;
-  } catch (error) {
-    console.error("Error loading employees:", error);
-    await showToast("Failed to load employees list.", "danger");
-  } finally {
-    loadingEmployees.value = false;
-  }
-};
-
-const onEmployeeSearch = () => {
-  loadEmployees(true);
-};
-
-const onEmployeeFocus = () => {
-  if (employeeOptions.value.length === 0) {
-    loadEmployees(true);
-  } else {
-    showAllEmployees.value = true;
-  }
-};
-
-const onEmployeeBlur = () => {
-  setTimeout(() => {
-    showAllEmployees.value = false;
-  }, 200);
-};
-
-const onEmployeeScroll = (event) => {
-  const target = event.target;
-  if (target.scrollTop + target.clientHeight >= target.scrollHeight - 20) {
-    loadEmployees();
-  }
-};
-
-const selectEmployee = (emp) => {
-  if (!selectedEmployees.value.find((e) => e.id === emp.id)) {
-    selectedEmployees.value.push(emp);
-  }
-  employeeSearch.value = "";
-  employeeOptions.value = [];
-  showAllEmployees.value = false;
-};
-
-const removeEmployee = (empId) => {
-  selectedEmployees.value = selectedEmployees.value.filter(
-    (e) => e.id !== empId,
-  );
-};
-
-const resetFilters = () => {
-  dateFrom.value = "";
-  dateTo.value = "";
-  selectedEmployees.value = [];
-  employeeSearch.value = "";
-  loadEmployees(true);
-};
-
-// Data Fetching
-const fetchRequests = async () => {
-  loading.value = true;
-  try {
-    await timeoffStore.fetchCompanyLeaveRequests({ limit: pageSize }, true);
-    requests.value = timeoffStore.companyLeaveRequests;
-    infiniteScrollKey.value += 1;
-  } catch (error) {
-    console.error("Error fetching leave requests:", error);
-    await showToast("Failed to load leave requests.", "danger");
-  } finally {
-    loading.value = false;
-  }
-};
-
-const loadMore = async (event) => {
-  const infiniteScroll = event.target;
-
-  if (isLoadingMore.value || !hasMoreRequests.value) {
-    await infiniteScroll?.complete();
-    return;
-  }
-
-  isLoadingMore.value = true;
-
-  try {
-    await timeoffStore.fetchCompanyLeaveRequests(
-      {
-        limit: pageSize,
-        offset: timeoffStore.companyLeaveRequestPagination.offset,
-      },
-      false,
-    );
-    requests.value = timeoffStore.companyLeaveRequests;
-  } catch (error) {
-    console.error("Error fetching more leave requests:", error);
-    await showToast("Failed to load more leave requests.", "danger");
-  } finally {
-    isLoadingMore.value = false;
-    await infiniteScroll?.complete();
-  }
-};
-
-onMounted(() => {
-  fetchRequests();
-});
-
-const handleRefresh = async (event) => {
-  await fetchRequests();
-  event.target.complete();
-};
-
-// Filtering Logic (Client-side to keep it simple)
-const filteredRequests = computed(() => {
-  return requests.value.filter((request) => {
-    // Employee Filter
-    const matchesEmployee =
-      selectedEmployees.value.length === 0 ||
-      selectedEmployees.value.some((e) => e.name === request.employeeName);
-
-    if (!matchesEmployee) return false;
-
-    // Date Filter
-    if (dateFrom.value || dateTo.value) {
-      const reqDate = new Date(request.dateFrom);
-      if (dateFrom.value && reqDate < new Date(dateFrom.value)) return false;
-      if (dateTo.value && reqDate > new Date(dateTo.value + "T23:59:59"))
-        return false;
-    }
-
-    return true;
-  });
-});
-
-const finalRequests = computed(() => {
-  return filteredRequests.value.filter((request) => {
-    if (activeStatus.value === "all") return true;
-    if (activeStatus.value === "pending")
-      return request.state === "confirm" || request.state === "validate1";
-    if (activeStatus.value === "approved") return request.state === "validate";
-    if (activeStatus.value === "rejected") return request.state === "refuse";
-    return true;
-  });
-});
-
-// Stats
-const pendingCount = computed(
-  () =>
-    filteredRequests.value.filter(
-      (r) => r.state === "confirm" || r.state === "validate1",
-    ).length,
-);
-const reviewCount = computed(
-  () => filteredRequests.value.filter((r) => r.state === "validate1").length,
-);
-
-// Detail Modal
-const isDetailModalOpen = ref(false);
-const selectedRequest = ref(null);
-
-const openDetail = (request) => {
-  selectedRequest.value = request;
-  isDetailModalOpen.value = true;
-};
-
-const closeDetail = () => {
-  isDetailModalOpen.value = false;
-  selectedRequest.value = null;
-};
-
-// Utils
-const getLeaveTypeEnglishName = (name) => name.split(" - ")[0] || name;
-
-const formatStateLabel = (state) => {
-  switch (state) {
-    case "confirm":
-      return "Pending";
-    case "validate1":
-      return "Review";
-    case "validate":
-      return "Approved";
-    case "refuse":
-      return "Refused";
-    case "cancel":
-      return "Cancelled";
-    case "draft":
-      return "Draft";
-    default:
-      return state.charAt(0).toUpperCase() + state.slice(1);
-  }
-};
-
-const badgeClass = (state) => {
-  switch (state) {
-    case "validate1":
-      return "status-review";
-    case "validate":
-      return "status-approved";
-    case "refuse":
-    case "cancel":
-      return "status-refused";
-    default:
-      return "status-pending";
-  }
-};
-
+const {
+  loading,
+  showSkeleton,
+  isLoadingMore,
+  infiniteScrollKey,
+  showFilters,
+  dateFrom,
+  dateTo,
+  employeeSearch,
+  employeeOptions,
+  selectedEmployees,
+  loadingEmployees,
+  showAllEmployees,
+  activeStatus,
+  statusFilters,
+  hasMoreRequests,
+  filteredRequests,
+  finalRequests,
+  pendingCount,
+  reviewCount,
+  isDetailModalOpen,
+  selectedRequest,
+  formatDateRange,
+  toggleFilters,
+  fetchRequests,
+  loadMore,
+  handleRefresh,
+  openDetail,
+  closeDetail,
+  onEmployeeSearch,
+  onEmployeeFocus,
+  onEmployeeBlur,
+  onEmployeeScroll,
+  selectEmployee,
+  removeEmployee,
+} = useLeaveApprovalsPage();
 </script>
 
 <style scoped>

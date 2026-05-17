@@ -3,9 +3,6 @@
   "appName": "TimeNest",
   "webDir": "dist",
   "plugins": {
-    "Keyboard": {
-      "resizeOnFullScreen": true
-    },
     "CapacitorHttp": {
       "enabled": true
     }
