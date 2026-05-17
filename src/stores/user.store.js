@@ -30,6 +30,8 @@ const createAsyncStates = () => ({
   attendanceToggle: createAsyncState(),
 });
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export const useUserStore = defineStore("user", {
   state: () => ({
     /** @type {NormalizedEmployee | null} */
@@ -42,6 +44,14 @@ export const useUserStore = defineStore("user", {
     },
     myAttendances: [],
     allAttendances: [],
+    myAttendancePagination: {
+      hasMore: true,
+      offset: 0,
+    },
+    allAttendancePagination: {
+      hasMore: true,
+      offset: 0,
+    },
     attendanceDetail: null,
     isManager: true,
     asyncStates: createAsyncStates(),
@@ -111,6 +121,14 @@ export const useUserStore = defineStore("user", {
       };
       this.myAttendances = [];
       this.allAttendances = [];
+      this.myAttendancePagination = {
+        hasMore: true,
+        offset: 0,
+      };
+      this.allAttendancePagination = {
+        hasMore: true,
+        offset: 0,
+      };
       this.attendanceDetail = null;
       this.isManager = true;
       this.asyncStates = createAsyncStates();
@@ -167,27 +185,69 @@ export const useUserStore = defineStore("user", {
       });
     },
 
-    async fetchMyAttendances() {
+    async fetchMyAttendances(options = {}, reset = true) {
       return runAsync(this.asyncStates.myAttendances, async () => {
+        const limit = options.limit ?? DEFAULT_PAGE_SIZE;
+        const offset = reset ? 0 : options.offset ?? this.myAttendances.length;
+
         try {
-          const records = await fetchMyAttendances(this.getRequiredUserId());
-          this.myAttendances = records;
+          const records = await fetchMyAttendances(this.getRequiredUserId(), {
+            ...options,
+            limit,
+            offset,
+          });
+          this.myAttendances = reset
+            ? records
+            : [...this.myAttendances, ...records];
+          this.myAttendancePagination = {
+            hasMore: records.length === limit,
+            offset: offset + records.length,
+          };
           return records;
         } catch (error) {
-          this.myAttendances = [];
+          if (reset) {
+            this.myAttendances = [];
+            this.myAttendancePagination = {
+              hasMore: true,
+              offset: 0,
+            };
+          }
           throw error;
         }
       });
     },
 
-    async fetchAllAttendances(domain = []) {
+    async fetchAllAttendances(domain = [], options = {}, reset = true) {
       return runAsync(this.asyncStates.allAttendances, async () => {
+        const limit = options.limit ?? DEFAULT_PAGE_SIZE;
+        const offset = reset ? 0 : options.offset ?? this.allAttendances.length;
+
         try {
-          const records = await fetchAllAttendances(this.getRequiredUserId(), domain);
-          this.allAttendances = records;
+          const records = await fetchAllAttendances(
+            this.getRequiredUserId(),
+            domain,
+            {
+              ...options,
+              limit,
+              offset,
+            },
+          );
+          this.allAttendances = reset
+            ? records
+            : [...this.allAttendances, ...records];
+          this.allAttendancePagination = {
+            hasMore: records.length === limit,
+            offset: offset + records.length,
+          };
           return records;
         } catch (error) {
-          this.allAttendances = [];
+          if (reset) {
+            this.allAttendances = [];
+            this.allAttendancePagination = {
+              hasMore: true,
+              offset: 0,
+            };
+          }
           throw error;
         }
       });

@@ -1,6 +1,5 @@
 import { CapacitorHttp } from "@capacitor/core";
-import axios from "axios";
-import { odooAxios } from "@/api/axios";
+import { odooHttp } from "@/api/http";
 import {
   DEFAULT_ALLOWED_COMPANY_IDS,
   DEFAULT_COMPANY_ID,
@@ -146,7 +145,7 @@ export const fetchAttendanceUserData = async (userId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 
@@ -313,7 +312,7 @@ export const fetchEmployees = async (userId, options = {}) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(EMPLOYEE_LIST_ENDPOINT), body);
+      const result = await odooHttp.post(buildUrl(EMPLOYEE_LIST_ENDPOINT), body);
       response = result.data;
     }
 
@@ -384,7 +383,7 @@ export const fetchCurrentUserEmployee = async (userId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(EMPLOYEE_LIST_ENDPOINT), body);
+      const result = await odooHttp.post(buildUrl(EMPLOYEE_LIST_ENDPOINT), body);
       response = result.data;
     }
 
@@ -411,8 +410,10 @@ export const fetchCurrentUserEmployee = async (userId) => {
 };
 
 
-export const fetchMyAttendances = async (userId) => {
+export const fetchMyAttendances = async (userId, options = {}) => {
   const storedUserId = getRequiredUserId(userId);
+  const limit = options.limit ?? 10;
+  const offset = options.offset ?? 0;
 
   const body = {
     jsonrpc: "2.0",
@@ -423,9 +424,9 @@ export const fetchMyAttendances = async (userId) => {
       args: [],
       kwargs: {
         specification: attendanceSpecification,
-        offset: 0,
+        offset,
         order: "check_in DESC",
-        limit: 10,
+        limit,
         context: buildBaseContext(storedUserId, {
           bin_size: true,
           current_company_id: DEFAULT_COMPANY_ID,
@@ -457,7 +458,7 @@ export const fetchMyAttendances = async (userId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(ATTENDANCE_SEARCH_READ_ENDPOINT),
         body,
       );
@@ -486,8 +487,10 @@ export const fetchMyAttendances = async (userId) => {
   return response.result?.records ?? [];
 };
 
-export const fetchAllAttendances = async (userId, domain = []) => {
+export const fetchAllAttendances = async (userId, domain = [], options = {}) => {
   const storedUserId = getRequiredUserId(userId);
+  const limit = options.limit ?? 10;
+  const offset = options.offset ?? 0;
 
   const body = {
     jsonrpc: "2.0",
@@ -498,9 +501,9 @@ export const fetchAllAttendances = async (userId, domain = []) => {
       args: [],
       kwargs: {
         specification: attendanceSpecification,
-        offset: 0,
+        offset,
         order: "check_in DESC",
-        limit: 10,
+        limit,
         context: buildBaseContext(storedUserId, {
           bin_size: true,
           current_company_id: DEFAULT_COMPANY_ID,
@@ -529,7 +532,7 @@ export const fetchAllAttendances = async (userId, domain = []) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(ATTENDANCE_SEARCH_READ_ENDPOINT),
         body,
       );
@@ -620,7 +623,7 @@ export const fetchAttendanceDetail = async (userId, id) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 
@@ -677,7 +680,7 @@ export const toggleAttendanceState = async (userId, latitude, longitude) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 

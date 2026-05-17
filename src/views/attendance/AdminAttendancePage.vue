@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <AppAsyncState :state="userStore.asyncStates.allAttendances" @retry="fetchAttendances">
+      <AppAsyncState :state="attendanceState" @retry="fetchAttendances">
         <template #loading>
           <!-- Summary Stats Skeleton -->
           <div class="stats-summary stats-summary-skeleton">
@@ -181,6 +181,18 @@
               </div>
             </div>
           </div>
+
+          <ion-infinite-scroll
+            :key="infiniteScrollKey"
+            threshold="100px"
+            :disabled="!userStore.allAttendancePagination.hasMore || isLoadingMore"
+            @ionInfinite="loadMore"
+          >
+            <ion-infinite-scroll-content
+              loading-spinner="bubbles"
+              loading-text="Loading more attendances..."
+            />
+          </ion-infinite-scroll>
         </div>
       </AppAsyncState>
     </ion-content>
@@ -201,6 +213,8 @@ import {
   IonSpinner,
   IonIcon,
   IonButton,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonSearchbar,
   modalController,
 } from "@ionic/vue";
@@ -230,6 +244,9 @@ import {
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const { allAttendances: records } = storeToRefs(userStore);
+const pageSize = 10;
+const isLoadingMore = ref(false);
+const infiniteScrollKey = ref(0);
 
 const { showToast } = useNotification();
 
@@ -241,6 +258,17 @@ const totalWorkedHours = computed(() =>
 const totalOvertimeHours = computed(() =>
   records.value.reduce((sum, r) => sum + (r.overtime_hours || 0), 0),
 );
+
+const attendanceState = computed(() => {
+  if (
+    isLoadingMore.value &&
+    userStore.asyncStates.allAttendances.status === "loading"
+  ) {
+    return { status: "success" };
+  }
+
+  return userStore.asyncStates.allAttendances;
+});
 
 // Filter State
 const showFilters = ref(false);
@@ -350,34 +378,71 @@ const handleRefresh = async (event) => {
 
 async function fetchAttendances() {
   try {
-    const uid = Number(authStore.userId);
-    const domain = [["employee_id.active", "=", true]];
-
-    if (selectedEmployees.value.length > 0) {
-      domain.push([
-        "employee_id",
-        "in",
-        selectedEmployees.value.map((e) => e.id),
-      ]);
-    }
-
-    if (isMyTeam.value) {
-      domain.push(["employee_id.parent_id.user_id", "=", uid]);
-    }
-
-    if (dateFrom.value) {
-      domain.push(["check_in", ">=", dateFrom.value + " 00:00:00"]);
-    }
-
-    if (dateTo.value) {
-      domain.push(["check_in", "<=", dateTo.value + " 23:59:59"]);
-    }
-
-    await userStore.fetchAllAttendances(domain);
+    await userStore.fetchAllAttendances(
+      buildAttendanceDomain(),
+      { limit: pageSize },
+      true,
+    );
+    infiniteScrollKey.value += 1;
   } catch (error) {
     console.error("Error fetching attendances:", error);
     await showToast("Failed to load attendance records.", "danger");
   }
+}
+
+async function loadMore(event) {
+  const infiniteScroll = event.target;
+
+  if (isLoadingMore.value || !userStore.allAttendancePagination.hasMore) {
+    await infiniteScroll?.complete();
+    return;
+  }
+
+  isLoadingMore.value = true;
+
+  try {
+    await userStore.fetchAllAttendances(
+      buildAttendanceDomain(),
+      {
+        limit: pageSize,
+        offset: userStore.allAttendancePagination.offset,
+      },
+      false,
+    );
+  } catch (error) {
+    console.error("Error fetching more attendances:", error);
+    await showToast("Failed to load more attendance records.", "danger");
+  } finally {
+    isLoadingMore.value = false;
+    await infiniteScroll?.complete();
+  }
+}
+
+function buildAttendanceDomain() {
+  const uid = Number(authStore.userId);
+  const domain = [["employee_id.active", "=", true]];
+
+  if (selectedEmployees.value.length > 0) {
+    domain.push([
+      "employee_id",
+      "in",
+      selectedEmployees.value.map((e) => e.id),
+    ]);
+  }
+
+  if (isMyTeam.value) {
+    domain.push(["employee_id.parent_id.user_id", "=", uid]);
+  }
+
+  if (dateFrom.value) {
+    domain.push(["check_in", ">=", dateFrom.value + " 00:00:00"]);
+  }
+
+  if (dateTo.value) {
+    domain.push(["check_in", "<=", dateTo.value + " 23:59:59"]);
+  }
+
+  return domain;
 }
 
 async function openDetail(recordId) {

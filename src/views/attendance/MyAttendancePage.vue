@@ -143,6 +143,18 @@
             </div>
           </div>
         </div>
+
+        <ion-infinite-scroll
+          :key="infiniteScrollKey"
+          threshold="100px"
+          :disabled="!userStore.myAttendancePagination.hasMore || isLoadingMore"
+          @ionInfinite="loadMore"
+        >
+          <ion-infinite-scroll-content
+            loading-spinner="bubbles"
+            loading-text="Loading more attendances..."
+          />
+        </ion-infinite-scroll>
       </section>
     </ion-content>
   </ion-page>
@@ -151,7 +163,10 @@
 <script setup>
 import {
   IonPage,
+  IonButton,
   IonContent,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonRefresher,
   IonRefresherContent,
   IonIcon,
@@ -162,7 +177,7 @@ import {
   locationOutline,
   chevronForwardOutline,
 } from "ionicons/icons";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useUserStore } from "@/stores/user.store";
 import AttendanceDetailModal from "@/components/attendance/AttendanceDetailModal.vue";
@@ -176,9 +191,12 @@ import { alertCircleOutline } from "ionicons/icons";
 
 const userStore = useUserStore();
 const { myAttendances: records } = storeToRefs(userStore);
+const pageSize = 10;
+const isLoadingMore = ref(false);
+const infiniteScrollKey = ref(0);
 
 const { showSkeleton } = useMinimumSkeleton(
-  () => userStore.loading.myAttendances,
+  () => userStore.loading.myAttendances && records.value.length === 0,
   1000,
 );
 
@@ -204,10 +222,38 @@ const handleRefresh = async (event) => {
 
 async function loadData() {
   try {
-    await userStore.fetchMyAttendances();
+    await userStore.fetchMyAttendances({ limit: pageSize }, true);
+    infiniteScrollKey.value += 1;
   } catch (error) {
     console.error("Error fetching attendances:", error);
     await showToast("Failed to load attendance records.", "danger");
+  }
+}
+
+async function loadMore(event) {
+  const infiniteScroll = event.target;
+
+  if (isLoadingMore.value || !userStore.myAttendancePagination.hasMore) {
+    await infiniteScroll?.complete();
+    return;
+  }
+
+  isLoadingMore.value = true;
+
+  try {
+    await userStore.fetchMyAttendances(
+      {
+        limit: pageSize,
+        offset: userStore.myAttendancePagination.offset,
+      },
+      false,
+    );
+  } catch (error) {
+    console.error("Error fetching more attendances:", error);
+    await showToast("Failed to load more attendance records.", "danger");
+  } finally {
+    isLoadingMore.value = false;
+    await infiniteScroll?.complete();
   }
 }
 

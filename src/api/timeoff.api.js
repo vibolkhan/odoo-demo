@@ -1,6 +1,5 @@
 import { CapacitorHttp } from "@capacitor/core";
-import axios from "axios";
-import { odooAxios } from "@/api/axios";
+import { odooHttp } from "@/api/http";
 import {
   DEFAULT_ALLOWED_COMPANY_IDS,
   DEFAULT_COMPANY_ID,
@@ -216,8 +215,10 @@ const ensureSuccess = (response) => {
   }
 };
 
-export const fetchLeaveRequests = async (userId) => {
+export const fetchLeaveRequests = async (userId, options = {}) => {
   const storedUserId = getRequiredUserId(userId);
+  const limit = options.limit ?? 10;
+  const offset = options.offset ?? 0;
   const body = {
     jsonrpc: "2.0",
     method: "call",
@@ -227,9 +228,9 @@ export const fetchLeaveRequests = async (userId) => {
       args: [],
       kwargs: {
         specification: leaveSpecification,
-        offset: 0,
+        offset,
         order: "date_from DESC",
-        limit: 10,
+        limit,
         context: getBaseContext(storedUserId, {
           bin_size: true,
           current_company_id: DEFAULT_COMPANY_ID,
@@ -258,7 +259,7 @@ export const fetchLeaveRequests = async (userId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(LEAVE_LIST_ENDPOINT), body);
+      const result = await odooHttp.post(buildUrl(LEAVE_LIST_ENDPOINT), body);
       response = result.data;
     }
 
@@ -274,10 +275,6 @@ export const fetchLeaveRequests = async (userId) => {
       throw createSessionExpiredError(error.message);
     }
 
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw error;
-    }
-
     throw error;
   }
 
@@ -286,8 +283,10 @@ export const fetchLeaveRequests = async (userId) => {
   return (response.result?.records ?? []).map(mapLeaveRecord);
 };
 
-export const fetchCompanyLeaveRequests = async (userId) => {
+export const fetchCompanyLeaveRequests = async (userId, options = {}) => {
   const storedUserId = getRequiredUserId(userId);
+  const limit = options.limit ?? 10;
+  const offset = options.offset ?? 0;
   const body = {
     jsonrpc: "2.0",
     method: "call",
@@ -297,9 +296,9 @@ export const fetchCompanyLeaveRequests = async (userId) => {
       args: [],
       kwargs: {
         specification: leaveSpecification,
-        offset: 0,
+        offset,
         order: "date_from DESC",
-        limit: 10,
+        limit,
         context: getBaseContext(storedUserId, {
           bin_size: true,
           hide_employee_name: 1,
@@ -329,7 +328,7 @@ export const fetchCompanyLeaveRequests = async (userId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(LEAVE_LIST_ENDPOINT), body);
+      const result = await odooHttp.post(buildUrl(LEAVE_LIST_ENDPOINT), body);
       response = result.data;
     }
 
@@ -341,12 +340,6 @@ export const fetchCompanyLeaveRequests = async (userId) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -407,7 +400,7 @@ export const saveLeaveRequest = async (userId, input) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(LEAVE_SAVE_ENDPOINT), body);
+      const result = await odooHttp.post(buildUrl(LEAVE_SAVE_ENDPOINT), body);
       response = result.data;
     }
 
@@ -419,12 +412,6 @@ export const saveLeaveRequest = async (userId, input) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -482,7 +469,7 @@ export const updateLeaveRequest = async (userId, id, input) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(LEAVE_SAVE_ENDPOINT), body);
+      const result = await odooHttp.post(buildUrl(LEAVE_SAVE_ENDPOINT), body);
       response = result.data;
     }
 
@@ -494,12 +481,6 @@ export const updateLeaveRequest = async (userId, id, input) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -550,7 +531,7 @@ const callButtonAction = async (userId, endpoint, id) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(endpoint), body);
+      const result = await odooHttp.post(buildUrl(endpoint), body);
       response = result.data;
     }
 
@@ -562,12 +543,6 @@ const callButtonAction = async (userId, endpoint, id) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -636,7 +611,7 @@ export const fetchLeaveAllocations = async (userId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(LEAVE_ALLOCATION_ENDPOINT),
         body,
       );
@@ -651,12 +626,6 @@ export const fetchLeaveAllocations = async (userId) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -759,7 +728,7 @@ export const fetchLeaveTypes = async (userId, options = {}) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(LEAVE_TYPE_CATALOG_ENDPOINT),
         body,
       );
@@ -774,12 +743,6 @@ export const fetchLeaveTypes = async (userId, options = {}) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -840,7 +803,7 @@ export const fetchLeaveTypeCatalog = async (userId, options = {}) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(LEAVE_TYPE_CATALOG_ENDPOINT),
         body,
       );
@@ -855,12 +818,6 @@ export const fetchLeaveTypeCatalog = async (userId, options = {}) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -912,7 +869,7 @@ export const createLeaveType = async (userId, input) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(LEAVE_TYPE_CREATE_ENDPOINT),
         body,
       );
@@ -927,12 +884,6 @@ export const createLeaveType = async (userId, input) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -976,7 +927,7 @@ export const updateLeaveType = async (userId, leaveTypeId, input) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(LEAVE_TYPE_WRITE_ENDPOINT),
         body,
       );
@@ -991,12 +942,6 @@ export const updateLeaveType = async (userId, leaveTypeId, input) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -1040,7 +985,7 @@ export const deleteLeaveType = async (userId, leaveTypeId) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(
+      const result = await odooHttp.post(
         buildUrl(LEAVE_TYPE_DELETE_ENDPOINT),
         body,
       );
@@ -1055,12 +1000,6 @@ export const deleteLeaveType = async (userId, leaveTypeId) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -1111,7 +1050,7 @@ export const getUnusualDays = async (userId, start, end) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 
@@ -1123,12 +1062,6 @@ export const getUnusualDays = async (userId, start, end) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -1198,7 +1131,7 @@ export const getLeaveReportCalendar = async (userId, start, end) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 
@@ -1210,12 +1143,6 @@ export const getLeaveReportCalendar = async (userId, start, end) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -1264,7 +1191,7 @@ export const getMandatoryDays = async (userId, start, end) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 
@@ -1276,12 +1203,6 @@ export const getMandatoryDays = async (userId, start, end) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;
@@ -1331,7 +1252,7 @@ export const getSpecialDaysData = async (userId, start, end) => {
 
       response = result.data;
     } else {
-      const result = await odooAxios.post(buildUrl(path), body);
+      const result = await odooHttp.post(buildUrl(path), body);
       response = result.data;
     }
 
@@ -1343,12 +1264,6 @@ export const getSpecialDaysData = async (userId, start, end) => {
     if (error instanceof Error && containsSessionExpiredText(error.message)) {
       await handleExpiredSession();
       throw createSessionExpiredError();
-    }
-
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw new Error(
-        "Network request was blocked before reaching the server. This is usually a CORS or connectivity issue.",
-      );
     }
 
     throw error;

@@ -169,6 +169,18 @@
             </div>
           </div>
         </div>
+
+        <ion-infinite-scroll
+          :key="infiniteScrollKey"
+          threshold="100px"
+          :disabled="!hasMoreRequests || isLoadingMore"
+          @ionInfinite="loadMore"
+        >
+          <ion-infinite-scroll-content
+            loading-spinner="bubbles"
+            loading-text="Loading more requests..."
+          />
+        </ion-infinite-scroll>
       </div>
     </ion-content>
 
@@ -196,6 +208,8 @@ import {
   IonSpinner,
   IonIcon,
   IonButton,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonSearchbar,
 } from "@ionic/vue";
 import { useNotification } from "@/composables/useNotification";
@@ -220,8 +234,17 @@ const userStore = useUserStore();
 const timeoffStore = useTimeoffStore();
 const requests = ref([]);
 const loading = ref(true);
+const pageSize = 10;
+const isLoadingMore = ref(false);
+const infiniteScrollKey = ref(0);
 const { showToast } = useNotification();
-const { showSkeleton } = useMinimumSkeleton(loading, 1000);
+const { showSkeleton } = useMinimumSkeleton(
+  () => loading.value && requests.value.length === 0,
+  1000,
+);
+const hasMoreRequests = computed(
+  () => timeoffStore.companyLeaveRequestPagination.hasMore,
+);
 
 const { formatDateRange } = (function() {
   const { formatDate } = useDateTimeFormatter();
@@ -343,12 +366,42 @@ const resetFilters = () => {
 const fetchRequests = async () => {
   loading.value = true;
   try {
-    requests.value = await timeoffStore.fetchCompanyLeaveRequests();
+    await timeoffStore.fetchCompanyLeaveRequests({ limit: pageSize }, true);
+    requests.value = timeoffStore.companyLeaveRequests;
+    infiniteScrollKey.value += 1;
   } catch (error) {
     console.error("Error fetching leave requests:", error);
     await showToast("Failed to load leave requests.", "danger");
   } finally {
     loading.value = false;
+  }
+};
+
+const loadMore = async (event) => {
+  const infiniteScroll = event.target;
+
+  if (isLoadingMore.value || !hasMoreRequests.value) {
+    await infiniteScroll?.complete();
+    return;
+  }
+
+  isLoadingMore.value = true;
+
+  try {
+    await timeoffStore.fetchCompanyLeaveRequests(
+      {
+        limit: pageSize,
+        offset: timeoffStore.companyLeaveRequestPagination.offset,
+      },
+      false,
+    );
+    requests.value = timeoffStore.companyLeaveRequests;
+  } catch (error) {
+    console.error("Error fetching more leave requests:", error);
+    await showToast("Failed to load more leave requests.", "danger");
+  } finally {
+    isLoadingMore.value = false;
+    await infiniteScroll?.complete();
   }
 };
 

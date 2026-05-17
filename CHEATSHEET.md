@@ -9,10 +9,9 @@
 - Vue 3 + Composition API
 - Ionic Vue for UI components
 - Pinia for state management
-- Axios + CapacitorHttp for network requests
+- CapacitorHttp for network requests
 - Capacitor plugins: Preferences, Keyboard, Haptics, Geolocation, App
 - Vite for build/dev server
-- Cypress for e2e testing
 
 ## 3. App Bootstrap
 - `src/main.js`
@@ -58,7 +57,7 @@
     - leave approve/refuse actions
     - leave type catalog + management
     - leave calendar / special days data
-  - Supports both browser Axios and Capacitor native HTTP transport.
+  - Supports browser and native HTTP transport through CapacitorHttp.
   - Handles session expiration and network error conditions.
 
 ### Leave Pages
@@ -149,9 +148,8 @@
     - `npm run dev`
     - `npm run build`
     - `npm run preview`
-    - `npm run test:e2e`
     - Native live commands for Android/iOS.
-  - Dependencies: `@ionic/vue`, `@capacitor/core`, `pinia`, `vue-router`, `axios`, `ionicons`.
+  - Dependencies: `@ionic/vue`, `@capacitor/core`, `pinia`, `vue-router`, `ionicons`.
 - `vite.config.js`
   - Vite alias `@` → `./src`.
   - Proxy `/odoo-api` to Odoo staging host during dev.
@@ -170,11 +168,7 @@
   - Haptics vibration on tab changes.
   - Geolocation plugin for attendance toggle (likely used in attendance flows).
 
-## 13. Testing
-- `tests/e2e/`
-  - Cypress E2E tests and support helpers.
-
-## 14. File/Feature Map
+## 13. File/Feature Map
 ### Root
 - `index.html` — Ionic/Vite entry HTML.
 - `ionic.config.json` — Ionic project metadata.
@@ -190,21 +184,21 @@
 - `src/utils/` — shared helper functions.
 - `src/composables/` — composables for UI/business logic.
 
-## 15. Insights / Recommendations
+## 14. Insights / Recommendations
 - The app is clearly split into two main domains: leave management and attendance management.
 - The Odoo backend contract is implemented consistently with JSON-RPC payloads.
 - Auth/session handling is robust with native + browser persistence and expiry handling.
 - The current view layer uses a combination of page-level wrappers and reusable components.
 - There is good use of async state wrappers for consistent loading/error UI.
 
-## 16. Starting Points for a Senior Engineer
+## 15. Starting Points for a Senior Engineer
 - `src/stores/timeoff.store.js` and `src/api/timeoff.api.js` for leave workflow logic.
 - `src/stores/user.store.js` and `src/api/user.api.js` for attendance and employee management.
 - `src/router/index.js` for app flow and auth protection.
 - `src/views/attendance/AdminAttendancePage.vue` for the most complex UI flow.
 - `src/views/leave/LeaveCalendarPage.vue` for calendar interactions and date handling.
 
-## 17. Complete File-by-File Matrix
+## 16. Complete File-by-File Matrix
 
 ### Root / Config
 | File | Area | Purpose | Notes |
@@ -216,7 +210,6 @@
 | `.eslintrc.cjs` | Tooling | ESLint config for JS/Vue | Code quality baseline. |
 | `.gitignore` | Tooling | Git ignore rules | Excludes build/native noise. |
 | `capacitor.config.json` | Native shell | Capacitor app/plugin config | Mobile integration entry point. |
-| `cypress.config.js` | Testing | Cypress e2e configuration | Defines e2e runner behavior. |
 | `index.html` | App shell | Vite/Ionic HTML entry | Browser bootstrap shell. |
 | `ionic.config.json` | Ionic config | Ionic project metadata | Mostly tooling metadata. |
 | `package.json` | Tooling/runtime | Scripts, deps, engine versions | Includes test/lint/build commands. |
@@ -234,7 +227,7 @@
 ### API Layer
 | File | Area | Purpose | Notes |
 | --- | --- | --- | --- |
-| `src/api/axios.js` | API infra | Shared Axios instance | Minimal shared HTTP setup. |
+| `src/api/http.js` | API infra | Shared CapacitorHttp helpers | Central JSON request helper. |
 | `src/api/auth.api.js` | Auth API | Login/logout/session persistence helpers | Medium-size auth boundary. |
 | `src/api/timeoff.api.js` | Leave API | Odoo JSON-RPC for leave/allocations/calendar/types | Largest API hotspot at 1206 lines. |
 | `src/api/user.api.js` | Attendance API | Employee lookup and attendance RPCs | Large integration surface at 627 lines. |
@@ -302,14 +295,7 @@
 | `src/utils/date.js` | Utilities | Date formatting/helpers | Shared date manipulation layer. |
 | `src/utils/format.js` | Utilities | Number/string formatting helpers | Small presentation helper set. |
 
-### E2E Tests
-| File | Area | Purpose | Notes |
-| --- | --- | --- | --- |
-| `tests/e2e/specs/auth_flow.cy.js` | E2E | Authentication flow smoke test | Helps protect login/session basics. |
-| `tests/e2e/support/commands.js` | E2E support | Custom Cypress commands | Test helper extension point. |
-| `tests/e2e/support/e2e.js` | E2E support | Global Cypress support/bootstrap | Shared e2e setup. |
-
-## 18. Risk / Technical Debt Assessment
+## 17. Risk / Technical Debt Assessment
 
 ### Highest-Risk Hotspots
 | Area | Why it is risky | Evidence |
@@ -317,19 +303,16 @@
 | API modules | Odoo JSON-RPC integration is concentrated in a few very large files, making regressions and contract drift harder to isolate. | `src/api/timeoff.api.js` (1206 lines), `src/api/user.api.js` (627 lines). |
 | Large page components | Pages appear to mix data loading, view-model logic, and presentation in single files, which raises change cost. | `src/views/leave/LeaveCalendarPage.vue` (988), `src/views/leave/LeaveTypesPage.vue` (778), `src/views/profile/ProfilePage.vue` (691), `src/views/attendance/AdminAttendancePage.vue` (648). |
 | Large modal/list components | Deep UI components likely hold business formatting and status logic that is hard to reuse or test in isolation. | `src/components/attendance/AttendanceDetailModal.vue` (817), `src/components/leave/RequestList.vue` (626), `src/components/leave/LeaveRequestDetailModal.vue` (503). |
-| Test coverage concentration | Automated coverage is currently centered on Cypress e2e flows rather than the biggest workflow files or API modules. | Only the auth flow has explicit e2e coverage in the current repo. |
 
 ### Technical Debt Themes
 | Theme | Current state | Likely impact | Recommended direction |
 | --- | --- | --- | --- |
 | Oversized modules | Several files exceed 600-1200 lines. | Harder reviews, fragile edits, duplicated logic, slower onboarding. | Split by domain capability, RPC endpoint family, and presentation subcomponents. |
 | Logic in view files | Large `.vue` pages likely own fetching, transforms, and UI state together. | Reuse is limited and validation becomes expensive. | Pull page logic into composables or store helpers with clearer seams for future coverage. |
-| Integration contract coupling | API layer appears tightly coupled to Odoo payload structure. | Backend field changes can break multiple screens at once. | Add mapper/adapter functions and coverage around normalized models when testing is reintroduced. |
-| Sparse high-level tests | Biggest flows lack broader page/integration coverage. | Regressions can surface late in QA. | Expand Cypress coverage for leave approval, calendar, and attendance manager paths when test work resumes. |
+| Integration contract coupling | API layer appears tightly coupled to Odoo payload structure. | Backend field changes can break multiple screens at once. | Add mapper/adapter functions around normalized models. |
 | Naming/tooling consistency | Small signs of drift exist in scripts and docs. | Minor friction during onboarding and CI maintenance. | Normalize naming such as `andriod:live` to `android:live`, keep docs synced with code. |
 
 ### Suggested Refactor Order
-1. Break `src/api/timeoff.api.js` into smaller endpoint-focused modules, then add coverage around the extracted request/response adapters when tests are reintroduced.
+1. Break `src/api/timeoff.api.js` into smaller endpoint-focused modules.
 2. Extract stateful page logic from `LeaveCalendarPage.vue`, `AdminAttendancePage.vue`, and `LeaveApprovalPage.vue` into composables so view files become mostly presentation.
 3. Carve large modal/list components into smaller presentational subcomponents and shared status/format helpers.
-4. Expand automated coverage around manager workflows and leave calendar behavior before larger UI refactors.

@@ -33,10 +33,20 @@ const createAsyncStates = () => ({
   calendar: createAsyncState(),
 });
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export const useTimeoffStore = defineStore("timeoff", {
   state: () => ({
     leaveRequests: [],
     companyLeaveRequests: [],
+    leaveRequestPagination: {
+      hasMore: true,
+      offset: 0,
+    },
+    companyLeaveRequestPagination: {
+      hasMore: true,
+      offset: 0,
+    },
     leaveAllocations: [],
     leaveTypes: [],
     leaveTypeCatalog: [],
@@ -134,6 +144,14 @@ export const useTimeoffStore = defineStore("timeoff", {
     resetState() {
       this.leaveRequests = [];
       this.companyLeaveRequests = [];
+      this.leaveRequestPagination = {
+        hasMore: true,
+        offset: 0,
+      };
+      this.companyLeaveRequestPagination = {
+        hasMore: true,
+        offset: 0,
+      };
       this.leaveAllocations = [];
       this.leaveTypes = [];
       this.leaveTypeCatalog = [];
@@ -146,27 +164,65 @@ export const useTimeoffStore = defineStore("timeoff", {
       this.asyncStates = createAsyncStates();
     },
 
-    async fetchLeaveRequests() {
+    async fetchLeaveRequests(options = {}, reset = true) {
       return runAsync(this.asyncStates.leaveRequests, async () => {
+        const limit = options.limit ?? DEFAULT_PAGE_SIZE;
+        const offset = reset ? 0 : options.offset ?? this.leaveRequests.length;
+
         try {
-          const records = await fetchLeaveRequests(this.getRequiredUserId());
-          this.leaveRequests = records;
+          const records = await fetchLeaveRequests(this.getRequiredUserId(), {
+            ...options,
+            limit,
+            offset,
+          });
+          this.leaveRequests = reset ? records : [...this.leaveRequests, ...records];
+          this.leaveRequestPagination = {
+            hasMore: records.length === limit,
+            offset: offset + records.length,
+          };
           return records;
         } catch (error) {
-          this.leaveRequests = [];
+          if (reset) {
+            this.leaveRequests = [];
+            this.leaveRequestPagination = {
+              hasMore: true,
+              offset: 0,
+            };
+          }
           throw error;
         }
       });
     },
 
-    async fetchCompanyLeaveRequests() {
+    async fetchCompanyLeaveRequests(options = {}, reset = true) {
       return runAsync(this.asyncStates.companyLeaveRequests, async () => {
+        const limit = options.limit ?? DEFAULT_PAGE_SIZE;
+        const offset = reset
+          ? 0
+          : options.offset ?? this.companyLeaveRequests.length;
+
         try {
-          const records = await fetchCompanyLeaveRequests(this.getRequiredUserId());
-          this.companyLeaveRequests = records;
+          const records = await fetchCompanyLeaveRequests(this.getRequiredUserId(), {
+            ...options,
+            limit,
+            offset,
+          });
+          this.companyLeaveRequests = reset
+            ? records
+            : [...this.companyLeaveRequests, ...records];
+          this.companyLeaveRequestPagination = {
+            hasMore: records.length === limit,
+            offset: offset + records.length,
+          };
           return records;
         } catch (error) {
-          this.companyLeaveRequests = [];
+          if (reset) {
+            this.companyLeaveRequests = [];
+            this.companyLeaveRequestPagination = {
+              hasMore: true,
+              offset: 0,
+            };
+          }
           throw error;
         }
       });

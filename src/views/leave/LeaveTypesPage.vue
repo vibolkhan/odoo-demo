@@ -163,6 +163,8 @@
         </ion-list>
 
         <ion-infinite-scroll
+          :key="infiniteScrollKey"
+          threshold="100px"
           :disabled="!hasMore || isLoading"
           @ionInfinite="loadMore"
         >
@@ -320,6 +322,7 @@ const activeFilter = ref("all");
 
 const isLoading = ref(false);
 const hasMore = ref(true);
+const infiniteScrollKey = ref(0);
 const { showSkeleton } = useMinimumSkeleton(isLoading, 1000);
 
 const errorMessage = ref("");
@@ -403,6 +406,9 @@ const loadLeaveTypes = async (reset = false) => {
 
     leaveTypes.value = reset ? result : [...leaveTypes.value, ...result];
     hasMore.value = result.length === pageSize;
+    if (reset) {
+      infiniteScrollKey.value += 1;
+    }
   } catch (error) {
     if (reset) leaveTypes.value = [];
 
@@ -524,10 +530,6 @@ const loadMore = async (event) => {
 
   await loadLeaveTypes(false);
   await infiniteScroll?.complete();
-
-  if (infiniteScroll) {
-    infiniteScroll.disabled = !hasMore.value;
-  }
 };
 
 const handleRefresh = async (event) => {

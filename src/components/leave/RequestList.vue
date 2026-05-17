@@ -150,6 +150,18 @@
       </section>
     </section>
 
+    <ion-infinite-scroll
+      :key="infiniteScrollKey"
+      threshold="100px"
+      :disabled="!hasMoreRequests || isLoadingMore"
+      @ionInfinite="loadMoreRequests"
+    >
+      <ion-infinite-scroll-content
+        loading-spinner="bubbles"
+        loading-text="Loading more requests..."
+      />
+    </ion-infinite-scroll>
+
     <LeaveRequestDetailModal
       :is-open="isDetailModalOpen"
       :request="selectedRequest"
@@ -161,7 +173,12 @@
 </template>
 
 <script setup>
-import { IonButton, IonIcon, IonSpinner } from "@ionic/vue";
+import {
+  IonButton,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+} from "@ionic/vue";
 import {
   airplaneOutline,
   alertCircleOutline,
@@ -208,6 +225,9 @@ const isDetailModalOpen = ref(false);
 const selectedRequest = ref(null);
 
 const showFilters = ref(false);
+const pageSize = 10;
+const isLoadingMore = ref(false);
+const infiniteScrollKey = ref(0);
 
 const filters = computed(
   () => [
@@ -227,7 +247,15 @@ const isRequestsLoading = computed(() =>
     ? loading.value.companyLeaveRequests
     : loading.value.leaveRequests,
 );
-const { showSkeleton } = useMinimumSkeleton(isRequestsLoading, 1000);
+const isInitialRequestsLoading = computed(
+  () => isRequestsLoading.value && requestRecords.value.length === 0,
+);
+const { showSkeleton } = useMinimumSkeleton(isInitialRequestsLoading, 1000);
+const hasMoreRequests = computed(() =>
+  props.isManagerMode
+    ? timeoffStore.companyLeaveRequestPagination.hasMore
+    : timeoffStore.leaveRequestPagination.hasMore,
+);
 
 const statusFilteredRequests = computed(() => {
   switch (activeFilter.value) {
@@ -330,16 +358,51 @@ const requestSummary = computed(() => ({
 const loadLeaveRequests = async () => {
   try {
     if (props.isManagerMode) {
-      await timeoffStore.fetchCompanyLeaveRequests();
+      await timeoffStore.fetchCompanyLeaveRequests({ limit: pageSize }, true);
     } else {
-      await timeoffStore.fetchLeaveRequests();
+      await timeoffStore.fetchLeaveRequests({ limit: pageSize }, true);
     }
+    infiniteScrollKey.value += 1;
   } finally {
     if (selectedRequest.value) {
       selectedRequest.value =
         requestRecords.value.find((r) => r.id === selectedRequest.value?.id) ||
         null;
     }
+  }
+};
+
+const loadMoreRequests = async (event) => {
+  const infiniteScroll = event.target;
+
+  if (isLoadingMore.value || !hasMoreRequests.value) {
+    await infiniteScroll?.complete();
+    return;
+  }
+
+  isLoadingMore.value = true;
+
+  try {
+    if (props.isManagerMode) {
+      await timeoffStore.fetchCompanyLeaveRequests(
+        {
+          limit: pageSize,
+          offset: timeoffStore.companyLeaveRequestPagination.offset,
+        },
+        false,
+      );
+    } else {
+      await timeoffStore.fetchLeaveRequests(
+        {
+          limit: pageSize,
+          offset: timeoffStore.leaveRequestPagination.offset,
+        },
+        false,
+      );
+    }
+  } finally {
+    isLoadingMore.value = false;
+    await infiniteScroll?.complete();
   }
 };
 
@@ -479,6 +542,7 @@ watch(
 
 defineExpose({
   loadLeaveRequests,
+  loadMoreRequests,
   openRequestDetailById,
 });
 </script>

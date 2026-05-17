@@ -1,7 +1,6 @@
-import { Capacitor, CapacitorHttp } from "@capacitor/core";
+import { Capacitor } from "@capacitor/core";
 import { Preferences } from "@capacitor/preferences";
-import axios from "axios";
-import { ODOO_BASE_URL, WEB_PROXY_BASE, odooAxios } from "@/api/axios";
+import { ODOO_BASE_URL, WEB_PROXY_BASE, postJson } from "@/api/http";
 
 const STORAGE_KEY = "odoo-demo-session";
 const LEGACY_STORAGE_KEYS = {
@@ -221,32 +220,7 @@ export const loginRequest = async (username, password) => {
   };
   let payload;
 
-  try {
-    if (isNativePlatform()) {
-      const response = await CapacitorHttp.post({
-        url: buildUrl(AUTH_ENDPOINT),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: body,
-      });
-
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(String(response.status));
-      }
-
-      payload = response.data;
-    } else {
-      const response = await odooAxios.post(buildUrl(AUTH_ENDPOINT), body);
-      payload = response.data;
-    }
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.code === "ERR_NETWORK") {
-      throw error;
-    }
-
-    throw error;
-  }
+  payload = await postJson(buildUrl(AUTH_ENDPOINT), body);
 
   if (payload.error) {
     await clearPersistedSession();
@@ -274,21 +248,7 @@ export const logoutRequest = async () => {
   };
 
   try {
-    if (isNativePlatform()) {
-      const response = await CapacitorHttp.post({
-        url: buildUrl(LOGOUT_ENDPOINT),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: body,
-      });
-
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(String(response.status));
-      }
-    } else {
-      await odooAxios.post(buildUrl(LOGOUT_ENDPOINT), body);
-    }
+    await postJson(buildUrl(LOGOUT_ENDPOINT), body);
   } catch {
     // Still clear persisted session even when the server logout fails.
   } finally {
