@@ -14,10 +14,10 @@ export const LEAVE_STATUS_FILTERS = [
 ];
 
 export const getLeaveTypeEnglishName = (name = "") =>
-  name.split(" - ")[0] || name;
+  name.split("-")[0] || name;
 
 export const getLeaveTypeKhmerName = (name = "") =>
-  name.split(" - ")[1] || "";
+  name.split("-")[1] || "";
 
 export const formatLeaveStateLabel = (state = "") => {
   switch (state) {

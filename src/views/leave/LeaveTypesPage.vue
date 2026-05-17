@@ -1,14 +1,26 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true" class="leave-types-page">
-      <ion-refresher slot="fixed" @ionRefresh="handleRefresh">
+    <ion-content
+      :fullscreen="true"
+      class="leave-types-page"
+    >
+      <ion-refresher
+        slot="fixed"
+        @ionRefresh="handleRefresh"
+      >
         <ion-refresher-content />
       </ion-refresher>
 
       <section class="catalog-shell">
         <div class="top-action-bar">
-          <ion-button fill="clear" class="utility-button notification-button">
-            <ion-icon :icon="notificationsOutline" size="large" />
+          <ion-button
+            fill="clear"
+            class="utility-button notification-button"
+          >
+            <ion-icon
+              :icon="notificationsOutline"
+              size="large"
+            />
           </ion-button>
         </div>
 
@@ -67,21 +79,45 @@
           </button>
         </div>
 
-        <p v-if="errorMessage" class="state-message error-message">
+        <p
+          v-if="errorMessage"
+          class="state-message error-message"
+        >
           {{ errorMessage }}
         </p>
 
-        <p v-if="actionMessage" class="state-message success-message">
+        <p
+          v-if="actionMessage"
+          class="state-message success-message"
+        >
           {{ actionMessage }}
         </p>
 
-        <div v-if="showSkeleton && !leaveTypes.length" class="type-list">
-          <div v-for="i in 5" :key="i" class="type-card">
+        <div
+          v-if="showSkeleton && !leaveTypes.length"
+          class="type-list"
+        >
+          <div
+            v-for="i in 5"
+            :key="i"
+            class="type-card"
+          >
             <div class="type-card-shell">
               <div class="type-card-main">
-                <AppSkeleton width="60px" height="22px" margin="0 0 8px" />
-                <AppSkeleton width="180px" height="20px" />
-                <AppSkeleton width="120px" height="14px" margin="6px 0 0" />
+                <AppSkeleton
+                  width="60px"
+                  height="22px"
+                  margin="0 0 8px"
+                />
+                <AppSkeleton
+                  width="180px"
+                  height="20px"
+                />
+                <AppSkeleton
+                  width="120px"
+                  height="14px"
+                  margin="6px 0 0"
+                />
               </div>
             </div>
           </div>
@@ -96,17 +132,26 @@
           <p v-if="searchQuery">No result for "{{ searchQuery }}"</p>
           <p v-else>Create your first leave type to get started.</p>
 
-          <ion-button class="empty-button" @click="openCreateModal">
+          <ion-button
+            class="empty-button"
+            @click="openCreateModal"
+          >
             Add Leave Type
           </ion-button>
         </div>
 
-        <ion-list v-else class="type-list">
+        <ion-list
+          v-else
+          class="type-list"
+        >
           <ion-item-sliding
             v-for="leaveType in filteredLeaveTypes"
             :key="leaveType.id"
           >
-            <ion-item lines="none" class="type-card">
+            <ion-item
+              lines="none"
+              class="type-card"
+            >
               <div class="type-card-shell">
                 <div class="type-card-main">
                   <div class="badge-row">
@@ -155,7 +200,10 @@
                 Edit
               </ion-item-option>
 
-              <ion-item-option color="danger" @click="promptDelete(leaveType)">
+              <ion-item-option
+                color="danger"
+                @click="promptDelete(leaveType)"
+              >
                 Delete
               </ion-item-option>
             </ion-item-options>
@@ -175,9 +223,19 @@
         </ion-infinite-scroll>
       </section>
 
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button class="fab-create" @click="openCreateModal">
-          <ion-icon :icon="addOutline" size="large" />
+      <ion-fab
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+      >
+        <ion-fab-button
+          class="fab-create"
+          @click="openCreateModal"
+        >
+          <ion-icon
+            :icon="addOutline"
+            size="large"
+          />
         </ion-fab-button>
       </ion-fab>
 
@@ -195,7 +253,7 @@
                 <p class="modal-eyebrow">Leave Type</p>
                 <h2>
                   {{
-                    editingLeaveTypeId ? "Edit Leave Type" : "Create Leave Type"
+                    editingLeaveTypeId ? 'Edit Leave Type' : 'Create Leave Type'
                   }}
                 </h2>
                 <p class="modal-subtitle">
@@ -217,17 +275,27 @@
               </ion-button>
             </div>
 
-            <p v-if="formErrorMessage" class="state-message error-message">
+            <p
+              v-if="formErrorMessage"
+              class="state-message error-message"
+            >
               {{ formErrorMessage }}
             </p>
 
             <div class="form-card">
               <div class="field-block">
-                <label class="field-label" for="leave-type-name">
+                <label
+                  class="field-label"
+                  for="leave-type-name"
+                >
                   Display Name
                 </label>
 
-                <ion-item id="leave-type-name" lines="none" class="field">
+                <ion-item
+                  id="leave-type-name"
+                  lines="none"
+                  class="field"
+                >
                   <ion-input
                     v-model="formState.name"
                     placeholder="Annual Leave - សម្រាកប្រចាំឆ្នាំ"
@@ -249,10 +317,10 @@
             >
               {{
                 isSaving
-                  ? "Saving..."
+                  ? 'Saving...'
                   : editingLeaveTypeId
-                    ? "Save Changes"
-                    : "Create Leave Type"
+                    ? 'Save Changes'
+                    : 'Create Leave Type'
               }}
             </ion-button>
           </section>
@@ -296,8 +364,8 @@ import {
   IonRefresherContent,
   IonSearchbar,
   onIonViewWillEnter,
-} from "@ionic/vue";
-import AppSkeleton from "@/components/common/AppSkeleton.vue";
+} from '@ionic/vue'
+import AppSkeleton from '@/components/common/AppSkeleton.vue'
 
 import {
   addOutline,
@@ -305,92 +373,92 @@ import {
   notificationsOutline,
   pencil,
   trashOutline,
-} from "ionicons/icons";
+} from 'ionicons/icons'
 
-import { computed, onBeforeUnmount, ref, watch } from "vue";
-import { useTimeoffStore } from "@/stores/timeoff.store";
-import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useTimeoffStore } from '@/stores/timeoff.store'
+import { useMinimumSkeleton } from '@/composables/useMinimumSkeleton'
 
-const pageSize = 20;
-const timeoffStore = useTimeoffStore();
+const pageSize = 20
+const timeoffStore = useTimeoffStore()
 
-const leaveTypes = ref([]);
-const searchQuery = ref("");
-const activeQuery = ref("");
-const activeFilter = ref("all");
+const leaveTypes = ref([])
+const searchQuery = ref('')
+const activeQuery = ref('')
+const activeFilter = ref('all')
 
-const isLoading = ref(false);
-const hasMore = ref(true);
-const infiniteScrollKey = ref(0);
-const { showSkeleton } = useMinimumSkeleton(isLoading, 1000);
+const isLoading = ref(false)
+const hasMore = ref(true)
+const infiniteScrollKey = ref(0)
+const { showSkeleton } = useMinimumSkeleton(isLoading, 1000)
 
-const errorMessage = ref("");
-const actionMessage = ref("");
-const formErrorMessage = ref("");
+const errorMessage = ref('')
+const actionMessage = ref('')
+const formErrorMessage = ref('')
 
-const isFormOpen = ref(false);
-const isSaving = ref(false);
-const editingLeaveTypeId = ref(null);
+const isFormOpen = ref(false)
+const isSaving = ref(false)
+const editingLeaveTypeId = ref(null)
 
-const isDeleteAlertOpen = ref(false);
-const isDeleting = ref(false);
-const pendingDeleteLeaveType = ref(null);
+const isDeleteAlertOpen = ref(false)
+const isDeleting = ref(false)
+const pendingDeleteLeaveType = ref(null)
 
 const formState = ref({
-  name: "",
-});
+  name: '',
+})
 
-let searchTimer = null;
+let searchTimer = null
 
 const getEnglishName = (name) => {
-  return name.split("-")[0];
-};
+  return name.split('-')[0]
+}
 
 const getKhmerName = (name) => {
-  return name.includes(" - ") ? name.split(" - ").slice(1).join(" - ") : "";
-};
+  return name.includes('-') ? name.split('-')[1] || '' : ''
+}
 
 const getLeaveTypeCategory = (name) => {
-  const n = name.toLowerCase();
+  const n = name.toLowerCase()
 
-  if (n.includes("annual") || n.includes("sick") || n.includes("unpaid")) {
-    return "core";
+  if (n.includes('annual') || n.includes('sick') || n.includes('unpaid')) {
+    return 'core'
   }
 
-  return "special";
-};
+  return 'special'
+}
 
 const coreCount = computed(() => {
   return leaveTypes.value.filter(
-    (item) => getLeaveTypeCategory(item.name) === "core",
-  ).length;
-});
+    (item) => getLeaveTypeCategory(item.name) === 'core',
+  ).length
+})
 
 const specialCount = computed(() => {
   return leaveTypes.value.filter(
-    (item) => getLeaveTypeCategory(item.name) === "special",
-  ).length;
-});
+    (item) => getLeaveTypeCategory(item.name) === 'special',
+  ).length
+})
 
 const filteredLeaveTypes = computed(() => {
-  if (activeFilter.value === "all") {
-    return leaveTypes.value;
+  if (activeFilter.value === 'all') {
+    return leaveTypes.value
   }
 
   return leaveTypes.value.filter((leaveType) => {
-    return getLeaveTypeCategory(leaveType.name) === activeFilter.value;
-  });
-});
+    return getLeaveTypeCategory(leaveType.name) === activeFilter.value
+  })
+})
 
 const loadLeaveTypes = async (reset = false) => {
-  if (isLoading.value) return;
+  if (isLoading.value) return
 
-  isLoading.value = true;
+  isLoading.value = true
 
   if (reset) {
-    errorMessage.value = "";
-    actionMessage.value = "";
-    hasMore.value = true;
+    errorMessage.value = ''
+    actionMessage.value = ''
+    hasMore.value = true
   }
 
   try {
@@ -401,172 +469,179 @@ const loadLeaveTypes = async (reset = false) => {
         offset: reset ? 0 : leaveTypes.value.length,
       },
       reset,
-    );
+    )
 
-    leaveTypes.value = reset ? result : [...leaveTypes.value, ...result];
-    hasMore.value = result.length === pageSize;
+    leaveTypes.value = reset ? result : [...leaveTypes.value, ...result]
+    hasMore.value = result.length === pageSize
     if (reset) {
-      infiniteScrollKey.value += 1;
+      infiniteScrollKey.value += 1
     }
   } catch (error) {
-    if (reset) leaveTypes.value = [];
+    if (reset) leaveTypes.value = []
 
-    hasMore.value = false;
+    hasMore.value = false
     errorMessage.value =
-      error instanceof Error ? error.message : "Unable to load leave types.";
+      error instanceof Error ? error.message : 'Unable to load leave types.'
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 const resetForm = () => {
   formState.value = {
-    name: "",
-  };
+    name: '',
+  }
 
-  editingLeaveTypeId.value = null;
-  formErrorMessage.value = "";
-};
+  editingLeaveTypeId.value = null
+  formErrorMessage.value = ''
+}
 
 const openCreateModal = () => {
-  resetForm();
-  isFormOpen.value = true;
-};
+  resetForm()
+  isFormOpen.value = true
+}
 
 const openEditModal = (leaveType) => {
   formState.value = {
     name: leaveType.name,
-  };
-
-  editingLeaveTypeId.value = leaveType.id;
-  formErrorMessage.value = "";
-  isFormOpen.value = true;
-};
-
-const closeFormModal = () => {
-  isFormOpen.value = false;
-  resetForm();
-};
-
-const handleSave = async () => {
-  formErrorMessage.value = "";
-  actionMessage.value = "";
-
-  if (!formState.value.name.trim()) {
-    formErrorMessage.value = "Please enter a display name.";
-    return;
   }
 
-  isSaving.value = true;
+  editingLeaveTypeId.value = leaveType.id
+  formErrorMessage.value = ''
+  isFormOpen.value = true
+}
+
+const closeFormModal = () => {
+  isFormOpen.value = false
+  resetForm()
+}
+
+const handleSave = async () => {
+  formErrorMessage.value = ''
+  actionMessage.value = ''
+
+  if (!formState.value.name.trim()) {
+    formErrorMessage.value = 'Please enter a display name.'
+    return
+  }
+
+  isSaving.value = true
 
   try {
     if (editingLeaveTypeId.value) {
-      await timeoffStore.updateLeaveType(editingLeaveTypeId.value, formState.value);
-      actionMessage.value = "Leave type updated successfully.";
+      await timeoffStore.updateLeaveType(
+        editingLeaveTypeId.value,
+        formState.value,
+      )
+      actionMessage.value = 'Leave type updated successfully.'
     } else {
-      await timeoffStore.createLeaveType(formState.value);
-      actionMessage.value = "Leave type created successfully.";
+      await timeoffStore.createLeaveType(formState.value)
+      actionMessage.value = 'Leave type created successfully.'
     }
 
-    closeFormModal();
-    await loadLeaveTypes(true);
+    closeFormModal()
+    await loadLeaveTypes(true)
   } catch (error) {
     formErrorMessage.value =
-      error instanceof Error ? error.message : "Unable to save leave type.";
+      error instanceof Error ? error.message : 'Unable to save leave type.'
   } finally {
-    isSaving.value = false;
+    isSaving.value = false
   }
-};
+}
 
 const promptDelete = (leaveType) => {
-  pendingDeleteLeaveType.value = leaveType;
-  isDeleteAlertOpen.value = true;
-};
+  pendingDeleteLeaveType.value = leaveType
+  isDeleteAlertOpen.value = true
+}
 
 const closeDeleteAlert = () => {
-  isDeleteAlertOpen.value = false;
-  pendingDeleteLeaveType.value = null;
-};
+  isDeleteAlertOpen.value = false
+  pendingDeleteLeaveType.value = null
+}
 
 const confirmDelete = async () => {
-  if (!pendingDeleteLeaveType.value || isDeleting.value) return;
+  if (!pendingDeleteLeaveType.value || isDeleting.value) return
 
-  isDeleting.value = true;
-  errorMessage.value = "";
-  actionMessage.value = "";
+  isDeleting.value = true
+  errorMessage.value = ''
+  actionMessage.value = ''
 
   try {
-    await timeoffStore.deleteLeaveType(pendingDeleteLeaveType.value.id);
-    actionMessage.value = "Leave type deleted successfully.";
-    closeDeleteAlert();
-    await loadLeaveTypes(true);
+    await timeoffStore.deleteLeaveType(pendingDeleteLeaveType.value.id)
+    actionMessage.value = 'Leave type deleted successfully.'
+    closeDeleteAlert()
+    await loadLeaveTypes(true)
   } catch (error) {
     errorMessage.value =
-      error instanceof Error ? error.message : "Unable to delete leave type.";
-    closeDeleteAlert();
+      error instanceof Error ? error.message : 'Unable to delete leave type.'
+    closeDeleteAlert()
   } finally {
-    isDeleting.value = false;
+    isDeleting.value = false
   }
-};
+}
 
 const deleteAlertButtons = [
   {
-    text: "Cancel",
-    role: "cancel",
+    text: 'Cancel',
+    role: 'cancel',
   },
   {
-    text: "Delete",
-    role: "destructive",
+    text: 'Delete',
+    role: 'destructive',
     handler: () => {
-      void confirmDelete();
-      return false;
+      void confirmDelete()
+      return false
     },
   },
-];
+]
 
 const loadMore = async (event) => {
-  const infiniteScroll = event.target;
+  const infiniteScroll = event.target
 
-  await loadLeaveTypes(false);
-  await infiniteScroll?.complete();
-};
+  await loadLeaveTypes(false)
+  await infiniteScroll?.complete()
+}
 
 const handleRefresh = async (event) => {
   try {
-    await loadLeaveTypes(true);
+    await loadLeaveTypes(true)
   } finally {
-    event.target?.complete();
+    event.target?.complete()
   }
-};
+}
 
 onIonViewWillEnter(() => {
   if (!leaveTypes.value.length) {
-    void loadLeaveTypes(true);
+    void loadLeaveTypes(true)
   }
-});
+})
 
 watch(searchQuery, (value) => {
   if (searchTimer) {
-    clearTimeout(searchTimer);
+    clearTimeout(searchTimer)
   }
 
   searchTimer = setTimeout(() => {
-    activeQuery.value = value.trim();
-    void loadLeaveTypes(true);
-  }, 300);
-});
+    activeQuery.value = value.trim()
+    void loadLeaveTypes(true)
+  }, 300)
+})
 
 onBeforeUnmount(() => {
   if (searchTimer) {
-    clearTimeout(searchTimer);
+    clearTimeout(searchTimer)
   }
-});
+})
 </script>
 
 <style scoped>
 .leave-types-page {
   --background: var(--app-bg);
-  background-image: radial-gradient(circle at top left, rgba(46, 102, 219, 0.16), transparent 34%);
+  background-image: radial-gradient(
+    circle at top left,
+    rgba(46, 102, 219, 0.16),
+    transparent 34%
+  );
   --padding-top: calc(env(safe-area-inset-top) + 18px);
   --padding-start: 16px;
   --padding-end: 16px;

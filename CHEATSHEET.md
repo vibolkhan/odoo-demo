@@ -49,20 +49,19 @@
 
 ### API Layer
 - `src/api/timeoff.api.js`
-  - JSON-RPC endpoints for:
-    - leave request search/read
-    - leave allocation search/read
-    - leave save/update
-    - leave approve/refuse actions
-    - leave type catalog + management
-    - leave calendar / special days data
-  - Supports browser and native HTTP transport through CapacitorHttp.
-  - Handles session expiration and network error conditions.
+  - Barrel export for endpoint-focused time-off API modules.
+- `src/api/timeoff/`
+  - `leave-requests.api.js` exports leave request search/read, save/update, approve/refuse actions.
+  - `leave-allocations.api.js` exports leave allocation search/read.
+  - `leave-types.api.js` exports leave type catalog + management.
+  - `leave-calendar.api.js` exports leave calendar / special days endpoints.
+  - `odoo-timeoff.client.js` holds the shared Odoo JSON-RPC implementation, browser/native transport handling, and session expiration handling.
 
 ### Leave Pages
 - `src/views/leave/LeaveCalendarPage.vue`
   - Month calendar view with leave, public holidays, mandatory days, and unusual days.
   - Day selection opens detail modals for leave or holidays.
+  - Stateful calendar/date/modal behavior is extracted to `useLeaveCalendarPage.js`.
 - `src/views/leave/LeaveBalancePage.vue`
   - Visual leave balance summary with allocation, taken, remaining, and usage percentage.
   - Renders leave balances by type.
@@ -70,16 +69,19 @@
   - Leave type list and catalog support.
 - `src/views/leave/RequestListPage.vue`
   - Lists personal leave requests.
+  - Uses a header filter toggle and compact date range filter panel matching My Attendance.
 - `src/views/leave/RequestFormPage.vue`
   - Wrapper for `RequestForm.vue`, used to create/update leave requests.
 - `src/views/leave/LeaveApprovalPage.vue`
   - Manager view for approving/refusing leave requests.
+  - Stateful loading, pagination, employee/date filtering, status filtering, and modal selection live in `useLeaveApprovalsPage.js`.
 
 ### Leave Components
 - `src/components/leave/RequestForm.vue`
   - Core leave request form UI and validation.
 - `src/components/leave/RequestList.vue`
   - Reusable request list component.
+  - Handles status tabs, date filtering, grouping, pagination, and detail modal wiring.
 - `src/components/leave/LeaveRequestDetailModal.vue`
   - Modal showing selected leave request details.
 - `src/components/leave/PublicHolidayDetailModal.vue`
@@ -102,18 +104,22 @@
 ### Attendance Pages
 - `src/views/attendance/MyAttendancePage.vue`
   - Personal attendance history for the logged-in user.
+  - Includes a header filter toggle with date range filtering.
 - `src/views/attendance/AdminAttendancePage.vue`
   - Manager-facing attendance dashboard with search, filters, and stats.
   - Employee suggestions, date filters, and modal detail view.
+  - Stateful loading, pagination, filters, stats, and detail modal behavior live in `useAdminAttendancePage.js`.
 
 ### Attendance Components
 - `src/components/attendance/AttendanceDetailModal.vue`
   - Modal for detailed attendance record view.
+- `src/components/attendance/AdminAttendanceCard.vue`
+  - Presentational card for one manager attendance record.
 
 ## 8. Profile & Layout
 - `src/views/profile/ProfilePage.vue`
   - Profile page for logged-in user details and account information.
-- `src/views/layout/TabsPage.vue`
+- `src/views/leave/TabsPage.vue`
   - Main bottom tab navigation for Calendar, Attendance, Requests, Balance, and Profile.
   - Haptics support via Capacitor Haptics on tab tap.
 
@@ -128,6 +134,8 @@
   - Skeleton placeholder UI for loading states.
 - `src/components/common/DateInput.vue`
   - Date input UI wrapper used in filtering and forms.
+- `src/components/common/EmployeeFilterPanel.vue`
+  - Shared employee search + date range filter panel used by manager attendance and leave approval pages.
 
 ## 10. Utilities
 - `src/utils/async-state.js`
@@ -136,10 +144,20 @@
   - Date formatting helpers used by attendance and leave pages.
 - `src/utils/format.js`
   - Formatting utilities for string/number display.
+- `src/utils/leave.js`
+  - Shared leave type/status helpers, status filter matching, icons, and tone mapping.
 - `src/composables/useNotification.js`
   - Notification helper for toast messages.
 - `src/composables/useAttendanceTimer.js`
   - Likely manages attendance timer handling.
+- `src/composables/useEmployeePicker.js`
+  - Shared employee search, pagination, selection, and suggestion state.
+- `src/composables/useAdminAttendancePage.js`
+  - Page logic for manager attendance filters, stats, pagination, refresh, and detail modal.
+- `src/composables/useLeaveApprovalsPage.js`
+  - Page logic for leave approval filters, stats, pagination, refresh, and detail modal.
+- `src/composables/useLeaveCalendarPage.js`
+  - Page logic for calendar days, special-day normalization, monthly lists, refresh, navigation, and detail modals.
 
 ## 11. Configuration & Environment
 - `package.json`
@@ -186,15 +204,20 @@
 - The app is clearly split into two main domains: leave management and attendance management.
 - The Odoo backend contract is implemented consistently with JSON-RPC payloads.
 - Auth/session handling is robust with native + browser persistence and expiry handling.
-- The current view layer uses a combination of page-level wrappers and reusable components.
+- The view layer now leans more heavily on composables for stateful page logic and smaller presentational components for repeated UI.
 - There is good use of async state wrappers for consistent loading/error UI.
+- Recent refactor completed:
+  - Time-off API split into endpoint-focused modules with a compatibility barrel.
+  - `LeaveCalendarPage.vue`, `AdminAttendancePage.vue`, and `LeaveApprovalPage.vue` moved stateful logic into composables.
+  - Shared employee filter panel, leave status/type helpers, and manager attendance/approval cards were added.
+  - My Attendance and My Requests now use matching header date-filter toggles.
 
 ## 15. Starting Points for a Senior Engineer
-- `src/stores/timeoff.store.js` and `src/api/timeoff.api.js` for leave workflow logic.
+- `src/stores/timeoff.store.js` and `src/api/timeoff/` for leave workflow logic.
 - `src/stores/user.store.js` and `src/api/user.api.js` for attendance and employee management.
 - `src/router/index.js` for app flow and auth protection.
-- `src/views/attendance/AdminAttendancePage.vue` for the most complex UI flow.
-- `src/views/leave/LeaveCalendarPage.vue` for calendar interactions and date handling.
+- `src/composables/useAdminAttendancePage.js` for the manager attendance flow.
+- `src/composables/useLeaveCalendarPage.js` for calendar interactions and date handling.
 
 ## 16. JavaScript Function Cheat Sheet
 
@@ -259,8 +282,13 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | --- | --- | --- | --- |
 | `src/api/http.js` | API infra | Shared CapacitorHttp helpers | Central JSON request helper. |
 | `src/api/auth.api.js` | Auth API | Login/logout/session persistence helpers | Medium-size auth boundary. |
-| `src/api/timeoff.api.js` | Leave API | Odoo JSON-RPC for leave/allocations/calendar/types | Largest API hotspot at 1206 lines. |
-| `src/api/user.api.js` | Attendance API | Employee lookup and attendance RPCs | Large integration surface at 627 lines. |
+| `src/api/timeoff.api.js` | Leave API | Barrel export for time-off API modules | Keeps the existing import path stable. |
+| `src/api/timeoff/odoo-timeoff.client.js` | Leave API client | Shared Odoo JSON-RPC implementation | Browser/native transport and session handling live here. |
+| `src/api/timeoff/leave-requests.api.js` | Leave API | Leave request search/save/update/approve/refuse exports | Endpoint-focused module. |
+| `src/api/timeoff/leave-allocations.api.js` | Leave API | Leave allocation exports | Endpoint-focused module. |
+| `src/api/timeoff/leave-types.api.js` | Leave API | Leave type catalog/CRUD exports | Endpoint-focused module. |
+| `src/api/timeoff/leave-calendar.api.js` | Leave API | Calendar, unusual, mandatory, and special day exports | Endpoint-focused module. |
+| `src/api/user.api.js` | Attendance API | Employee lookup and attendance RPCs | Includes personal attendance date-range filtering. |
 
 ### Stores
 | File | Area | Purpose | Notes |
@@ -277,6 +305,10 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | `src/composables/useAttendanceActions.js` | Attendance UX | Shared attendance action handlers | Likely reduces page-level duplication. |
 | `src/composables/useAttendanceTimer.js` | Attendance UX | Attendance timer logic | Small behavioral helper. |
 | `src/composables/useDateTimeFormatter.js` | Formatting | Date/time presentation helper | Presentation-only utility wrapper. |
+| `src/composables/useEmployeePicker.js` | Shared UX | Employee search, pagination, selection, and suggestions | Used by manager filter panels. |
+| `src/composables/useAdminAttendancePage.js` | Attendance UX | Manager attendance page state and actions | Keeps `AdminAttendancePage.vue` presentation-focused. |
+| `src/composables/useLeaveApprovalsPage.js` | Leave UX | Leave approval page state and actions | Keeps `LeaveApprovalPage.vue` presentation-focused. |
+| `src/composables/useLeaveCalendarPage.js` | Leave UX | Calendar state, date transforms, and modal state | Keeps `LeaveCalendarPage.vue` presentation-focused. |
 | `src/composables/useLeaveBalance.js` | Leave UX | Leave balance derivation helper | Complements store/page logic. |
 | `src/composables/useMinimumSkeleton.js` | UX state | Minimum skeleton timing helper | Smooths loading transitions. |
 | `src/composables/useNotification.js` | UX state | Toast/notification helper | Shared user feedback helper. |
@@ -289,12 +321,14 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | `src/components/common/AppEmptyState.vue` | Shared UI | Empty state presentation | Shared fallback UI. |
 | `src/components/common/AppSkeleton.vue` | Shared UI | Skeleton placeholder component | Supports loading states. |
 | `src/components/common/DateInput.vue` | Shared form UI | Date input abstraction | Reusable form control wrapper. |
+| `src/components/common/EmployeeFilterPanel.vue` | Shared filter UI | Employee picker plus date range controls | Used by manager attendance and leave approval pages. |
 
 ### Leave Components
 | File | Area | Purpose | Notes |
 | --- | --- | --- | --- |
 | `src/components/leave/RequestForm.vue` | Leave UI | Create/edit leave request form | Core transactional form. |
-| `src/components/leave/RequestList.vue` | Leave UI | Request list rendering and status summaries | Large reusable list module at 626 lines. |
+| `src/components/leave/RequestList.vue` | Leave UI | Request list rendering, status tabs, date filtering, and modal wiring | Used by personal request history. |
+| `src/components/leave/LeaveApprovalCard.vue` | Leave UI | Presentational approval request card | Used by manager leave approvals. |
 | `src/components/leave/LeaveRequestDetailModal.vue` | Leave UI | Leave request details modal | Medium-large detail presentation. |
 | `src/components/leave/PublicHolidayDetailModal.vue` | Leave UI | Holiday detail modal | Focused modal component. |
 
@@ -302,20 +336,21 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | File | Area | Purpose | Notes |
 | --- | --- | --- | --- |
 | `src/components/attendance/AttendanceDetailModal.vue` | Attendance UI | Detailed attendance record modal | Very large modal component at 817 lines. |
+| `src/components/attendance/AdminAttendanceCard.vue` | Attendance UI | Presentational manager attendance card | Used by `AdminAttendancePage.vue`. |
 
 ### Views / Pages
 | File | Area | Purpose | Notes |
 | --- | --- | --- | --- |
 | `src/views/auth/LoginPage.vue` | Auth page | Login flow UI | Entry point for unauthenticated users. |
-| `src/views/layout/TabsPage.vue` | Layout page | Bottom-tab shell and navigation | Main authenticated shell. |
-| `src/views/attendance/MyAttendancePage.vue` | Attendance page | Personal attendance history | Medium-complexity end-user flow. |
-| `src/views/attendance/AdminAttendancePage.vue` | Attendance page | Manager attendance dashboard | Large workflow page at 648 lines. |
-| `src/views/leave/LeaveCalendarPage.vue` | Leave page | Calendar, holidays, leave overlays | One of the biggest UI hotspots at 988 lines. |
+| `src/views/leave/TabsPage.vue` | Layout page | Bottom-tab shell and navigation | Main authenticated shell. |
+| `src/views/attendance/MyAttendancePage.vue` | Attendance page | Personal attendance history | Includes header date-range filter. |
+| `src/views/attendance/AdminAttendancePage.vue` | Attendance page | Manager attendance dashboard | Uses `useAdminAttendancePage.js` and presentational cards. |
+| `src/views/leave/LeaveCalendarPage.vue` | Leave page | Calendar, holidays, leave overlays | Uses `useLeaveCalendarPage.js` for stateful logic. |
 | `src/views/leave/LeaveBalancePage.vue` | Leave page | Leave balance summaries | Reporting-oriented page. |
 | `src/views/leave/LeaveTypesPage.vue` | Leave page | Leave type catalog/list management | Large page at 778 lines. |
-| `src/views/leave/RequestListPage.vue` | Leave page | Personal leave requests page | Page wrapper around list/status UI. |
+| `src/views/leave/RequestListPage.vue` | Leave page | Personal leave requests page | Header date filter toggle matches My Attendance. |
 | `src/views/leave/RequestFormPage.vue` | Leave page | Wrapper page for request form | Thin routing/container layer. |
-| `src/views/leave/LeaveApprovalPage.vue` | Leave page | Manager approval/refusal page | Large manager workflow page at 660 lines. |
+| `src/views/leave/LeaveApprovalPage.vue` | Leave page | Manager approval/refusal page | Uses `useLeaveApprovalsPage.js` and shared filter panel. |
 | `src/views/profile/ProfilePage.vue` | Profile page | User profile and manager shortcuts | Large mixed-responsibility page at 691 lines. |
 
 ### Utilities
@@ -324,25 +359,32 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | `src/utils/async-state.js` | Utilities | Async state factory/helpers | Reused by async screens/components. |
 | `src/utils/date.js` | Utilities | Date formatting/helpers | Shared date manipulation layer. |
 | `src/utils/format.js` | Utilities | Number/string formatting helpers | Small presentation helper set. |
+| `src/utils/leave.js` | Utilities | Leave status/type labels, status matching, icons, and tones | Removes duplicated leave formatting logic. |
 
 ## 18. Risk / Technical Debt Assessment
 
 ### Highest-Risk Hotspots
 | Area | Why it is risky | Evidence |
 | --- | --- | --- |
-| API modules | Odoo JSON-RPC integration is concentrated in a few very large files, making regressions and contract drift harder to isolate. | `src/api/timeoff.api.js` (1206 lines), `src/api/user.api.js` (627 lines). |
-| Large page components | Pages appear to mix data loading, view-model logic, and presentation in single files, which raises change cost. | `src/views/leave/LeaveCalendarPage.vue` (988), `src/views/leave/LeaveTypesPage.vue` (778), `src/views/profile/ProfilePage.vue` (691), `src/views/attendance/AdminAttendancePage.vue` (648). |
-| Large modal/list components | Deep UI components likely hold business formatting and status logic that is hard to reuse or test in isolation. | `src/components/attendance/AttendanceDetailModal.vue` (817), `src/components/leave/RequestList.vue` (626), `src/components/leave/LeaveRequestDetailModal.vue` (503). |
+| API modules | Odoo JSON-RPC payloads are still detailed and backend-contract-heavy. | Time-off endpoints are split, but the shared `odoo-timeoff.client.js` and `user.api.js` remain important integration surfaces. |
+| Large page/components | Some screens and modals still mix dense presentation with domain-specific display logic. | `LeaveTypesPage.vue`, `ProfilePage.vue`, `AttendanceDetailModal.vue`, and `RequestList.vue` remain good candidates for future trimming. |
+| Backend data mapping | Normalization and payload mapping are essential to avoid UI coupling to Odoo field shapes. | Time-off and attendance APIs still map raw Odoo records into app-facing objects. |
 
 ### Technical Debt Themes
 | Theme | Current state | Likely impact | Recommended direction |
 | --- | --- | --- | --- |
-| Oversized modules | Several files exceed 600-1200 lines. | Harder reviews, fragile edits, duplicated logic, slower onboarding. | Split by domain capability, RPC endpoint family, and presentation subcomponents. |
-| Logic in view files | Large `.vue` pages likely own fetching, transforms, and UI state together. | Reuse is limited and validation becomes expensive. | Pull page logic into composables or store helpers with clearer seams for future coverage. |
+| Oversized modules | Time-off API and several high-traffic views have been reduced, but some large UI modules remain. | Harder reviews, fragile edits, duplicated logic, slower onboarding. | Continue splitting by domain capability and presentation subcomponents. |
+| Logic in view files | Calendar, admin attendance, and approvals now use composables; other pages can follow the same pattern. | Reuse improves where composables exist, but remaining large pages still cost more to change. | Continue moving page-specific state into composables when changing those screens. |
 | Integration contract coupling | API layer appears tightly coupled to Odoo payload structure. | Backend field changes can break multiple screens at once. | Add mapper/adapter functions around normalized models. |
 | Naming/tooling consistency | Small signs of drift exist in scripts and docs. | Minor friction during onboarding and CI maintenance. | Normalize naming such as `andriod:live` to `android:live`, keep docs synced with code. |
 
-### Suggested Refactor Order
-1. Break `src/api/timeoff.api.js` into smaller endpoint-focused modules.
-2. Extract stateful page logic from `LeaveCalendarPage.vue`, `AdminAttendancePage.vue`, and `LeaveApprovalPage.vue` into composables so view files become mostly presentation.
-3. Carve large modal/list components into smaller presentational subcomponents and shared status/format helpers.
+### Completed Refactor Items
+1. Split `src/api/timeoff.api.js` into endpoint-focused modules under `src/api/timeoff/`.
+2. Extracted stateful page logic from `LeaveCalendarPage.vue`, `AdminAttendancePage.vue`, and `LeaveApprovalPage.vue` into composables.
+3. Added shared status/type helpers and carved manager attendance/approval cards plus employee filtering into reusable components.
+4. Added matching date range filter toggles to My Attendance and My Requests.
+
+### Suggested Next Refactor Order
+1. Continue trimming `AttendanceDetailModal.vue` into timeline, status summary, and technical detail subcomponents.
+2. Move remaining `RequestList.vue` state into a composable if request history grows further.
+3. Add focused tests around API mappers/date filtering because those are closest to the Odoo contract.
