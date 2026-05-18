@@ -181,7 +181,7 @@ const {
 
 <style scoped>
 .attendance-list {
-  padding-bottom: 20px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
 
 .loading-state,

@@ -199,6 +199,10 @@ const {
 </script>
 
 <style scoped>
+.request-list {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+}
+
 .loading-state,
 .empty-state {
   display: flex;

@@ -1,13 +1,9 @@
 import { defineStore } from "pinia";
 import {
   approveLeaveRequest,
-  createLeaveType,
-  deleteLeaveType,
   fetchCompanyLeaveRequests,
   fetchLeaveAllocations,
   fetchLeaveRequests,
-  fetchLeaveTypeCatalog,
-  fetchLeaveTypes,
   getLeaveReportCalendar,
   getMandatoryDays,
   getSpecialDaysData,
@@ -15,8 +11,14 @@ import {
   refuseLeaveRequest,
   saveLeaveRequest,
   updateLeaveRequest,
-  updateLeaveType,
 } from "@/api/timeoff.api";
+import {
+  createLeaveType,
+  deleteLeaveType,
+  fetchLeaveTypeCatalog,
+  fetchLeaveTypes,
+  updateLeaveType,
+} from "@/api/leave-type.api";
 import { useAuthStore } from "@/stores/auth.store";
 import { createAsyncState, runAsync } from "@/utils/async-state";
 

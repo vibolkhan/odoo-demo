@@ -12,6 +12,7 @@
       </div>
     </Transition>
     <ion-router-outlet v-if="sessionReady" />
+    <div v-if="sessionReady" class="status-bar-guard"></div>
   </ion-app>
 </template>
 
@@ -103,5 +104,27 @@ onMounted(async () => {
 .fade-leave-to {
   opacity: 0;
   transform: scale(1.1);
+}
+
+.status-bar-guard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: rgba(255, 255, 255, 0.85); /* Light mode matching the device's system light mode */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 999;
+  pointer-events: none;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .status-bar-guard {
+    background: rgba(15, 23, 42, 0.85); /* Dark mode matching the device's system dark mode */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
 }
 </style>

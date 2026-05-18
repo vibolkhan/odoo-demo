@@ -76,7 +76,7 @@ import {
   IonIcon,
   IonPage,
   IonRouterOutlet,
-} from '@ionic/vue'
+} from "@ionic/vue";
 import {
   receipt,
   receiptOutline,
@@ -88,21 +88,21 @@ import {
   calendarOutline,
   time,
   timeOutline,
-} from 'ionicons/icons'
-import { useRoute } from 'vue-router'
+} from "ionicons/icons";
+import { useRoute } from "vue-router";
 
-import { Haptics, ImpactStyle } from '@capacitor/haptics'
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
-const route = useRoute()
+const route = useRoute();
 
 const tabIcon = (path, activeIcon, inactiveIcon) =>
   route.path === path || route.path.startsWith(`${path}/`)
     ? activeIcon
-    : inactiveIcon
+    : inactiveIcon;
 
 const triggerTabHaptic = async () => {
-  await Haptics.impact({ style: ImpactStyle.Light })
-}
+  await Haptics.impact({ style: ImpactStyle.Light });
+};
 </script>
 
 <style scoped>
@@ -140,16 +140,14 @@ ion-label {
 
 /* Custom indicator for active tab */
 ion-tab-button.tab-selected::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 24px;
   height: 3px;
-  background: var(--ion-color-primary);
   border-radius: 0 0 4px 4px;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
 }
 
 ion-tab-button.tab-selected ion-icon {
@@ -161,7 +159,7 @@ ion-icon {
 }
 
 ion-tab-button.tab-selected::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 6px;
   background: rgba(var(--ion-color-primary-rgb), 0.12);

@@ -10,8 +10,6 @@ const LEGACY_STORAGE_KEYS = {
 };
 
 const ODOO_DATABASE = import.meta.env.VITE_ODOO_DATABASE;
-const AUTH_ENDPOINT = "/web/session/authenticate";
-const LOGOUT_ENDPOINT = "/web/session/destroy";
 
 export const DEFAULT_ALLOWED_COMPANY_IDS = [1];
 export const DEFAULT_COMPANY_ID = 1;
@@ -220,7 +218,7 @@ export const loginRequest = async (username, password) => {
   };
   let payload;
 
-  payload = await postJson(buildUrl(AUTH_ENDPOINT), body);
+  payload = await postJson(buildUrl("/web/session/authenticate"), body);
 
   if (payload.error) {
     await clearPersistedSession();
@@ -248,7 +246,7 @@ export const logoutRequest = async () => {
   };
 
   try {
-    await postJson(buildUrl(LOGOUT_ENDPOINT), body);
+    await postJson(buildUrl("/web/session/destroy"), body);
   } catch {
     // Still clear persisted session even when the server logout fails.
   } finally {

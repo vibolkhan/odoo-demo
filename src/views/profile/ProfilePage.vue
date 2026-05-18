@@ -454,7 +454,7 @@ const handleLogout = async () => {
 
 .profile-hero {
   position: relative;
-  padding: 60px 20px 40px;
+  padding: calc(env(safe-area-inset-top) + 40px) 20px 40px;
   overflow: hidden;
 }
 
@@ -463,7 +463,7 @@ const handleLogout = async () => {
   top: 0;
   left: 0;
   right: 0;
-  height: 240px;
+  height: calc(200px + env(safe-area-inset-top));
   background: var(--card-bg);
   z-index: 0;
   border-bottom: 1px solid var(--border-color);
