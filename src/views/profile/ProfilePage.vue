@@ -463,7 +463,7 @@ const handleLogout = async () => {
   top: 0;
   left: 0;
   right: 0;
-  height: calc(200px + env(safe-area-inset-top));
+  height: calc(220px + env(safe-area-inset-top));
   background: var(--card-bg);
   z-index: 0;
   border-bottom: 1px solid var(--border-color);

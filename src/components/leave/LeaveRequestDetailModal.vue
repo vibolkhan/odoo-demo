@@ -7,8 +7,14 @@
     :expand-to-scroll="false"
     @didDismiss="$emit('close')"
   >
-    <ion-content class="request-detail-modal" :scroll-y="true">
-      <section v-if="request && isEditing" class="request-detail-shell">
+    <ion-content
+      class="request-detail-modal"
+      :scroll-y="true"
+    >
+      <section
+        v-if="request && isEditing"
+        class="request-detail-shell"
+      >
         <div class="request-detail-header">
           <div>
             <p class="detail-eyebrow">Modify Request</p>
@@ -23,7 +29,10 @@
             aria-label="Close request details"
             @click="$emit('close')"
           >
-            <ion-icon :icon="close" aria-hidden="true" />
+            <ion-icon
+              :icon="close"
+              aria-hidden="true"
+            />
           </ion-button>
         </div>
 
@@ -34,7 +43,13 @@
         />
       </section>
 
-      <section v-else-if="request && (request.state !== 'confirm' || request.needsAction || managerMode)" class="request-detail-shell">
+      <section
+        v-else-if="
+          request &&
+          (request.state !== 'confirm' || request.needsAction || managerMode)
+        "
+        class="request-detail-shell"
+      >
         <div class="request-detail-header">
           <div>
             <p class="detail-eyebrow">Leave Request</p>
@@ -68,21 +83,26 @@
 
         <div class="detail-hero-card">
           <div class="detail-hero-main">
-            <div class="type-tile detail-type-tile" :class="tileTone(request.leaveType)">
-              <ion-icon :icon="requestTypeIcon(request.leaveType)" aria-hidden="true" />
+            <div
+              class="type-tile detail-type-tile"
+              :class="tileTone(request.leaveType)"
+            >
+              <ion-icon
+                :icon="requestTypeIcon(request.leaveType)"
+                aria-hidden="true"
+              />
             </div>
 
             <div class="detail-hero-copy">
-              <span class="status-pill" :class="badgeClass(request.state)">
+              <span
+                class="status-pill"
+                :class="badgeClass(request.state)"
+              >
                 {{ formatStateLabel(request.state) }}
               </span>
 
               <p class="detail-duration">
-                {{ request.durationDisplay || "Duration not provided" }}
-              </p>
-
-              <p v-if="request.needsAction" class="detail-attention">
-                This request needs action.
+                {{ request.durationDisplay || 'Duration not provided' }}
               </p>
             </div>
           </div>
@@ -91,7 +111,9 @@
         <div class="detail-grid">
           <div class="detail-card">
             <span>Employee</span>
-            <strong>{{ request.employeeName || fallbackEmployeeName || "-" }}</strong>
+            <strong>{{
+              request.employeeName || fallbackEmployeeName || '-'
+            }}</strong>
           </div>
 
           <div class="detail-card">
@@ -103,17 +125,29 @@
         <div class="detail-section-card">
           <span class="detail-section-label">Schedule</span>
           <h3>{{ formatDateRange(request.dateFrom, request.dateTo) }}</h3>
-          <p>{{ request.durationDisplay || "No duration summary available." }}</p>
+          <p>
+            {{ request.durationDisplay || 'No duration summary available.' }}
+          </p>
         </div>
 
         <div class="detail-section-card">
           <span class="detail-section-label">Reason</span>
           <h3>Notes</h3>
-          <p>{{ request.reason || "No reason was provided for this leave request." }}</p>
+          <p>
+            {{
+              request.reason || 'No reason was provided for this leave request.'
+            }}
+          </p>
         </div>
 
         <!-- Manager mode: show Approve/Refuse for pending requests -->
-        <div v-if="managerMode && (request.state === 'confirm' || request.state === 'validate1')" class="detail-actions-tray">
+        <div
+          v-if="
+            managerMode &&
+            (request.state === 'confirm' || request.state === 'validate1')
+          "
+          class="detail-actions-tray"
+        >
           <ion-button
             expand="block"
             fill="outline"
@@ -122,8 +156,11 @@
             :disabled="isProcessing"
             @click="handleRefuse"
           >
-            <ion-icon slot="start" :icon="closeCircleOutline" />
-            {{ isRefusing ? "Refusing..." : "Refuse" }}
+            <ion-icon
+              slot="start"
+              :icon="closeCircleOutline"
+            />
+            {{ isRefusing ? 'Refusing...' : 'Refuse' }}
           </ion-button>
 
           <ion-button
@@ -134,39 +171,19 @@
             :disabled="isProcessing"
             @click="handleApprove"
           >
-            <ion-icon slot="start" :icon="checkmarkCircleOutline" />
-            {{ isApproving ? "Approving..." : "Approve" }}
+            <ion-icon
+              slot="start"
+              :icon="checkmarkCircleOutline"
+            />
+            {{ isApproving ? 'Approving...' : 'Approve' }}
           </ion-button>
         </div>
 
-        <!-- Employee mode: needsAction shows approve/refuse, confirm shows edit -->
-        <div v-else-if="!managerMode && request.needsAction" class="detail-actions-tray">
-          <ion-button
-            expand="block"
-            fill="outline"
-            color="danger"
-            class="action-button reject-button"
-            :disabled="isProcessing"
-            @click="handleRefuse"
-          >
-            <ion-icon slot="start" :icon="closeCircleOutline" />
-            {{ isRefusing ? "Refusing..." : "Refuse" }}
-          </ion-button>
-
-          <ion-button
-            expand="block"
-            fill="solid"
-            color="primary"
-            class="action-button approve-button"
-            :disabled="isProcessing"
-            @click="handleApprove"
-          >
-            <ion-icon slot="start" :icon="checkmarkCircleOutline" />
-            {{ isApproving ? "Approving..." : "Approve" }}
-          </ion-button>
-        </div>
-
-        <div v-else-if="!managerMode && request.state === 'confirm'" class="detail-actions-tray">
+        <!-- Employee mode: own pending requests can be edited, not approved/refused. -->
+        <div
+          v-else-if="!managerMode && request.state === 'confirm'"
+          class="detail-actions-tray"
+        >
           <ion-button
             expand="block"
             fill="solid"
@@ -174,7 +191,10 @@
             class="action-button edit-button"
             @click="isEditing = true"
           >
-            <ion-icon slot="start" :icon="createOutline" />
+            <ion-icon
+              slot="start"
+              :icon="createOutline"
+            />
             Edit Request
           </ion-button>
         </div>
@@ -184,17 +204,17 @@
 </template>
 
 <script setup>
-import { IonButton, IonContent, IonIcon, IonModal } from "@ionic/vue";
+import { IonButton, IonContent, IonIcon, IonModal } from '@ionic/vue'
 import {
   checkmarkCircleOutline,
   close,
   closeCircleOutline,
   createOutline,
-} from "ionicons/icons";
-import { ref, computed, watch } from "vue";
-import { toastController } from "@ionic/vue";
-import RequestForm from "@/components/leave/RequestForm.vue";
-import { useTimeoffStore } from "@/stores/timeoff.store";
+} from 'ionicons/icons'
+import { ref, computed, watch } from 'vue'
+import { toastController } from '@ionic/vue'
+import RequestForm from '@/components/leave/RequestForm.vue'
+import { useTimeoffStore } from '@/stores/timeoff.store'
 import {
   formatLeaveStateLabel as formatStateLabel,
   getLeaveStatusClass as badgeClass,
@@ -202,7 +222,7 @@ import {
   getLeaveTypeKhmerName,
   leaveTypeTone as tileTone,
   requestTypeIcon,
-} from "@/utils/leave";
+} from '@/utils/leave'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -212,106 +232,109 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-});
+})
 
-const emit = defineEmits(['close', 'updated']);
-const timeoffStore = useTimeoffStore();
+const emit = defineEmits(['close', 'updated'])
+const timeoffStore = useTimeoffStore()
 
-const isApproving = ref(false);
-const isRefusing = ref(false);
-const isEditing = ref(false);
-const isProcessing = computed(() => isApproving.value || isRefusing.value);
+const isApproving = ref(false)
+const isRefusing = ref(false)
+const isEditing = ref(false)
+const isProcessing = computed(() => isApproving.value || isRefusing.value)
 
 watch(
   () => props.isOpen,
   (val) => {
     if (!val) {
-      isEditing.value = false;
-    } else if (!props.managerMode && props.request?.state === "confirm" && !props.request?.needsAction) {
+      isEditing.value = false
+    } else if (
+      !props.managerMode &&
+      props.request?.state === 'confirm' &&
+      !props.request?.needsAction
+    ) {
       // Only auto-open edit form in employee mode for their own pending requests
-      isEditing.value = true;
+      isEditing.value = true
     }
-  }
-);
+  },
+)
 
 const showToast = async (message, color) => {
   const toast = await toastController.create({
     message,
     duration: 3000,
     color,
-    position: "top",
-    buttons: [{ text: "OK", role: "cancel" }],
-  });
-  await toast.present();
-};
+    position: 'top',
+    buttons: [{ text: 'OK', role: 'cancel' }],
+  })
+  await toast.present()
+}
 
 const handleEditSubmitted = () => {
-  isEditing.value = false;
-  emit("updated");
-  emit("close");
-};
+  isEditing.value = false
+  emit('updated')
+  emit('close')
+}
 
 const handleApprove = async () => {
-  if (!props.request || isProcessing.value) return;
+  if (!props.request || isProcessing.value) return
 
-  isApproving.value = true;
+  isApproving.value = true
   try {
-    await timeoffStore.approveLeaveRequest(props.request.id);
-    await showToast("Leave request approved successfully.", "success");
-    emit("updated");
-    emit("close");
+    await timeoffStore.approveLeaveRequest(props.request.id)
+    await showToast('Leave request approved successfully.', 'success')
+    emit('updated')
+    emit('close')
   } catch (error) {
     await showToast(
-      error instanceof Error ? error.message : "Failed to approve request.",
-      "danger",
-    );
+      error instanceof Error ? error.message : 'Failed to approve request.',
+      'danger',
+    )
   } finally {
-    isApproving.value = false;
+    isApproving.value = false
   }
-};
+}
 
 const handleRefuse = async () => {
-  if (!props.request || isProcessing.value) return;
+  if (!props.request || isProcessing.value) return
 
-  isRefusing.value = true;
+  isRefusing.value = true
   try {
-    await timeoffStore.refuseLeaveRequest(props.request.id);
-    await showToast("Leave request refused.", "success");
-    emit("updated");
-    emit("close");
+    await timeoffStore.refuseLeaveRequest(props.request.id)
+    await showToast('Leave request refused.', 'success')
+    emit('updated')
+    emit('close')
   } catch (error) {
     await showToast(
-      error instanceof Error ? error.message : "Failed to refuse request.",
-      "danger",
-    );
+      error instanceof Error ? error.message : 'Failed to refuse request.',
+      'danger',
+    )
   } finally {
-    isRefusing.value = false;
+    isRefusing.value = false
   }
-};
+}
 
 const parseRequestDate = (value) => {
-  if (!value) return null;
-  const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
-  const date = new Date(normalizedValue);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+  if (!value) return null
+  const normalizedValue = value.includes(' ') ? value.replace(' ', 'T') : value
+  const date = new Date(normalizedValue)
+  return Number.isNaN(date.getTime()) ? null : date
+}
 
 const formatDate = (value) => {
-  const date = parseRequestDate(value);
-  if (!date) return value || "-";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-};
+  const date = parseRequestDate(value)
+  if (!date) return value || '-'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
+}
 
 const formatDateRange = (start, end) => {
-  const startLabel = formatDate(start);
-  const endLabel = formatDate(end);
-  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
-};
-
+  const startLabel = formatDate(start)
+  const endLabel = formatDate(end)
+  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`
+}
 </script>
 
 <style scoped>
@@ -402,10 +425,22 @@ const formatDateRange = (start, end) => {
   border-radius: 20px;
 }
 
-.tone-blue { background: rgba(59, 130, 246, 0.18); color: #2563eb; }
-.tone-coral { background: rgba(251, 113, 133, 0.18); color: #e11d48; }
-.tone-lilac { background: rgba(129, 140, 248, 0.18); color: #4f46e5; }
-.tone-sand { background: rgba(245, 158, 11, 0.18); color: #b45309; }
+.tone-blue {
+  background: rgba(59, 130, 246, 0.18);
+  color: #2563eb;
+}
+.tone-coral {
+  background: rgba(251, 113, 133, 0.18);
+  color: #e11d48;
+}
+.tone-lilac {
+  background: rgba(129, 140, 248, 0.18);
+  color: #4f46e5;
+}
+.tone-sand {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
 
 .detail-duration {
   margin: 8px 0 0;
@@ -475,15 +510,33 @@ const formatDateRange = (start, end) => {
   letter-spacing: 0.04em;
 }
 
-.status-pending { background: rgba(245, 158, 11, 0.16); color: #b45309; }
-.status-review { background: rgba(59, 130, 246, 0.16); color: #2563eb; }
-.status-approved { background: rgba(16, 185, 129, 0.16); color: #047857; }
-.status-refused { background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
+.status-pending {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+.status-review {
+  background: rgba(59, 130, 246, 0.16);
+  color: #2563eb;
+}
+.status-approved {
+  background: rgba(16, 185, 129, 0.16);
+  color: #047857;
+}
+.status-refused {
+  background: rgba(239, 68, 68, 0.16);
+  color: #b91c1c;
+}
 
 @media (max-width: 640px) {
-  .request-detail-header h2 { font-size: 1.55rem; }
-  .detail-subtitle { font-size: 0.86rem; }
-  .detail-grid { grid-template-columns: 1fr; }
+  .request-detail-header h2 {
+    font-size: 1.55rem;
+  }
+  .detail-subtitle {
+    font-size: 0.86rem;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .detail-actions-tray {
@@ -504,6 +557,11 @@ const formatDateRange = (start, end) => {
   height: 48px;
 }
 
-.approve-button { --background: #2e66db; }
-.reject-button { --color: #dc2626; --border-color: #dc2626; }
+.approve-button {
+  --background: #2e66db;
+}
+.reject-button {
+  --color: #dc2626;
+  --border-color: #dc2626;
+}
 </style>

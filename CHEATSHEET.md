@@ -53,6 +53,7 @@
   - Tracks leave requests, company requests, allocations, leave types, and calendar data.
   - Provides computed balance totals and per-type balances.
   - Features leave request CRUD, approval/refusal, type list, and calendar aggregation.
+  - Maintains pagination state for personal requests, company requests, and leave type catalog lists.
 
 ### API Layer
 
@@ -60,6 +61,10 @@
   - Single consolidated time-off API file.
   - Handles leave requests, allocations, leave types, calendar data, mandatory days, and special days.
   - Contains Odoo JSON-RPC payloads, browser/native transport handling, record mapping, and session expiration handling.
+  - Paginated request endpoints return `{ records, total, hasMore }`.
+- `src/api/leave-type.api.js`
+  - Handles leave type search/catalog and leave type CRUD.
+  - Catalog pagination returns `{ records, total, hasMore }`.
 
 ### Leave Pages
 
@@ -101,14 +106,17 @@
   - Holds user/employee state, attendance lists, detail, and toggle actions.
   - Supports manager features like employee search and all-attendance queries.
   - Normalizes employee record and refreshes supplemental attendance state.
+  - Maintains pagination state for personal attendance, all attendance, and employee search.
 
 ### API Layer
 
 - `src/api/user.api.js`
   - Employee search and current user employee fetch.
+- `src/api/attendance.api.js`
   - Attendance search/read for user and company records.
   - Attendance detail fetch and check-in/check-out toggle action.
   - Strongly typed Odoo JSON-RPC payloads and session handling.
+  - Paginated attendance endpoints return `{ records, total, hasMore }`.
 
 ### Attendance Pages
 
@@ -145,6 +153,10 @@
   - Avatar helper component for user/employee initials.
 - `src/components/common/AppSkeleton.vue`
   - Skeleton placeholder UI for loading states.
+- `src/components/common/AppPageHeader.vue`
+  - Shared mobile page header with optional back navigation and action slot.
+- `src/components/common/AppStatusBadge.vue`
+  - Shared status badge with consistent tones for attendance and leave states.
 - `src/components/common/DateInput.vue`
   - Date input UI wrapper used in filtering and forms.
 - `src/components/common/EmployeeFilterPanel.vue`
@@ -160,6 +172,8 @@
   - Formatting utilities for string/number display.
 - `src/utils/leave.js`
   - Shared leave type/status helpers, status filter matching, icons, and tone mapping.
+- `src/utils/pagination.js`
+  - Shared `buildPaginatedResult()` helper for Odoo `web_search_read` pagination metadata.
 - `src/composables/useNotification.js`
   - Notification helper for toast messages.
 - `src/composables/useAttendanceTimer.js`
@@ -173,7 +187,58 @@
 - `src/composables/useLeaveCalendarPage.js`
   - Page logic for calendar days, special-day normalization, monthly lists, refresh, navigation, and detail modals.
 
-## 11. Configuration & Environment
+## 11. Pagination & Infinite Scroll
+
+### API Contract
+
+- Odoo `web_search_read` paginated endpoints should return:
+  - `records`: mapped page records.
+  - `total`: `response.result.length` from Odoo.
+  - `hasMore`: `offset + records.length < total`.
+- Use `buildPaginatedResult(response, offset, limit, mapper)` from `src/utils/pagination.js` instead of duplicating pagination logic in API files.
+- Keep `records.length === limit` only as a fallback when Odoo does not return `length`.
+- Current paginated endpoints:
+  - `src/api/attendance.api.js`: `fetchMyAttendances()`, `fetchAllAttendances()`.
+  - `src/api/timeoff.api.js`: `fetchLeaveRequests()`, `fetchCompanyLeaveRequests()`.
+  - `src/api/leave-type.api.js`: `fetchLeaveTypeCatalog()`.
+  - `src/api/user.api.js`: `fetchEmployees()`.
+
+### Store Contract
+
+- Stores own list state and pagination state.
+- Initial load uses `reset = true`, `offset = 0`, and replaces the list.
+- Load-more uses `reset = false`, the current pagination `offset`, and appends records.
+- After each page, set:
+
+```js
+pagination = {
+  hasMore: result.hasMore,
+  offset: offset + result.records.length,
+};
+```
+
+### Ionic Infinite Scroll Rule
+
+- Do not bind `ion-infinite-scroll` disabled state to `isLoading` or `isLoadingMore`.
+- Disable only when there is no more data:
+
+```vue
+<ion-infinite-scroll
+  :disabled="!hasMore"
+  @ionInfinite="loadMore"
+>
+```
+
+- Guard concurrent calls inside the handler instead:
+
+```js
+if (isLoadingMore.value || !hasMore.value) {
+  await event.target?.complete();
+  return;
+}
+```
+
+## 12. Configuration & Environment
 
 - `package.json`
   - Scripts:
@@ -192,7 +257,7 @@
 - `.env-example` / `.env`
   - Contains environment variables for Odoo base URL and database.
 
-## 12. Native Integration
+## 13. Native Integration
 
 - Capacitor native support for:
   - HTTP requests via `CapacitorHttp`.
@@ -202,7 +267,7 @@
   - Location permission is requested when the user taps the attendance action.
   - If location is denied or unavailable, the app shows an immediate toast and stops the toggle.
 
-## 13. File/Feature Map
+## 14. File/Feature Map
 
 ### Root
 
@@ -221,7 +286,7 @@
 - `src/utils/` — shared helper functions.
 - `src/composables/` — composables for UI/business logic.
 
-## 14. Insights / Recommendations
+## 15. Insights / Recommendations
 
 - The app is clearly split into two main domains: leave management and attendance management.
 - The Odoo backend contract is implemented consistently with JSON-RPC payloads.
@@ -234,8 +299,10 @@
   - `LeaveCalendarPage.vue`, `AdminAttendancePage.vue`, and `LeaveApprovalPage.vue` moved stateful logic into composables.
   - Shared employee filter panel, leave status/type helpers, and manager attendance/approval cards were added.
   - My Attendance and My Requests now use matching header date-filter toggles.
+  - Attendance, leave requests, leave approvals, leave types, and employee picker pagination now use Odoo total counts and stable Ionic infinite-scroll rearming.
+  - Manager attendance and leave approval pages now use the shared page-header pattern and centralized status badge styling.
 
-## 15. Starting Points for a Senior Engineer
+## 16. Starting Points for a Senior Engineer
 
 - `src/stores/timeoff.store.js` and `src/api/timeoff.api.js` for leave workflow logic.
 - `src/stores/user.store.js` and `src/api/user.api.js` for attendance and employee management.
@@ -243,7 +310,7 @@
 - `src/composables/useAdminAttendancePage.js` for the manager attendance flow.
 - `src/composables/useLeaveCalendarPage.js` for calendar interactions and date handling.
 
-## 16. JavaScript Function Cheat Sheet
+## 17. JavaScript Function Cheat Sheet
 
 ### Normal Function vs Arrow Function
 
@@ -276,7 +343,7 @@ export function formatDays(days) {
 const approvedRequests = requests.filter((request) => request.state === 'validate');
 ```
 
-## 17. Complete File-by-File Matrix
+## 18. Complete File-by-File Matrix
 
 ### Root / Config
 
@@ -310,8 +377,10 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | -------------------------------------------- | ---------------- | ------------------------------------------------------- | -------------------------------------------------------- |
 | `src/api/http.js`                          | API infra        | Shared CapacitorHttp helpers                            | Central JSON request helper.                             |
 | `src/api/auth.api.js`                      | Auth API         | Login/logout/session persistence helpers                | Medium-size auth boundary.                               |
-| `src/api/timeoff.api.js`                   | Leave API        | Consolidated time-off Odoo JSON-RPC implementation      | Requests, allocations, leave types, calendar, and special days live here. |
-| `src/api/user.api.js`                      | Attendance API   | Employee lookup and attendance RPCs                     | Includes personal attendance date-range filtering.       |
+| `src/api/timeoff.api.js`                   | Leave API        | Consolidated time-off Odoo JSON-RPC implementation      | Leave requests, allocations, calendar, and special days live here. |
+| `src/api/leave-type.api.js`                | Leave type API   | Leave type catalog search and CRUD                      | Paginated catalog endpoint returns `{ records, total, hasMore }`. |
+| `src/api/user.api.js`                      | Employee API     | Employee lookup and current user employee fetch         | Employee picker pagination uses Odoo total counts.       |
+| `src/api/attendance.api.js`                | Attendance API   | Attendance search/read/detail/toggle RPCs               | Paginated attendance endpoints return `{ records, total, hasMore }`. |
 
 ### Stores
 
@@ -345,7 +414,9 @@ const approvedRequests = requests.filter((request) => request.state === 'validat
 | `src/components/common/AppAsyncState.vue`       | Shared UI        | Loading/error/content wrapper            | Common async UX primitive.                           |
 | `src/components/common/AppAvatar.vue`           | Shared UI        | Avatar/initials component                | Simple reusable visual helper.                       |
 | `src/components/common/AppEmptyState.vue`       | Shared UI        | Empty state presentation                 | Shared fallback UI.                                  |
+| `src/components/common/AppPageHeader.vue`       | Shared UI        | Page title, eyebrow, back action, and header actions | Standard header for custom mobile pages.             |
 | `src/components/common/AppSkeleton.vue`         | Shared UI        | Skeleton placeholder component           | Supports loading states.                             |
+| `src/components/common/AppStatusBadge.vue`      | Shared UI        | Reusable status chip                     | Centralizes attendance and leave status colors.      |
 | `src/components/common/DateInput.vue`           | Shared form UI   | Date input abstraction                   | Reusable form control wrapper.                       |
 | `src/components/common/EmployeeFilterPanel.vue` | Shared filter UI | Employee picker plus date range controls | Used by manager attendance and leave approval pages. |
 

@@ -10,6 +10,7 @@ import {
   isNativePlatform,
   isSessionExpiredError,
 } from "@/api/auth.api";
+import { buildPaginatedResult } from "@/utils/pagination";
 
 const leaveSpecification = {
   employee_id: {
@@ -171,20 +172,6 @@ const mapLeaveRecord = (record) => ({
   state: record.state ?? "draft",
   requestUnitHalf: Boolean(record.request_unit_half),
 });
-
-const buildPaginatedResult = (response, offset, limit, mapper) => {
-  const records = (response.result?.records ?? []).map(mapper);
-  const total = response.result?.length;
-
-  return {
-    records,
-    total,
-    hasMore:
-      typeof total === "number"
-        ? offset + records.length < total
-        : records.length === limit,
-  };
-};
 
 const ensureSuccess = (response) => {
   if (response.error) {

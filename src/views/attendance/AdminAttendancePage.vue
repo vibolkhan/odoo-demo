@@ -1,122 +1,128 @@
 <template>
   <ion-page>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/tabs/profile"></ion-back-button>
-        </ion-buttons>
-        <ion-title>All Attendances</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="toggleFilters">
-            <ion-icon slot="icon-only" :icon="filterOutline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content :fullscreen="true" class="ion-padding">
+    <ion-content :fullscreen="true" class="manager-page">
       <ion-refresher slot="fixed" @ionRefresh="handleRefresh">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <EmployeeFilterPanel
-        v-if="showFilters"
-        v-model:date-from="dateFrom"
-        v-model:date-to="dateTo"
-        :employee-search="employeeSearch"
-        :employee-options="employeeOptions"
-        :selected-employees="selectedEmployees"
-        :loading-employees="loadingEmployees"
-        :show-all-employees="showAllEmployees"
-        @employee-search="onEmployeeSearch"
-        @employee-focus="onEmployeeFocus"
-        @employee-blur="onEmployeeBlur"
-        @employee-scroll="onEmployeeScroll"
-        @select-employee="selectEmployee"
-        @remove-employee="removeEmployee"
-      />
+      <section class="manager-shell">
+        <AppPageHeader
+          eyebrow="Team Attendance"
+          title="All Attendances"
+          back-href="/tabs/profile"
+        >
+          <template #actions>
+            <button
+              type="button"
+              class="app-page-header-action"
+              :class="{ active: showFilters }"
+              :aria-label="showFilters ? 'Hide filters' : 'Show filters'"
+              @click="toggleFilters"
+            >
+              <ion-icon :icon="showFilters ? closeOutline : filterOutline" />
+            </button>
+          </template>
+        </AppPageHeader>
 
-      <AppAsyncState :state="attendanceState" @retry="fetchAttendances">
-        <template #loading>
-          <!-- Summary Stats Skeleton -->
-          <div class="stats-summary stats-summary-skeleton">
-            <div v-for="i in 3" :key="`admin-attendance-stat-skeleton-${i}`" class="stat-item">
-              <AppSkeleton width="42px" height="24px" />
-              <AppSkeleton width="60px" height="12px" margin="8px 0 0" />
-            </div>
-          </div>
-          
-          <div class="record-grid">
-            <div v-for="i in 6" :key="i" class="record-card skeleton-card">
-              <div class="card-header">
-                <div class="header-left">
-                  <AppSkeleton shape="squircle" width="32px" height="32px" />
-                  <AppSkeleton width="120px" height="18px" />
-                </div>
-                <AppSkeleton width="60px" height="20px" shape="rect" />
+        <EmployeeFilterPanel
+          v-if="showFilters"
+          v-model:date-from="dateFrom"
+          v-model:date-to="dateTo"
+          :employee-search="employeeSearch"
+          :employee-options="employeeOptions"
+          :selected-employees="selectedEmployees"
+          :loading-employees="loadingEmployees"
+          :show-all-employees="showAllEmployees"
+          @employee-search="onEmployeeSearch"
+          @employee-focus="onEmployeeFocus"
+          @employee-blur="onEmployeeBlur"
+          @employee-scroll="onEmployeeScroll"
+          @select-employee="selectEmployee"
+          @remove-employee="removeEmployee"
+        />
+
+        <AppAsyncState :state="attendanceState" @retry="fetchAttendances">
+          <template #loading>
+            <!-- Summary Stats Skeleton -->
+            <div class="stats-summary stats-summary-skeleton">
+              <div v-for="i in 3" :key="`admin-attendance-stat-skeleton-${i}`" class="stat-item">
+                <AppSkeleton width="42px" height="24px" />
+                <AppSkeleton width="60px" height="12px" margin="8px 0 0" />
               </div>
-              <div class="card-body">
-                <div class="time-row">
-                  <AppSkeleton width="80px" height="14px" />
-                  <AppSkeleton width="80px" height="14px" />
+            </div>
+            
+            <div class="record-grid">
+              <div v-for="i in 6" :key="i" class="record-card skeleton-card">
+                <div class="card-header">
+                  <div class="header-left">
+                    <AppSkeleton shape="squircle" width="32px" height="32px" />
+                    <AppSkeleton width="120px" height="18px" />
+                  </div>
+                  <AppSkeleton width="60px" height="20px" shape="rect" />
                 </div>
-                <div class="stats-row">
-                  <AppSkeleton width="60px" height="24px" />
+                <div class="card-body">
+                  <div class="time-row">
+                    <AppSkeleton width="80px" height="14px" />
+                    <AppSkeleton width="80px" height="14px" />
+                  </div>
+                  <div class="stats-row">
+                    <AppSkeleton width="60px" height="24px" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <div class="attendance-list">
-          <div v-if="records.length > 0" class="stats-summary">
-            <div class="stat-item">
-              <span class="stat-value">{{ totalWorkedHours.toFixed(1) }}</span>
-              <span class="stat-label">Total Hours</span>
+          <div class="attendance-list">
+            <div v-if="records.length > 0" class="stats-summary">
+              <div class="stat-item">
+                <span class="stat-value">{{ totalWorkedHours.toFixed(1) }}</span>
+                <span class="stat-label">Total Hours</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <span class="stat-value">{{ records.length }}</span>
+                <span class="stat-label">Records</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <span class="stat-value">{{ totalOvertimeHours.toFixed(1) }}</span>
+                <span class="stat-label">OT Hours</span>
+              </div>
             </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-value">{{ records.length }}</span>
-              <span class="stat-label">Records</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-value">{{ totalOvertimeHours.toFixed(1) }}</span>
-              <span class="stat-label">OT Hours</span>
-            </div>
-          </div>
 
-          <AppEmptyState
-            v-if="records.length === 0"
-            :icon="listOutline"
-            title="No results found"
-            description="We couldn't find any attendance records matching your current filter criteria."
-            variant="slate"
-          />
-
-          <div v-else class="record-grid">
-            <AdminAttendanceCard
-              v-for="record in records"
-              :key="record.id"
-              :record="record"
-              :employee-name="getEmployeeName(record)"
-              @open="openDetail"
+            <AppEmptyState
+              v-if="records.length === 0"
+              :icon="listOutline"
+              title="No results found"
+              description="We couldn't find any attendance records matching your current filter criteria."
+              variant="slate"
             />
-          </div>
 
-          <ion-infinite-scroll
-            :key="infiniteScrollKey"
-            threshold="100px"
-            :disabled="!hasMoreAttendances"
-            @ionInfinite="loadMore"
-          >
-            <ion-infinite-scroll-content
-              loading-spinner="bubbles"
-              loading-text="Loading more attendances..."
-            />
-          </ion-infinite-scroll>
-        </div>
-      </AppAsyncState>
+            <div v-else class="record-grid">
+              <AdminAttendanceCard
+                v-for="record in records"
+                :key="record.id"
+                :record="record"
+                :employee-name="getEmployeeName(record)"
+                @open="openDetail"
+              />
+            </div>
+
+            <ion-infinite-scroll
+              :key="infiniteScrollKey"
+              threshold="100px"
+              :disabled="!hasMoreAttendances"
+              @ionInfinite="loadMore"
+            >
+              <ion-infinite-scroll-content
+                loading-spinner="bubbles"
+                loading-text="Loading more attendances..."
+              />
+            </ion-infinite-scroll>
+          </div>
+        </AppAsyncState>
+      </section>
     </ion-content>
   </ion-page>
 </template>
@@ -124,26 +130,22 @@
 <script setup>
 import {
   IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
-  IonButtons,
-  IonBackButton,
   IonRefresher,
   IonRefresherContent,
   IonIcon,
-  IonButton,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
 } from "@ionic/vue";
 import {
   listOutline,
   filterOutline,
+  closeOutline,
 } from "ionicons/icons";
 import AppSkeleton from "@/components/common/AppSkeleton.vue";
 import AppEmptyState from "@/components/common/AppEmptyState.vue";
 import AppAsyncState from "@/components/common/AppAsyncState.vue";
+import AppPageHeader from "@/components/common/AppPageHeader.vue";
 import EmployeeFilterPanel from "@/components/common/EmployeeFilterPanel.vue";
 import AdminAttendanceCard from "@/components/attendance/AdminAttendanceCard.vue";
 import { useAdminAttendancePage } from "@/composables/useAdminAttendancePage";
@@ -180,6 +182,24 @@ const {
 </script>
 
 <style scoped>
+.manager-page {
+  --background: var(--app-bg);
+  background-image: radial-gradient(
+    circle at top left,
+    rgba(46, 102, 219, 0.12),
+    transparent 34%
+  );
+  --padding-top: calc(env(safe-area-inset-top) + 18px);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 110px);
+}
+
+.manager-shell {
+  display: grid;
+  gap: 16px;
+}
+
 .attendance-list {
   padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
@@ -208,9 +228,9 @@ const {
 
 .record-card {
   background: var(--card-bg);
-  border-radius: 16px;
+  border-radius: var(--radius-list-card);
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -239,24 +259,6 @@ const {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
-}
-
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.status-badge.checked-in {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.status-badge.checked-out {
-  background: var(--border-color);
-  color: var(--text-secondary);
 }
 
 .card-body {
@@ -322,10 +324,9 @@ const {
 /* Filter Styles */
 .filter-panel {
   background: var(--card-bg);
-  border-radius: 20px;
+  border-radius: var(--radius-summary-card);
   padding: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -468,14 +469,14 @@ ion-button {
 /* Stats Summary */
 .stats-summary {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  border-radius: 20px;
+  border-radius: var(--radius-summary-card);
   padding: 20px;
   display: flex;
   justify-content: space-around;
   align-items: center;
   color: white;
   box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .stats-summary-skeleton {

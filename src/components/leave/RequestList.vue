@@ -1,6 +1,9 @@
 <template>
   <div class="request-list-shell">
-    <section class="filter-strip" aria-label="Request filters">
+    <section
+      class="filter-strip"
+      aria-label="Request filters"
+    >
       <button
         v-for="filter in filters"
         :key="filter.id"
@@ -25,14 +28,21 @@
           placeholder="Start Date"
         />
 
-        <DateInput v-model="dateToFilter" label="To" placeholder="End Date" />
+        <DateInput
+          v-model="dateToFilter"
+          label="To"
+          placeholder="End Date"
+        />
       </div>
 
       <div
         v-if="dateFromFilter || dateToFilter"
         class="filter-actions"
       >
-        <ion-button fill="clear" size="small" @click="resetFilters"
+        <ion-button
+          fill="clear"
+          size="small"
+          @click="resetFilters"
           >Reset Filters</ion-button
         >
       </div>
@@ -45,13 +55,31 @@
       {{ error.leaveRequests || error.companyLeaveRequests }}
     </p>
 
-    <div v-if="showSkeleton" class="month-stack">
-      <div v-for="i in 5" :key="i" class="request-card skeleton-card">
+    <div
+      v-if="showSkeleton"
+      class="month-stack"
+    >
+      <div
+        v-for="i in 5"
+        :key="i"
+        class="request-card skeleton-card"
+      >
         <div class="card-main">
-          <AppSkeleton shape="squircle" width="52px" height="52px" />
+          <AppSkeleton
+            shape="squircle"
+            width="52px"
+            height="52px"
+          />
           <div class="request-copy">
-            <AppSkeleton width="60%" height="18px" />
-            <AppSkeleton width="40%" height="14px" margin="8px 0 0" />
+            <AppSkeleton
+              width="60%"
+              height="18px"
+            />
+            <AppSkeleton
+              width="40%"
+              height="14px"
+              margin="8px 0 0"
+            />
           </div>
         </div>
       </div>
@@ -61,9 +89,15 @@
       v-else-if="error.leaveRequests || error.companyLeaveRequests"
       class="state-card error"
     >
-      <ion-icon :icon="alertCircleOutline" aria-hidden="true" />
+      <ion-icon
+        :icon="alertCircleOutline"
+        aria-hidden="true"
+      />
       <p>{{ error.leaveRequests || error.companyLeaveRequests }}</p>
-      <ion-button fill="outline" @click="loadLeaveRequests">
+      <ion-button
+        fill="outline"
+        @click="loadLeaveRequests"
+      >
         Try Again
       </ion-button>
     </div>
@@ -76,7 +110,10 @@
       variant="purple"
     />
 
-    <section v-else class="request-list">
+    <section
+      v-else
+      class="request-list"
+    >
       <section
         v-for="group in groupedRequests"
         :key="group.key"
@@ -99,7 +136,10 @@
             @keydown.space.prevent="openRequestDetail(request)"
           >
             <div class="card-main">
-              <div class="type-tile" :class="tileTone(request.leaveType)">
+              <div
+                class="type-tile"
+                :class="tileTone(request.leaveType)"
+              >
                 <ion-icon
                   :icon="requestTypeIcon(request.leaveType)"
                   aria-hidden="true"
@@ -117,7 +157,10 @@
                     >
                   </div>
 
-                  <span class="status-pill" :class="badgeClass(request.state)">
+                  <span
+                    class="status-pill"
+                    :class="badgeClass(request.state)"
+                  >
                     {{ formatStateLabel(request.state) }}
                   </span>
                 </div>
@@ -166,21 +209,21 @@ import {
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-} from "@ionic/vue";
+} from '@ionic/vue'
 import {
   alertCircleOutline,
   chevronForwardOutline,
   fileTrayOutline,
-} from "ionicons/icons";
-import DateInput from "@/components/common/DateInput.vue";
-import { computed, onMounted, ref, watch } from "vue";
-import { storeToRefs } from "pinia";
-import LeaveRequestDetailModal from "@/components/leave/LeaveRequestDetailModal.vue";
-import { useUserStore } from "@/stores/user.store";
-import { useTimeoffStore } from "@/stores/timeoff.store";
-import AppSkeleton from "@/components/common/AppSkeleton.vue";
-import AppEmptyState from "@/components/common/AppEmptyState.vue";
-import { useMinimumSkeleton } from "@/composables/useMinimumSkeleton";
+} from 'ionicons/icons'
+import DateInput from '@/components/common/DateInput.vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import LeaveRequestDetailModal from '@/components/leave/LeaveRequestDetailModal.vue'
+import { useUserStore } from '@/stores/user.store'
+import { useTimeoffStore } from '@/stores/timeoff.store'
+import AppSkeleton from '@/components/common/AppSkeleton.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
+import { useMinimumSkeleton } from '@/composables/useMinimumSkeleton'
 import {
   formatLeaveStateLabel as formatStateLabel,
   getLeaveStatusClass as badgeClass,
@@ -189,115 +232,109 @@ import {
   leaveTypeTone as tileTone,
   matchesLeaveStatusFilter,
   requestTypeIcon,
-} from "@/utils/leave";
+} from '@/utils/leave'
 
 const props = defineProps({
   isManagerMode: Boolean,
   showFilters: Boolean,
-});
+})
 
-const emit = defineEmits(["summaryChange"]);
+const emit = defineEmits(['summaryChange'])
 
-const userStore = useUserStore();
-const timeoffStore = useTimeoffStore();
-const {
-  leaveRequests,
-  companyLeaveRequests,
-  loading,
-  error,
-} = storeToRefs(timeoffStore);
-const { currentEmployee: currentUserEmployee } = storeToRefs(userStore);
-const activeFilter = ref(props.isManagerMode ? "pending" : "all");
+const userStore = useUserStore()
+const timeoffStore = useTimeoffStore()
+const { leaveRequests, companyLeaveRequests, loading, error } =
+  storeToRefs(timeoffStore)
+const { currentEmployee: currentUserEmployee } = storeToRefs(userStore)
+const activeFilter = ref(props.isManagerMode ? 'pending' : 'all')
 
-const dateFromFilter = ref("");
-const dateToFilter = ref("");
+const dateFromFilter = ref('')
+const dateToFilter = ref('')
 
-const isDetailModalOpen = ref(false);
-const selectedRequest = ref(null);
+const isDetailModalOpen = ref(false)
+const selectedRequest = ref(null)
 
-const pageSize = 10;
-const isLoadingMore = ref(false);
-const infiniteScrollKey = ref(0);
+const pageSize = 10
+const isLoadingMore = ref(false)
+const infiniteScrollKey = ref(0)
 
-const filters = computed(
-  () => [
-    { id: "all", label: props.isManagerMode ? "All Employee" : "All History" },
-    { id: "pending", label: "Pending" },
-    { id: "approved", label: "Approved" },
-    { id: "rejected", label: "Rejected" },
-  ],
-);
+const filters = computed(() => [
+  { id: 'all', label: props.isManagerMode ? 'All Employee' : 'All History' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'approved', label: 'Approved' },
+  { id: 'rejected', label: 'Rejected' },
+])
 
 const requestRecords = computed(() =>
   props.isManagerMode ? companyLeaveRequests.value : leaveRequests.value,
-);
+)
 
 const isRequestsLoading = computed(() =>
   props.isManagerMode
     ? loading.value.companyLeaveRequests
     : loading.value.leaveRequests,
-);
+)
 const isInitialRequestsLoading = computed(
   () => isRequestsLoading.value && requestRecords.value.length === 0,
-);
-const { showSkeleton } = useMinimumSkeleton(isInitialRequestsLoading, 1000);
+)
+const { showSkeleton } = useMinimumSkeleton(isInitialRequestsLoading, 1000)
 const hasMoreRequests = computed(() =>
   props.isManagerMode
     ? timeoffStore.companyLeaveRequestPagination.hasMore
     : timeoffStore.leaveRequestPagination.hasMore,
-);
-const showDateFilters = computed(() => props.showFilters);
+)
+const showDateFilters = computed(() => props.showFilters)
 
 const statusFilteredRequests = computed(() =>
   requestRecords.value.filter((request) =>
     matchesLeaveStatusFilter(request, activeFilter.value),
   ),
-);
+)
 
 const displayedRequests = computed(() => {
-  const startBoundary = parseFilterDate(dateFromFilter.value);
-  const endBoundary = parseFilterDate(dateToFilter.value);
+  const startBoundary = parseFilterDate(dateFromFilter.value)
+  const endBoundary = parseFilterDate(dateToFilter.value)
 
   return statusFilteredRequests.value.filter((request) => {
-    const requestStart = parseRequestDate(request.dateFrom);
-    const requestEnd = parseRequestDate(request.dateTo) ?? requestStart;
+    const requestStart = parseRequestDate(request.dateFrom)
+    const requestEnd = parseRequestDate(request.dateTo) ?? requestStart
 
     if ((startBoundary || endBoundary) && (!requestStart || !requestEnd)) {
-      return false;
+      return false
     }
 
     if (startBoundary && requestEnd && requestEnd < startBoundary) {
-      return false;
+      return false
     }
 
     if (endBoundary && requestStart && requestStart > endBoundary) {
-      return false;
+      return false
     }
 
-    return true;
-  });
-});
+    return true
+  })
+})
 
 const groupedRequests = computed(() => {
-  const groups = new Map();
+  const groups = new Map()
 
   for (const request of displayedRequests.value) {
-    const date = parseRequestDate(request.dateFrom);
+    const date = parseRequestDate(request.dateFrom)
 
     const key = date
-      ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
-      : "unknown";
+      ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      : 'unknown'
 
     const label = date
-      ? new Intl.DateTimeFormat("en-US", {
-          month: "long",
-          year: "numeric",
+      ? new Intl.DateTimeFormat('en-US', {
+          month: 'long',
+          year: 'numeric',
         }).format(date)
-      : "Unknown Date";
+      : 'Unknown Date'
 
     const sortValue = date
       ? new Date(date.getFullYear(), date.getMonth(), 1).getTime()
-      : 0;
+      : 0
 
     if (!groups.has(key)) {
       groups.set(key, {
@@ -305,10 +342,10 @@ const groupedRequests = computed(() => {
         label,
         sortValue,
         requests: [],
-      });
+      })
     }
 
-    groups.get(key)?.requests.push(request);
+    groups.get(key)?.requests.push(request)
   }
 
   return [...groups.values()]
@@ -318,43 +355,44 @@ const groupedRequests = computed(() => {
       requests: [...group.requests].sort(
         (a, b) => getRequestSortValue(b) - getRequestSortValue(a),
       ),
-    }));
-});
+    }))
+})
 
 const requestSummary = computed(() => ({
   total: requestRecords.value.length,
-  pending: requestRecords.value.filter((request) => request.state === "confirm")
+  pending: requestRecords.value.filter((request) => request.state === 'confirm')
     .length,
-  review: requestRecords.value.filter((request) => request.state === "validate1")
-    .length,
-}));
+  review: requestRecords.value.filter(
+    (request) => request.state === 'validate1',
+  ).length,
+}))
 
 const loadLeaveRequests = async () => {
   try {
     if (props.isManagerMode) {
-      await timeoffStore.fetchCompanyLeaveRequests({ limit: pageSize }, true);
+      await timeoffStore.fetchCompanyLeaveRequests({ limit: pageSize }, true)
     } else {
-      await timeoffStore.fetchLeaveRequests({ limit: pageSize }, true);
+      await timeoffStore.fetchLeaveRequests({ limit: pageSize }, true)
     }
-    infiniteScrollKey.value += 1;
+    infiniteScrollKey.value += 1
   } finally {
     if (selectedRequest.value) {
       selectedRequest.value =
         requestRecords.value.find((r) => r.id === selectedRequest.value?.id) ||
-        null;
+        null
     }
   }
-};
+}
 
 const loadMoreRequests = async (event) => {
-  const infiniteScroll = event.target;
+  const infiniteScroll = event.target
 
   if (isLoadingMore.value || !hasMoreRequests.value) {
-    await infiniteScroll?.complete();
-    return;
+    await infiniteScroll?.complete()
+    return
   }
 
-  isLoadingMore.value = true;
+  isLoadingMore.value = true
 
   try {
     if (props.isManagerMode) {
@@ -364,7 +402,7 @@ const loadMoreRequests = async (event) => {
           offset: timeoffStore.companyLeaveRequestPagination.offset,
         },
         false,
-      );
+      )
     } else {
       await timeoffStore.fetchLeaveRequests(
         {
@@ -372,95 +410,95 @@ const loadMoreRequests = async (event) => {
           offset: timeoffStore.leaveRequestPagination.offset,
         },
         false,
-      );
+      )
     }
   } finally {
-    isLoadingMore.value = false;
-    await infiniteScroll?.complete();
+    isLoadingMore.value = false
+    await infiniteScroll?.complete()
   }
-};
+}
 
 const resetFilters = () => {
-  dateFromFilter.value = "";
-  dateToFilter.value = "";
-};
+  dateFromFilter.value = ''
+  dateToFilter.value = ''
+}
 
 const openRequestDetail = (request) => {
-  selectedRequest.value = request;
-  isDetailModalOpen.value = true;
-};
+  selectedRequest.value = request
+  isDetailModalOpen.value = true
+}
 
 const openRequestDetailById = (requestId) => {
   const matchedRequest = requestRecords.value.find(
     (request) => request.id === requestId,
-  );
+  )
 
   if (!matchedRequest) {
-    return false;
+    return false
   }
 
-  openRequestDetail(matchedRequest);
-  return true;
-};
+  openRequestDetail(matchedRequest)
+  return true
+}
 
 const closeRequestDetail = () => {
-  isDetailModalOpen.value = false;
-  selectedRequest.value = null;
-};
+  isDetailModalOpen.value = false
+  selectedRequest.value = null
+}
 
 const formatDate = (value) => {
-  const date = parseRequestDate(value);
+  const date = parseRequestDate(value)
 
-  if (!date) return value || "-";
+  if (!date) return value || '-'
 
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-};
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
+}
 
 const formatDateRange = (start, end) => {
-  const startLabel = formatDate(start);
-  const endLabel = formatDate(end);
+  const startLabel = formatDate(start)
+  const endLabel = formatDate(end)
 
-  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
-};
+  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`
+}
 
 const parseRequestDate = (value) => {
-  if (!value) return null;
-  const normalizedValue = value.includes(" ") ? value.replace(" ", "T") : value;
-  const date = new Date(normalizedValue);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+  if (!value) return null
+  const normalizedValue = value.includes(' ') ? value.replace(' ', 'T') : value
+  const date = new Date(normalizedValue)
+  return Number.isNaN(date.getTime()) ? null : date
+}
 
 const parseFilterDate = (value) => {
-  if (!value) return null;
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+  if (!value) return null
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
 
 const getRequestSortValue = (request) =>
-  parseRequestDate(request.dateFrom)?.getTime() ?? 0;
+  parseRequestDate(request.dateFrom)?.getTime() ?? 0
 
 onMounted(async () => {
-  void loadLeaveRequests();
-  await userStore.fetchCurrentEmployee({ force: true });
-});
+  void loadLeaveRequests()
+  await userStore.fetchCurrentEmployee({ force: true })
+})
 
 watch(
   requestSummary,
   (summary) => {
-    emit("summaryChange", summary);
+    emit('summaryChange', summary)
   },
   { immediate: true },
-);
+)
 
 defineExpose({
   loadLeaveRequests,
   loadMoreRequests,
   openRequestDetailById,
-});
+})
 </script>
 
 <style scoped>
@@ -535,7 +573,7 @@ defineExpose({
 
 .month-group {
   display: grid;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .month-head {
@@ -551,6 +589,7 @@ defineExpose({
   font-weight: 900;
   color: var(--text-primary);
   letter-spacing: -0.02em;
+  margin-top: 1rem;
 }
 
 .month-head p:last-child {
@@ -561,6 +600,7 @@ defineExpose({
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding-bottom: 3px;
+  margin-top: 1rem;
 }
 
 .month-stack {
@@ -660,10 +700,22 @@ defineExpose({
   letter-spacing: 0.05em;
 }
 
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-review { background: #e0f2fe; color: #075985; }
-.status-approved { background: #dcfce7; color: #166534; }
-.status-refused { background: #fee2e2; color: #991b1b; }
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.status-review {
+  background: #e0f2fe;
+  color: #075985;
+}
+.status-approved {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-refused {
+  background: #fee2e2;
+  color: #991b1b;
+}
 
 .card-chevron {
   font-size: 1.1rem;

@@ -5,9 +5,10 @@
         <h3>{{ getLeaveTypeEnglishName(request.leaveType) }}</h3>
         <span class="employee-name">{{ request.employeeName }}</span>
       </div>
-      <span class="status-badge" :class="getLeaveStatusClass(request.state)">
-        {{ formatLeaveStateLabel(request.state) }}
-      </span>
+      <AppStatusBadge
+        :label="formatLeaveStateLabel(request.state)"
+        :tone="statusTone"
+      />
     </div>
 
     <div class="card-body">
@@ -26,13 +27,14 @@
 <script setup>
 import { IonIcon } from "@ionic/vue";
 import { calendarOutline } from "ionicons/icons";
+import { computed } from "vue";
+import AppStatusBadge from "@/components/common/AppStatusBadge.vue";
 import {
   formatLeaveStateLabel,
-  getLeaveStatusClass,
   getLeaveTypeEnglishName,
 } from "@/utils/leave";
 
-defineProps({
+const props = defineProps({
   request: {
     type: Object,
     required: true,
@@ -44,14 +46,21 @@ defineProps({
 });
 
 defineEmits(["open"]);
+
+const statusTone = computed(() => {
+  if (props.request.state === "validate") return "approved";
+  if (props.request.state === "validate1") return "review";
+  if (props.request.state === "refuse") return "refused";
+  return "pending";
+});
 </script>
 
 <style scoped>
 .record-card {
   background: var(--card-bg);
-  border-radius: 20px;
+  border-radius: var(--radius-list-card);
   padding: 18px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: transform 0.2s ease;
@@ -79,34 +88,6 @@ defineEmits(["open"]);
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-weight: 600;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.status-pending {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-
-.status-review {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.status-approved {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-
-.status-refused {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
 }
 
 .card-body {

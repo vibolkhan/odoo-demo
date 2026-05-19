@@ -5,12 +5,10 @@
         <AppAvatar :name="employeeName" :size="32" variant="slate" />
         <h3>{{ employeeName }}</h3>
       </div>
-      <span
-        class="status-badge"
-        :class="record.check_out ? 'checked-out' : 'checked-in'"
-      >
-        {{ record.check_out ? "Completed" : "Working" }}
-      </span>
+      <AppStatusBadge
+        :label="record.check_out ? 'Completed' : 'Working'"
+        :tone="record.check_out ? 'completed' : 'working'"
+      />
     </div>
 
     <div class="card-body">
@@ -42,6 +40,7 @@
 import { IonIcon } from "@ionic/vue";
 import { timeOutline } from "ionicons/icons";
 import AppAvatar from "@/components/common/AppAvatar.vue";
+import AppStatusBadge from "@/components/common/AppStatusBadge.vue";
 import {
   formatDisplayDateTime as formatDateTime,
   formatHours,
@@ -64,9 +63,9 @@ defineEmits(["open"]);
 <style scoped>
 .record-card {
   background: var(--card-bg);
-  border-radius: 16px;
+  border-radius: var(--radius-list-card);
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -95,24 +94,6 @@ defineEmits(["open"]);
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
-}
-
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.status-badge.checked-in {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.status-badge.checked-out {
-  background: var(--border-color);
-  color: var(--text-secondary);
 }
 
 .card-body {

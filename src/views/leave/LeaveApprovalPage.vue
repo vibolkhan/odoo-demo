@@ -1,106 +1,111 @@
 <template>
   <ion-page>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/tabs/profile"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Leave Approvals</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="toggleFilters">
-            <ion-icon slot="icon-only" :icon="filterOutline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content :fullscreen="true" class="ion-padding">
+    <ion-content :fullscreen="true" class="manager-page">
       <ion-refresher slot="fixed" @ionRefresh="handleRefresh">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <EmployeeFilterPanel
-        v-if="showFilters"
-        v-model:date-from="dateFrom"
-        v-model:date-to="dateTo"
-        :employee-search="employeeSearch"
-        :employee-options="employeeOptions"
-        :selected-employees="selectedEmployees"
-        :loading-employees="loadingEmployees"
-        :show-all-employees="showAllEmployees"
-        @employee-search="onEmployeeSearch"
-        @employee-focus="onEmployeeFocus"
-        @employee-blur="onEmployeeBlur"
-        @employee-scroll="onEmployeeScroll"
-        @select-employee="selectEmployee"
-        @remove-employee="removeEmployee"
-      />
-
-      <!-- Summary Stats -->
-      <div v-if="showSkeleton" class="stats-summary stats-summary-skeleton">
-        <div
-          v-for="i in 3"
-          :key="`leave-approval-stat-skeleton-${i}`"
-          class="stat-item"
+      <section class="manager-shell">
+        <AppPageHeader
+          eyebrow="Team Leave"
+          title="Leave Approvals"
+          back-href="/tabs/profile"
         >
-          <AppSkeleton width="42px" height="24px" />
-          <AppSkeleton width="56px" height="12px" margin="8px 0 0" />
-        </div>
-      </div>
+          <template #actions>
+            <button
+              type="button"
+              class="app-page-header-action"
+              :class="{ active: showFilters }"
+              :aria-label="showFilters ? 'Hide filters' : 'Show filters'"
+              @click="toggleFilters"
+            >
+              <ion-icon :icon="showFilters ? closeOutline : filterOutline" />
+            </button>
+          </template>
+        </AppPageHeader>
 
-      <div v-else-if="!loading" class="stats-summary">
-        <div class="stat-item">
-          <span class="stat-value">{{ filteredRequests.length }}</span>
-          <span class="stat-label">Total</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ pendingCount }}</span>
-          <span class="stat-label">Pending</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ reviewCount }}</span>
-          <span class="stat-label">Review</span>
-        </div>
-      </div>
+        <EmployeeFilterPanel
+          v-if="showFilters"
+          v-model:date-from="dateFrom"
+          v-model:date-to="dateTo"
+          :employee-search="employeeSearch"
+          :employee-options="employeeOptions"
+          :selected-employees="selectedEmployees"
+          :loading-employees="loadingEmployees"
+          :show-all-employees="showAllEmployees"
+          @employee-search="onEmployeeSearch"
+          @employee-focus="onEmployeeFocus"
+          @employee-blur="onEmployeeBlur"
+          @employee-scroll="onEmployeeScroll"
+          @select-employee="selectEmployee"
+          @remove-employee="removeEmployee"
+        />
 
-      <!-- Status Quick Filter -->
-      <div class="status-tabs">
-        <button
-          v-for="status in statusFilters"
-          :key="status.id"
-          class="status-tab"
-          :class="{ active: activeStatus === status.id }"
-          @click="activeStatus = status.id"
-        >
-          {{ status.label }}
-        </button>
-      </div>
-
-      <div class="request-list">
-        <div v-if="showSkeleton" class="record-grid">
-          <div v-for="i in 5" :key="i" class="record-card skeleton-card">
-            <div class="card-header">
-              <div class="type-info">
-                <AppSkeleton width="120px" height="18px" />
-                <AppSkeleton width="80px" height="14px" margin="6px 0 0" />
-              </div>
-              <AppSkeleton width="60px" height="22px" shape="rect" />
-            </div>
-            <div class="card-body">
-              <AppSkeleton width="160px" height="14px" />
-              <AppSkeleton width="40px" height="24px" margin="8px 0 0" />
-            </div>
+        <!-- Summary Stats -->
+        <div v-if="showSkeleton" class="stats-summary stats-summary-skeleton">
+          <div
+            v-for="i in 3"
+            :key="`leave-approval-stat-skeleton-${i}`"
+            class="stat-item"
+          >
+            <AppSkeleton width="42px" height="24px" />
+            <AppSkeleton width="56px" height="12px" margin="8px 0 0" />
           </div>
         </div>
 
-        <div v-else-if="finalRequests.length === 0" class="empty-state">
-          <ion-icon :icon="fileTrayOutline"></ion-icon>
-          <p>No leave requests found.</p>
+        <div v-else-if="!loading" class="stats-summary">
+          <div class="stat-item">
+            <span class="stat-value">{{ filteredRequests.length }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ pendingCount }}</span>
+            <span class="stat-label">Pending</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ reviewCount }}</span>
+            <span class="stat-label">Review</span>
+          </div>
         </div>
 
-        <div v-else class="record-grid">
+        <!-- Status Quick Filter -->
+        <div class="status-tabs">
+          <button
+            v-for="status in statusFilters"
+            :key="status.id"
+            class="status-tab"
+            :class="{ active: activeStatus === status.id }"
+            @click="activeStatus = status.id"
+          >
+            {{ status.label }}
+          </button>
+        </div>
+
+        <div class="request-list">
+          <div v-if="showSkeleton" class="record-grid">
+            <div v-for="i in 5" :key="i" class="record-card skeleton-card">
+              <div class="card-header">
+                <div class="type-info">
+                  <AppSkeleton width="120px" height="18px" />
+                  <AppSkeleton width="80px" height="14px" margin="6px 0 0" />
+                </div>
+                <AppSkeleton width="60px" height="22px" shape="rect" />
+              </div>
+              <div class="card-body">
+                <AppSkeleton width="160px" height="14px" />
+                <AppSkeleton width="40px" height="24px" margin="8px 0 0" />
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="finalRequests.length === 0" class="empty-state">
+            <ion-icon :icon="fileTrayOutline"></ion-icon>
+            <p>No leave requests found.</p>
+          </div>
+
+          <div v-else class="record-grid">
             <LeaveApprovalCard
               v-for="request in finalRequests"
               :key="request.id"
@@ -108,20 +113,21 @@
               :format-date-range="formatDateRange"
               @open="openDetail"
             />
-        </div>
+          </div>
 
-        <ion-infinite-scroll
-          :key="infiniteScrollKey"
-          threshold="100px"
-          :disabled="!hasMoreRequests"
-          @ionInfinite="loadMore"
-        >
-          <ion-infinite-scroll-content
-            loading-spinner="bubbles"
-            loading-text="Loading more requests..."
-          />
-        </ion-infinite-scroll>
-      </div>
+          <ion-infinite-scroll
+            :key="infiniteScrollKey"
+            threshold="100px"
+            :disabled="!hasMoreRequests"
+            @ionInfinite="loadMore"
+          >
+            <ion-infinite-scroll-content
+              loading-spinner="bubbles"
+              loading-text="Loading more requests..."
+            />
+          </ion-infinite-scroll>
+        </div>
+      </section>
     </ion-content>
 
     <LeaveRequestDetailModal
@@ -137,25 +143,21 @@
 <script setup>
 import {
   IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
-  IonButtons,
-  IonBackButton,
   IonRefresher,
   IonRefresherContent,
   IonIcon,
-  IonButton,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
 } from "@ionic/vue";
 import {
   filterOutline,
+  closeOutline,
   fileTrayOutline,
 } from "ionicons/icons";
 import LeaveRequestDetailModal from "@/components/leave/LeaveRequestDetailModal.vue";
 import AppSkeleton from "@/components/common/AppSkeleton.vue";
+import AppPageHeader from "@/components/common/AppPageHeader.vue";
 import EmployeeFilterPanel from "@/components/common/EmployeeFilterPanel.vue";
 import LeaveApprovalCard from "@/components/leave/LeaveApprovalCard.vue";
 import { useLeaveApprovalsPage } from "@/composables/useLeaveApprovalsPage";
@@ -199,6 +201,24 @@ const {
 </script>
 
 <style scoped>
+.manager-page {
+  --background: var(--app-bg);
+  background-image: radial-gradient(
+    circle at top left,
+    rgba(46, 102, 219, 0.12),
+    transparent 34%
+  );
+  --padding-top: calc(env(safe-area-inset-top) + 18px);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 110px);
+}
+
+.manager-shell {
+  display: grid;
+  gap: 16px;
+}
+
 .request-list {
   padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
@@ -227,9 +247,9 @@ const {
 
 .record-card {
   background: var(--card-bg);
-  border-radius: 20px;
+  border-radius: var(--radius-list-card);
   padding: 18px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: transform 0.2s ease;
@@ -257,31 +277,6 @@ const {
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-weight: 600;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.status-pending {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-.status-review {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-.status-approved {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-.status-refused {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
 }
 
 .card-body {
@@ -316,10 +311,9 @@ const {
 /* Filter Styles */
 .filter-panel {
   background: var(--card-bg);
-  border-radius: 24px;
+  border-radius: var(--radius-summary-card);
   padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -418,14 +412,14 @@ const {
 /* Stats Summary */
 .stats-summary {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  border-radius: 24px;
+  border-radius: var(--radius-summary-card);
   padding: 24px;
   display: flex;
   justify-content: space-around;
   align-items: center;
   color: white;
   box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25);
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 .stats-summary-skeleton {

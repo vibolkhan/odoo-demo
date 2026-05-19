@@ -10,6 +10,7 @@ import {
   isNativePlatform,
   isSessionExpiredError,
 } from "@/api/auth.api";
+import { buildPaginatedResult } from "@/utils/pagination";
 
 const employeeSpecification = {
   name: {},
@@ -244,17 +245,7 @@ export const fetchEmployees = async (userId, options = {}) => {
     throw new Error(response.error.data?.message || response.error.message);
   }
 
-  const records = (response.result?.records ?? []).map(mapEmployeeRecord);
-  const total = response.result?.length;
-
-  return {
-    records,
-    total,
-    hasMore:
-      typeof total === "number"
-        ? offset + records.length < total
-        : records.length === limit,
-  };
+  return buildPaginatedResult(response, offset, limit, mapEmployeeRecord);
 };
 
 export const fetchCurrentUserEmployee = async (userId) => {

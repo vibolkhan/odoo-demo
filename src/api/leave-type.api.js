@@ -10,6 +10,7 @@ import {
   isNativePlatform,
   isSessionExpiredError,
 } from "@/api/auth.api";
+import { buildPaginatedResult } from "@/utils/pagination";
 
 const leaveTypeSpecification = {
   sequence: {},
@@ -56,20 +57,6 @@ const mapLeaveTypeRecord = (record) => ({
   id: record.id,
   name: record.display_name ?? "",
 });
-
-const buildPaginatedResult = (response, offset, limit) => {
-  const records = (response.result?.records ?? []).map(mapLeaveTypeRecord);
-  const total = response.result?.length;
-
-  return {
-    records,
-    total,
-    hasMore:
-      typeof total === "number"
-        ? offset + records.length < total
-        : records.length === limit,
-  };
-};
 
 export const fetchLeaveTypes = async (userId, options = {}) => {
   const storedUserId = getRequiredUserId(userId);
@@ -236,7 +223,7 @@ export const fetchLeaveTypeCatalog = async (userId, options = {}) => {
 
   ensureSuccess(response);
 
-  return buildPaginatedResult(response, offset, limit);
+  return buildPaginatedResult(response, offset, limit, mapLeaveTypeRecord);
 };
 
 export const createLeaveType = async (userId, input) => {
