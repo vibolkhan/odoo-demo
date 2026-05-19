@@ -22,6 +22,9 @@ export function useAdminAttendancePage() {
   const dateFrom = ref("");
   const dateTo = ref("");
   const isMyTeam = ref(false);
+  const hasMoreAttendances = computed(
+    () => userStore.allAttendancePagination.hasMore,
+  );
 
   const totalWorkedHours = computed(() =>
     records.value.reduce((sum, record) => sum + (record.worked_hours || 0), 0),
@@ -90,7 +93,7 @@ export function useAdminAttendancePage() {
   const loadMore = async (event) => {
     const infiniteScroll = event.target;
 
-    if (isLoadingMore.value || !userStore.allAttendancePagination.hasMore) {
+    if (isLoadingMore.value || !hasMoreAttendances.value) {
       await infiniteScroll?.complete();
       return;
     }
@@ -154,10 +157,10 @@ export function useAdminAttendancePage() {
   });
 
   return {
-    userStore,
     records,
     isLoadingMore,
     infiniteScrollKey,
+    hasMoreAttendances,
     showFilters,
     dateFrom,
     dateTo,

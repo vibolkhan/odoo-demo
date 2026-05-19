@@ -188,7 +188,7 @@
         <ion-infinite-scroll
           :key="infiniteScrollKey"
           threshold="100px"
-          :disabled="!userStore.myAttendancePagination.hasMore || isLoadingMore"
+          :disabled="!userStore.myAttendancePagination.hasMore"
           @ionInfinite="loadMore"
         >
           <ion-infinite-scroll-content

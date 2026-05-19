@@ -31,7 +31,7 @@ export function useEmployeePicker(userStore, options = {}) {
 
       employeeOptions.value = [...employeeOptions.value, ...result.records];
       hasMoreEmployees.value = result.hasMore;
-      employeeOffset.value += pageSize;
+      employeeOffset.value += result.records.length;
       showAllEmployees.value = !employeeSearch.value;
     } catch (error) {
       console.error("Error loading employees:", error);

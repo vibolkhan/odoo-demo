@@ -172,6 +172,20 @@ const mapLeaveRecord = (record) => ({
   requestUnitHalf: Boolean(record.request_unit_half),
 });
 
+const buildPaginatedResult = (response, offset, limit, mapper) => {
+  const records = (response.result?.records ?? []).map(mapper);
+  const total = response.result?.length;
+
+  return {
+    records,
+    total,
+    hasMore:
+      typeof total === "number"
+        ? offset + records.length < total
+        : records.length === limit,
+  };
+};
+
 const ensureSuccess = (response) => {
   if (response.error) {
     throw new Error(response.error.data?.message || response.error.message);
@@ -246,7 +260,7 @@ export const fetchLeaveRequests = async (userId, options = {}) => {
 
   ensureSuccess(response);
 
-  return (response.result?.records ?? []).map(mapLeaveRecord);
+  return buildPaginatedResult(response, offset, limit, mapLeaveRecord);
 };
 
 export const fetchCompanyLeaveRequests = async (userId, options = {}) => {
@@ -316,7 +330,7 @@ export const fetchCompanyLeaveRequests = async (userId, options = {}) => {
 
   ensureSuccess(response);
 
-  return (response.result?.records ?? []).map(mapLeaveRecord);
+  return buildPaginatedResult(response, offset, limit, mapLeaveRecord);
 };
 
 export const saveLeaveRequest = async (userId, input) => {

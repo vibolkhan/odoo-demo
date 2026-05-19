@@ -107,7 +107,7 @@
           <ion-infinite-scroll
             :key="infiniteScrollKey"
             threshold="100px"
-            :disabled="!userStore.allAttendancePagination.hasMore || isLoadingMore"
+            :disabled="!hasMoreAttendances"
             @ionInfinite="loadMore"
           >
             <ion-infinite-scroll-content
@@ -149,10 +149,10 @@ import AdminAttendanceCard from "@/components/attendance/AdminAttendanceCard.vue
 import { useAdminAttendancePage } from "@/composables/useAdminAttendancePage";
 
 const {
-  userStore,
   records,
   isLoadingMore,
   infiniteScrollKey,
+  hasMoreAttendances,
   showFilters,
   dateFrom,
   dateTo,

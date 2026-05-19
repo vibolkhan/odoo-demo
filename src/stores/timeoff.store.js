@@ -49,6 +49,10 @@ export const useTimeoffStore = defineStore("timeoff", {
       hasMore: true,
       offset: 0,
     },
+    leaveTypeCatalogPagination: {
+      hasMore: true,
+      offset: 0,
+    },
     leaveAllocations: [],
     leaveTypes: [],
     leaveTypeCatalog: [],
@@ -154,6 +158,10 @@ export const useTimeoffStore = defineStore("timeoff", {
         hasMore: true,
         offset: 0,
       };
+      this.leaveTypeCatalogPagination = {
+        hasMore: true,
+        offset: 0,
+      };
       this.leaveAllocations = [];
       this.leaveTypes = [];
       this.leaveTypeCatalog = [];
@@ -172,17 +180,18 @@ export const useTimeoffStore = defineStore("timeoff", {
         const offset = reset ? 0 : options.offset ?? this.leaveRequests.length;
 
         try {
-          const records = await fetchLeaveRequests(this.getRequiredUserId(), {
+          const result = await fetchLeaveRequests(this.getRequiredUserId(), {
             ...options,
             limit,
             offset,
           });
+          const records = result.records;
           this.leaveRequests = reset ? records : [...this.leaveRequests, ...records];
           this.leaveRequestPagination = {
-            hasMore: records.length === limit,
+            hasMore: result.hasMore,
             offset: offset + records.length,
           };
-          return records;
+          return result;
         } catch (error) {
           if (reset) {
             this.leaveRequests = [];
@@ -204,19 +213,20 @@ export const useTimeoffStore = defineStore("timeoff", {
           : options.offset ?? this.companyLeaveRequests.length;
 
         try {
-          const records = await fetchCompanyLeaveRequests(this.getRequiredUserId(), {
+          const result = await fetchCompanyLeaveRequests(this.getRequiredUserId(), {
             ...options,
             limit,
             offset,
           });
+          const records = result.records;
           this.companyLeaveRequests = reset
             ? records
             : [...this.companyLeaveRequests, ...records];
           this.companyLeaveRequestPagination = {
-            hasMore: records.length === limit,
+            hasMore: result.hasMore,
             offset: offset + records.length,
           };
-          return records;
+          return result;
         } catch (error) {
           if (reset) {
             this.companyLeaveRequests = [];
@@ -258,15 +268,29 @@ export const useTimeoffStore = defineStore("timeoff", {
 
     async fetchLeaveTypeCatalog(options = {}, reset = true) {
       return runAsync(this.asyncStates.leaveTypeCatalog, async () => {
+        const offset = reset ? 0 : options.offset ?? this.leaveTypeCatalog.length;
+
         try {
-          const records = await fetchLeaveTypeCatalog(this.getRequiredUserId(), options);
+          const result = await fetchLeaveTypeCatalog(this.getRequiredUserId(), {
+            ...options,
+            offset,
+          });
+          const records = result.records;
           this.leaveTypeCatalog = reset
             ? records
             : [...this.leaveTypeCatalog, ...records];
-          return records;
+          this.leaveTypeCatalogPagination = {
+            hasMore: result.hasMore,
+            offset: offset + records.length,
+          };
+          return result;
         } catch (error) {
           if (reset) {
             this.leaveTypeCatalog = [];
+            this.leaveTypeCatalogPagination = {
+              hasMore: true,
+              offset: 0,
+            };
           }
           throw error;
         }
@@ -357,8 +381,8 @@ export const useTimeoffStore = defineStore("timeoff", {
           };
 
           if (results[2].status === "fulfilled") {
-            this.leaveRequests = Array.isArray(results[2].value)
-              ? results[2].value
+            this.leaveRequests = Array.isArray(results[2].value?.records)
+              ? results[2].value.records
               : [];
           }
 

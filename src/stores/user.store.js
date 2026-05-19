@@ -193,19 +193,20 @@ export const useUserStore = defineStore("user", {
         const offset = reset ? 0 : options.offset ?? this.myAttendances.length;
 
         try {
-          const records = await fetchMyAttendances(this.getRequiredUserId(), {
+          const result = await fetchMyAttendances(this.getRequiredUserId(), {
             ...options,
             limit,
             offset,
           });
+          const records = result.records;
           this.myAttendances = reset
             ? records
             : [...this.myAttendances, ...records];
           this.myAttendancePagination = {
-            hasMore: records.length === limit,
+            hasMore: result.hasMore,
             offset: offset + records.length,
           };
-          return records;
+          return result;
         } catch (error) {
           if (reset) {
             this.myAttendances = [];
@@ -225,7 +226,7 @@ export const useUserStore = defineStore("user", {
         const offset = reset ? 0 : options.offset ?? this.allAttendances.length;
 
         try {
-          const records = await fetchAllAttendances(
+          const result = await fetchAllAttendances(
             this.getRequiredUserId(),
             domain,
             {
@@ -234,14 +235,15 @@ export const useUserStore = defineStore("user", {
               offset,
             },
           );
+          const records = result.records;
           this.allAttendances = reset
             ? records
             : [...this.allAttendances, ...records];
           this.allAttendancePagination = {
-            hasMore: records.length === limit,
+            hasMore: result.hasMore,
             offset: offset + records.length,
           };
-          return records;
+          return result;
         } catch (error) {
           if (reset) {
             this.allAttendances = [];

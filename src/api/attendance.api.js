@@ -202,7 +202,16 @@ export const fetchMyAttendances = async (userId, options = {}) => {
     throw new Error(response.error.data?.message || response.error.message);
   }
 
-  return response.result?.records ?? [];
+  const records = response.result?.records ?? [];
+
+  return {
+    records,
+    total: response.result?.length,
+    hasMore:
+      typeof response.result?.length === "number"
+        ? offset + records.length < response.result.length
+        : records.length === limit,
+  };
 };
 
 export const fetchAllAttendances = async (
@@ -280,7 +289,16 @@ export const fetchAllAttendances = async (
     throw new Error(response.error.data?.message || response.error.message);
   }
 
-  return response.result?.records ?? [];
+  const records = response.result?.records ?? [];
+
+  return {
+    records,
+    total: response.result?.length,
+    hasMore:
+      typeof response.result?.length === "number"
+        ? offset + records.length < response.result.length
+        : records.length === limit,
+  };
 };
 
 export const fetchAttendanceDetail = async (userId, id) => {

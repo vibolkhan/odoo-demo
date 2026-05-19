@@ -245,10 +245,15 @@ export const fetchEmployees = async (userId, options = {}) => {
   }
 
   const records = (response.result?.records ?? []).map(mapEmployeeRecord);
+  const total = response.result?.length;
 
   return {
     records,
-    hasMore: records.length === limit,
+    total,
+    hasMore:
+      typeof total === "number"
+        ? offset + records.length < total
+        : records.length === limit,
   };
 };
 

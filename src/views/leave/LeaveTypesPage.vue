@@ -213,7 +213,7 @@
         <ion-infinite-scroll
           :key="infiniteScrollKey"
           threshold="100px"
-          :disabled="!hasMore || isLoading"
+          :disabled="!hasMore"
           @ionInfinite="loadMore"
         >
           <ion-infinite-scroll-content
@@ -471,8 +471,10 @@ const loadLeaveTypes = async (reset = false) => {
       reset,
     )
 
-    leaveTypes.value = reset ? result : [...leaveTypes.value, ...result]
-    hasMore.value = result.length === pageSize
+    leaveTypes.value = reset
+      ? result.records
+      : [...leaveTypes.value, ...result.records]
+    hasMore.value = result.hasMore
     if (reset) {
       infiniteScrollKey.value += 1
     }
@@ -597,6 +599,11 @@ const deleteAlertButtons = [
 
 const loadMore = async (event) => {
   const infiniteScroll = event.target
+
+  if (isLoading.value || !hasMore.value) {
+    await infiniteScroll?.complete()
+    return
+  }
 
   await loadLeaveTypes(false)
   await infiniteScroll?.complete()
