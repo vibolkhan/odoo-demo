@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
 import TabsPage from "@/views/TabsPage.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const routes = [
   {
@@ -7,8 +8,19 @@ const routes = [
     redirect: "/tabs/tab1",
   },
   {
+    path: "/auth",
+    name: "auth",
+    component: () => import("@/views/AuthPage.vue"),
+    meta: {
+      guestOnly: true,
+    },
+  },
+  {
     path: "/tabs/",
     component: TabsPage,
+    meta: {
+      requiresAuth: true,
+    },
     children: [
       {
         path: "",
@@ -36,6 +48,21 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+});
+
+router.beforeEach(async (to) => {
+  const auth = useAuthStore();
+  await auth.initialize();
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return "/auth";
+  }
+
+  if (to.meta.guestOnly && auth.isAuthenticated) {
+    return "/tabs/tab1";
+  }
+
+  return true;
 });
 
 export default router;
