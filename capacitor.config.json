@@ -1,10 +1,6 @@
 {
   "appId": "io.ionic.starter",
-  "appName": "TimeNest",
+  "appName": "odoo-demo",
   "webDir": "dist",
-  "plugins": {
-    "CapacitorHttp": {
-      "enabled": true
-    }
-  }
+  "plugins": {}
 }
