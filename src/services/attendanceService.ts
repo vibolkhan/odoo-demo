@@ -1,3 +1,4 @@
+import type { TablesInsert, TablesUpdate } from "@/types/database.types";
 import { supabase } from "@/lib/supabase";
 
 function getLocalDate() {
@@ -101,6 +102,38 @@ export async function getAttendanceRecords(filters: {
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
+}
+
+export async function createAttendanceRecord(payload: TablesInsert<"attendance_records">) {
+  const { data, error } = await supabase
+    .from("attendance_records")
+    .insert(payload)
+    .select("*, employees!fk_attendance_records_employee(*)")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateAttendanceRecord(id: number, payload: TablesUpdate<"attendance_records">) {
+  const { data, error } = await supabase
+    .from("attendance_records")
+    .update(payload)
+    .eq("id", id)
+    .select("*, employees!fk_attendance_records_employee(*)")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteAttendanceRecord(id: number) {
+  const { error } = await supabase
+    .from("attendance_records")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
 }
 
 export async function getScanLogs() {
