@@ -12,7 +12,11 @@
     </ion-header>
 
     <ion-content>
-      <div class="ion-padding filters">
+      <ion-refresher slot="fixed" @ion-refresh="refresh">
+        <ion-refresher-content pulling-text="Pull to refresh attendance" refreshing-text="Refreshing attendance..." />
+      </ion-refresher>
+
+      <div class="app-filter-shell filters">
         <ion-input v-model="date" type="date" label="Date" label-placement="stacked" fill="outline" @ion-change="load" />
         <ion-select v-model="employeeFilter" label="Employee" label-placement="stacked" interface="popover" fill="outline" @ion-change="load">
           <ion-select-option :value="0">All employees</ion-select-option>
@@ -29,11 +33,11 @@
       </div>
 
       <app-loading-card v-if="loading" />
-      <ion-list v-else-if="records.length">
+      <ion-list v-else-if="records.length" class="app-list attendance-record-list">
         <ion-item v-for="record in records" :key="record.id">
           <ion-label>
             <h2>{{ record.employees?.first_name }} {{ record.employees?.last_name }}</h2>
-            <p>{{ record.attendance_date }} · {{ time(record.check_in) }} - {{ time(record.check_out) }} · {{ record.worked_hours }}h</p>
+            <p>{{ record.attendance_date }} - {{ time(record.check_in) }} - {{ time(record.check_out) }} - {{ record.worked_hours }}h</p>
             <p class="record-note" v-if="record.note">{{ record.note }}</p>
           </ion-label>
           <status-badge :status="record.status" />
@@ -60,8 +64,9 @@
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
-        <ion-content class="ion-padding">
-          <ion-list>
+        <ion-content>
+          <div class="app-form-shell attendance-form">
+            <ion-list>
             <ion-item>
               <ion-select v-model="form.employee_id" label="Employee" label-placement="stacked" interface="popover">
                 <ion-select-option v-for="employee in employees" :key="employee.id" :value="employee.id">
@@ -101,10 +106,11 @@
               <ion-textarea v-model="form.note" auto-grow label="Note" label-placement="stacked" />
             </ion-item>
           </ion-list>
-          <ion-button expand="block" class="save-button" :disabled="saving" @click="save">
+            <ion-button expand="block" class="save-button" :disabled="saving" @click="save">
             <ion-icon slot="start" :icon="saveOutline" />
             {{ editingId ? "Save changes" : "Create attendance" }}
-          </ion-button>
+            </ion-button>
+          </div>
         </ion-content>
       </ion-modal>
 
@@ -141,6 +147,8 @@ import {
   IonToast,
   IonToolbar,
   onIonViewWillEnter,
+  IonRefresher,
+  IonRefresherContent,
 } from "@ionic/vue";
 import { addOutline, closeOutline, createOutline, saveOutline, trashOutline } from "ionicons/icons";
 import { computed, onMounted, reactive, ref } from "vue";
@@ -272,12 +280,14 @@ async function load() {
   }
 }
 
-async function refresh() {
+async function refresh(event?: CustomEvent) {
   try {
     await loadEmployees();
     await load();
   } catch (error) {
     showError(error, "Unable to load attendance.");
+  } finally {
+    (event?.target as HTMLIonRefresherElement | undefined)?.complete();
   }
 }
 
@@ -379,6 +389,12 @@ onIonViewWillEnter(refresh);
 .record-note {
   margin-top: 4px;
   color: var(--ion-color-medium);
+}
+
+.attendance-record-list ion-item {
+  --min-height: 58px;
+  --padding-bottom: 6px;
+  --padding-top: 6px;
 }
 
 .save-button {

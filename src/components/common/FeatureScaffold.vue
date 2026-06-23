@@ -6,6 +6,10 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
+      <ion-refresher slot="fixed" @ion-refresh="refresh">
+        <ion-refresher-content :pulling-text="`Pull to refresh ${title}`" :refreshing-text="`Refreshing ${title}...`" />
+      </ion-refresher>
+
       <ion-card>
         <ion-card-header>
           <ion-card-subtitle>{{ area }}</ion-card-subtitle>
@@ -29,6 +33,8 @@ import {
   IonContent,
   IonHeader,
   IonPage,
+  IonRefresher,
+  IonRefresherContent,
   IonTitle,
   IonToolbar,
 } from "@ionic/vue";
@@ -38,4 +44,15 @@ defineProps<{
   description: string;
   title: string;
 }>();
+
+async function refresh(event: CustomEvent) {
+  try {
+    await Promise.resolve();
+  } finally {
+    (event.target as HTMLIonRefresherElement).complete();
+  }
+}
 </script>
+
+
+

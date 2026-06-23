@@ -22,6 +22,27 @@ export async function getSettingsData() {
   };
 }
 
+export async function getLeaveTypes() {
+  const { data, error } = await supabase.from("leave_types").select("*").order("name");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getEmployeeFormOptions() {
+  const [departments, positions, roles] = await Promise.all([
+    supabase.from("departments").select("*").order("name"),
+    supabase.from("positions").select("*").order("title"),
+    supabase.from("roles").select("*").order("name"),
+  ]);
+  const error = [departments, positions, roles].find((result) => result.error)?.error;
+  if (error) throw error;
+  return {
+    departments: departments.data || [],
+    positions: positions.data || [],
+    roles: roles.data || [],
+  };
+}
+
 export async function createDepartment(payload: TablesInsert<"departments">) {
   const { data, error } = await supabase.from("departments").insert(payload).select().single();
   if (error) throw error;

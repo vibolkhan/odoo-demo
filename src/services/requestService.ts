@@ -4,7 +4,13 @@ import { supabase } from "@/lib/supabase";
 type RequestTable = "leave_requests" | "overtime_requests" | "attendance_corrections";
 
 async function getRequests(table: RequestTable, employeeId?: number) {
-  let query = supabase.from(table).select("*").order("created_at", { ascending: false });
+  let query = supabase
+    .from(table)
+    .select(`
+      *,
+      employees!fk_${table}_employee(id, first_name, last_name, employee_code)
+    `)
+    .order("created_at", { ascending: false });
   if (employeeId) query = query.eq("employee_id", employeeId);
 
   const { data, error } = await query;

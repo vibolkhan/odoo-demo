@@ -68,6 +68,14 @@ http://ionicframework.com/docs/theming/ */
   --ion-background-color: #f5f7fb;
   --ion-card-background: #ffffff;
   --ion-font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --app-page-max-width: 960px;
+  --app-form-max-width: 460px;
+  --app-page-padding: 16px;
+  --app-section-gap: 16px;
+}
+
+ion-content {
+  --background: var(--ion-background-color);
 }
 
 ion-card {
@@ -84,4 +92,58 @@ ion-toolbar {
 ion-tab-bar {
   --background: rgba(255, 255, 255, 0.97);
   border-top: 1px solid rgba(49, 87, 213, 0.08);
+}
+
+.app-page {
+  margin: 0 auto;
+  max-width: var(--app-page-max-width);
+  padding: var(--app-page-padding);
+}
+
+.app-stack {
+  display: grid;
+  gap: var(--app-section-gap);
+}
+
+.app-form-shell {
+  margin: 0 auto;
+  max-width: var(--app-form-max-width);
+  padding: var(--app-page-padding);
+  width: 100%;
+}
+
+.app-form-shell ion-list,
+.app-filter-shell ion-list {
+  background: transparent;
+  margin: 0;
+}
+
+.app-filter-shell {
+  display: grid;
+  gap: 12px;
+  margin: 0 auto;
+  max-width: 760px;
+  padding: var(--app-page-padding);
+  width: 100%;
+}
+
+.app-centered-actions {
+  margin: 0 auto;
+  max-width: var(--app-form-max-width);
+  padding: 0 var(--app-page-padding) var(--app-page-padding);
+  width: 100%;
+}
+
+ion-list.app-list {
+  background: transparent;
+  margin: 0 auto var(--app-page-padding);
+  max-width: var(--app-page-max-width);
+  padding: 0 var(--app-page-padding);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --app-page-padding: 24px;
+    --app-section-gap: 18px;
+  }
 }

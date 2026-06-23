@@ -6,30 +6,45 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
-      <form class="auth-form" @submit.prevent="submit">
+    <ion-content class="auth-content">
+      <ion-refresher slot="fixed" @ion-refresh="refresh">
+        <ion-refresher-content pulling-text="Pull to refresh login" refreshing-text="Refreshing login..." />
+      </ion-refresher>
+
+      <form class="auth-form" novalidate @submit.prevent="submit">
+        <ion-text v-if="registrationNotice" color="medium">
+          <p class="auth-note">Self-registration is not available. Ask Admin or HR to create your account.</p>
+        </ion-text>
+
         <ion-list inset>
           <ion-item>
             <ion-input
               v-model.trim="email"
               autocomplete="email"
-              label="Email"
+              label="Email *"
               label-placement="stacked"
               required
               type="email"
             />
           </ion-item>
+          <ion-note v-if="errors.email" color="danger" class="field-error">
+            {{ errors.email }}
+          </ion-note>
+
           <ion-item>
             <ion-input
               v-model="password"
               autocomplete="current-password"
-              label="Password"
+              label="Password *"
               label-placement="stacked"
               :minlength="6"
               required
               type="password"
             />
           </ion-item>
+          <ion-note v-if="errors.password" color="danger" class="field-error">
+            {{ errors.password }}
+          </ion-note>
         </ion-list>
 
         <ion-text v-if="message" color="danger">
@@ -53,24 +68,56 @@ import {
   IonInput,
   IonItem,
   IonList,
+  IonNote,
   IonPage,
   IonSpinner,
   IonText,
   IonTitle,
   IonToolbar,
+  IonRefresher,
+  IonRefresherContent,
 } from "@ionic/vue";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const email = ref("");
 const password = ref("");
 const message = ref("");
+const errors = reactive<{ email?: string; password?: string }>({});
+const registrationNotice = computed(() => route.query.notice === "registration");
+
+async function refresh(event: CustomEvent) {
+  try {
+    message.value = "";
+    clearErrors();
+    await auth.loadSession();
+    if (auth.isAuthenticated) router.replace(auth.isAdminOrHR ? "/admin/tabs/dashboard" : "/employee/tabs/home");
+  } finally {
+    (event.target as HTMLIonRefresherElement).complete();
+  }
+}
+
+function clearErrors() {
+  delete errors.email;
+  delete errors.password;
+}
+
+function validateForm() {
+  clearErrors();
+  if (!email.value) errors.email = "Email is required.";
+  else if (!/^\S+@\S+\.\S+$/.test(email.value)) errors.email = "Enter a valid email address.";
+  if (!password.value) errors.password = "Password is required.";
+  else if (password.value.length < 6) errors.password = "Password must be at least 6 characters.";
+  return !errors.email && !errors.password;
+}
 
 async function submit() {
   message.value = "";
+  if (!validateForm()) return;
 
   try {
     await auth.loginAction(email.value, password.value);
@@ -82,9 +129,26 @@ async function submit() {
 </script>
 
 <style scoped>
+.auth-content::part(scroll) {
+  align-items: center;
+  display: flex;
+  min-height: 100%;
+}
+
 .auth-form {
-  margin: 40px auto 0;
+  margin: 0 auto;
   max-width: 420px;
+  padding: 24px 16px;
+  width: 100%;
+}
+
+.auth-note {
+  margin: 0 0 12px;
+}
+
+.field-error {
+  display: block;
+  margin: 4px 16px 10px;
 }
 
 ion-spinner {

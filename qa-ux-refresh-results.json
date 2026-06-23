@@ -1,0 +1,373 @@
+{
+  "refresh": {
+    "desktop-admin-dashboard-refresh": {
+      "path": "/admin/tabs/dashboard",
+      "ok": true,
+      "pullingText": "",
+      "refreshingText": "",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    "desktop-admin-requests-refresh": {
+      "path": "/admin/tabs/requests",
+      "ok": true,
+      "pullingText": "",
+      "refreshingText": "",
+      "url": "http://127.0.0.1:5173/admin/tabs/requests"
+    },
+    "desktop-admin-settings-refresh": {
+      "path": "/admin/tabs/settings",
+      "ok": true,
+      "pullingText": "",
+      "refreshingText": "",
+      "url": "http://127.0.0.1:5173/admin/tabs/settings"
+    },
+    "mobile-admin-dashboard-refresh": {
+      "path": "/admin/tabs/dashboard",
+      "ok": true,
+      "pullingText": "",
+      "refreshingText": "",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    }
+  },
+  "icons": {
+    "desktop-admin-dashboard-icons": [
+      {
+        "visible": false,
+        "width": 0,
+        "height": 0,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      }
+    ],
+    "desktop-admin-settings-icons": [
+      {
+        "visible": false,
+        "width": 0,
+        "height": 0,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 18,
+        "height": 18,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 18,
+        "height": 18,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 19,
+        "height": 19,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22,
+        "icon": ""
+      }
+    ],
+    "mobile-admin-dashboard-icons": [
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24,
+        "icon": ""
+      }
+    ]
+  },
+  "forms": {
+    "desktop-login": {
+      "left": 473,
+      "right": 893,
+      "width": 420,
+      "center": 683,
+      "viewport": 1366,
+      "centeredDelta": 0,
+      "url": "http://127.0.0.1:5173/login"
+    },
+    "desktop-employees-filter": {
+      "left": 303,
+      "right": 1063,
+      "width": 760,
+      "center": 683,
+      "viewport": 1366,
+      "centeredDelta": 0,
+      "url": "http://127.0.0.1:5173/admin/tabs/employees"
+    },
+    "desktop-employee-modal": {
+      "width": 460,
+      "center": 683,
+      "viewport": 1366,
+      "centeredDelta": 0
+    },
+    "mobile-login": {
+      "left": 0,
+      "right": 390,
+      "width": 390,
+      "center": 195,
+      "viewport": 390,
+      "centeredDelta": 0,
+      "url": "http://127.0.0.1:5173/login"
+    },
+    "mobile-employees-filter": {
+      "left": 0,
+      "right": 390,
+      "width": 390,
+      "center": 195,
+      "viewport": 390,
+      "centeredDelta": 0,
+      "url": "http://127.0.0.1:5173/admin/tabs/employees"
+    }
+  },
+  "pages": {
+    "desktop-login": {
+      "url": "http://127.0.0.1:5173/login",
+      "text": "HR Attendance Login\nEmail *\nPassword *\nLOGIN"
+    },
+    "login-admin@example.com": {
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "text": "HR Dashboard\n6\nTotal employees\n0\nPresent today\n0\nLate today\n0\nAbsent today\n0\nMissing checkout\n0\nPending leave\n0\nPending overtime\n0\nPending correction\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-admin-dashboard-refresh": {
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "text": "HR Dashboard\n6\nTotal employees\n0\nPresent today\n0\nLate today\n0\nAbsent today\n0\nMissing checkout\n0\nPending leave\n0\nPending overtime\n0\nPending correction\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-admin-requests-refresh": {
+      "url": "http://127.0.0.1:5173/admin/tabs/requests",
+      "text": "Requests\nLEAVE\nOVERTIME\nCORRECTION\n2026-06-10 to 2026-06-11\n\nFamily matter\n\napproved\n2026-06-18 to 2026-06-18\n\nSick leave\n\napproved\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-admin-settings-refresh": {
+      "url": "http://127.0.0.1:5173/admin/tabs/settings",
+      "text": "Settings\nQR\nDEPARTMENTS\nPOSITIONS\nLEAVE TYPES\nADD QR LOCATION\nMain Office Entrance\n\nPhnom Penh Main Office\n\nactive\nHR_QR_MAIN_OFFICE_001\nDOWNLOAD IMAGE\nActive\nWarehouse Entrance\n\nOperations Warehouse\n\nactive\nHR_QR_WAREHOUSE_001\nDOWNLOAD IMAGE\nActive\nLOGOUT\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-admin-dashboard-icons": {
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "text": "HR Dashboard\n6\nTotal employees\n0\nPresent today\n0\nLate today\n0\nAbsent today\n0\nMissing checkout\n0\nPending leave\n0\nPending overtime\n0\nPending correction\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-admin-settings-icons": {
+      "url": "http://127.0.0.1:5173/admin/tabs/settings",
+      "text": "Settings\nQR\nDEPARTMENTS\nPOSITIONS\nLEAVE TYPES\nADD QR LOCATION\nMain Office Entrance\n\nPhnom Penh Main Office\n\nactive\nHR_QR_MAIN_OFFICE_001\nDOWNLOAD IMAGE\nActive\nWarehouse Entrance\n\nOperations Warehouse\n\nactive\nHR_QR_WAREHOUSE_001\nDOWNLOAD IMAGE\nActive\nLOGOUT\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-employees-filter": {
+      "url": "http://127.0.0.1:5173/admin/tabs/employees",
+      "text": "Employees\nADD\nSok Dara\n\nEMP-0001 - Operations\n\nactive\nDEACTIVATE\nChan Sophea\n\nEMP-0002 - Human Resources\n\nactive\nDEACTIVATE\nPhilip Bardon\n\nEMP-0003 - Information Technology\n\nactive\nDEACTIVATE\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\nDEACTIVATE\nSrey Nita\n\nEMP-0005 - Sales\n\nactive\nDEACTIVATE\nPheak Rith\n\nEMP-0006 - Operations\n\ninactive\nACTIVATE\n\n- No department\n\nactive\nDEACTIVATE\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "desktop-employees-open-modal": {
+      "url": "http://127.0.0.1:5173/admin/tabs/employees",
+      "text": "Employees\nADD\nSok Dara\n\nEMP-0001 - Operations\n\nactive\nDEACTIVATE\nChan Sophea\n\nEMP-0002 - Human Resources\n\nactive\nDEACTIVATE\nPhilip Bardon\n\nEMP-0003 - Information Technology\n\nactive\nDEACTIVATE\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\nDEACTIVATE\nSrey Nita\n\nEMP-0005 - Sales\n\nactive\nDEACTIVATE\nPheak Rith\n\nEMP-0006 - Operations\n\ninactive\nACTIVATE\n\n- No department\n\nactive\nDEACTIVATE\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "mobile-login": {
+      "url": "http://127.0.0.1:5173/login",
+      "text": "HR Attendance Login\nEmail *\nPassword *\nLogin"
+    },
+    "mobile-admin-dashboard-refresh": {
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "text": "HR Dashboard\n6\nTotal employees\n0\nPresent today\n0\nLate today\n0\nAbsent today\n0\nMissing checkout\n0\nPending leave\n0\nPending overtime\n0\nPending correction\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "mobile-admin-dashboard-icons": {
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "text": "HR Dashboard\n6\nTotal employees\n0\nPresent today\n0\nLate today\n0\nAbsent today\n0\nMissing checkout\n0\nPending leave\n0\nPending overtime\n0\nPending correction\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    },
+    "mobile-employees-filter": {
+      "url": "http://127.0.0.1:5173/admin/tabs/employees",
+      "text": "Employees\nAdd\nSok Dara\n\nEMP-0001 - Operations\n\nactive\nDeactivate\nChan Sophea\n\nEMP-0002 - Human Resources\n\nactive\nDeactivate\nPhilip Bardon\n\nEMP-0003 - Information Technology\n\nactive\nDeactivate\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\nDeactivate\nSrey Nita\n\nEMP-0005 - Sales\n\nactive\nDeactivate\nPheak Rith\n\nEMP-0006 - Operations\n\ninactive\nActivate\n\n- No department\n\nactive\nDeactivate\nDashboard\nScan\nEmployees\nAttendance\nRequests\nSettings"
+    }
+  },
+  "notes": []
+}

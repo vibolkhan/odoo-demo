@@ -1,0 +1,9 @@
+{
+  "testedAt": "2026-06-22T04:22:04.998Z",
+  "assertion": {
+    "name": "employee request empty submit shows field errors and user-facing labels",
+    "pass": true,
+    "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST 2026-06-10 to 2026-06-11 Family matter approved Home Scan Attendance Requests Profile New leave request CLOSE Fields marked with * are required. Leave type * Start date * Start date is required. End date Reason * Reason is required. SUBMIT REQUEST"
+  },
+  "logs": []
+}

@@ -7,11 +7,18 @@
     </ion-header>
 
     <ion-content class="ion-padding">
+      <ion-refresher slot="fixed" @ion-refresh="refresh">
+        <ion-refresher-content pulling-text="Pull to refresh scanner" refreshing-text="Refreshing scanner..." />
+      </ion-refresher>
+
       <ion-card class="scan-card">
         <ion-card-content>
-          <ion-icon :icon="qrCodeOutline" />
+          <ion-icon class="scan-hero-icon" :icon="qrCodeOutline" />
           <h2>Company QR scan</h2>
           <p>Scan the official workplace QR code to record attendance.</p>
+          <ion-note v-if="canUseDevQr" class="scan-helper">
+            Development QR entry is available for admin testing when camera access is unavailable.
+          </ion-note>
 
           <ion-segment v-model="selectedAction" :disabled="loading || scanning">
             <ion-segment-button value="check_in">
@@ -27,7 +34,11 @@
             <div class="scanner-frame" />
           </div>
 
-          <ion-note v-if="scanMessage" class="scan-message" :color="scanMessageColor">
+          <ion-note
+            v-if="scanMessage"
+            class="scan-message"
+            :color="scanMessageColor"
+          >
             {{ scanMessage }}
           </ion-note>
 
@@ -37,16 +48,22 @@
             :disabled="loading"
             @click="startScanner"
           >
-            <ion-icon slot="start" :icon="scanOutline" />
+            <ion-icon class="scan-button-icon" slot="start" :icon="qrCodeOutline" aria-hidden="true" />
             Scan QR code
           </ion-button>
-          <ion-button v-else expand="block" fill="outline" color="medium" @click="stopScanner">
+          <ion-button
+            v-else
+            expand="block"
+            fill="outline"
+            color="medium"
+            @click="stopScanner"
+          >
             Stop scanner
           </ion-button>
         </ion-card-content>
       </ion-card>
 
-      <ion-accordion-group>
+      <ion-accordion-group v-if="canUseDevQr">
         <ion-accordion value="manual">
           <ion-item slot="header">
             <ion-label>Development QR entry</ion-label>
@@ -81,17 +98,26 @@
           <ion-list>
             <ion-item>
               <ion-label>Check in</ion-label>
-              <ion-note slot="end">{{ formatTime(lastResult.check_in) }}</ion-note>
+              <ion-note slot="end">{{
+                formatTime(lastResult.check_in)
+              }}</ion-note>
             </ion-item>
             <ion-item>
               <ion-label>Check out</ion-label>
-              <ion-note slot="end">{{ formatTime(lastResult.check_out) }}</ion-note>
+              <ion-note slot="end">{{
+                formatTime(lastResult.check_out)
+              }}</ion-note>
             </ion-item>
           </ion-list>
         </ion-card-content>
       </ion-card>
 
-      <ion-toast v-model:is-open="toastOpen" :message="toastMessage" :color="toastColor" :duration="3500" />
+      <ion-toast
+        v-model:is-open="toastOpen"
+        :message="toastMessage"
+        :color="toastColor"
+        :duration="3500"
+      />
     </ion-content>
   </ion-page>
 </template>
@@ -120,10 +146,12 @@ import {
   IonTitle,
   IonToast,
   IonToolbar,
+  IonRefresher,
+  IonRefresherContent,
 } from "@ionic/vue";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
-import { qrCodeOutline, scanOutline } from "ionicons/icons";
-import { nextTick, onBeforeUnmount, ref } from "vue";
+import { qrCodeOutline } from "ionicons/icons";
+import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import { processQrAttendance } from "@/services/attendanceService";
 import { useToast } from "@/composables/useToast";
 import { useAuthStore } from "@/stores/auth";
@@ -136,6 +164,7 @@ type ScanResult = {
 };
 
 const auth = useAuthStore();
+const canUseDevQr = computed(() => auth.isAdminOrHR);
 const selectedAction = ref<"check_in" | "check_out">("check_in");
 const manualQrValue = ref("");
 const loading = ref(false);
@@ -145,7 +174,8 @@ const scanMessageColor = ref<"medium" | "danger" | "success">("medium");
 const lastResult = ref<ScanResult | null>(null);
 const lastAction = ref("");
 const videoRef = ref<HTMLVideoElement | null>(null);
-const { showError, showToast, toastColor, toastMessage, toastOpen } = useToast();
+const { showError, showToast, toastColor, toastMessage, toastOpen } =
+  useToast();
 
 let scannerControls: IScannerControls | null = null;
 let stream: MediaStream | null = null;
@@ -153,7 +183,9 @@ let submittingScan = false;
 
 async function requestCameraStream() {
   if (!navigator.mediaDevices?.getUserMedia) {
-    throw new Error("Camera access is not available on this device or browser.");
+    throw new Error(
+      "Camera access is not available on this device or browser.",
+    );
   }
 
   try {
@@ -164,7 +196,9 @@ async function requestCameraStream() {
   } catch (error) {
     const name = error instanceof DOMException ? error.name : "";
     if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-      throw new Error("Camera permission was denied. Allow camera access to scan the attendance QR code.");
+      throw new Error(
+        "Camera permission was denied. Allow camera access to scan the attendance QR code.",
+      );
     }
     if (name === "NotFoundError" || name === "DevicesNotFoundError") {
       throw new Error("No camera was found on this device.");
@@ -176,19 +210,26 @@ async function requestCameraStream() {
 async function startScanner() {
   if (!auth.employee?.id) {
     showError(
-      new Error("Your account is not linked to an employee profile. Ask Admin/HR to link app_users.employee_id before scanning."),
+      new Error(
+        "Your account is not linked to an employee profile. Ask Admin/HR to link app_users.employee_id before scanning.",
+      ),
     );
     return;
   }
 
-  if (!window.isSecureContext && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+  if (
+    !window.isSecureContext &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1"
+  ) {
     scanMessage.value = "Camera access on web requires HTTPS or localhost.";
     scanMessageColor.value = "danger";
     return;
   }
 
   scanning.value = true;
-  scanMessage.value = "Allow camera access, then point the camera at the workplace QR code.";
+  scanMessage.value =
+    "Allow camera access, then point the camera at the workplace QR code.";
   scanMessageColor.value = "medium";
 
   try {
@@ -201,18 +242,27 @@ async function startScanner() {
       delayBetweenScanSuccess: 500,
     });
 
-    scannerControls = await reader.decodeFromStream(stream, videoRef.value, (result) => {
-      const qrCodeValue = result?.getText();
-      if (!qrCodeValue || submittingScan) return;
+    scannerControls = await reader.decodeFromStream(
+      stream,
+      videoRef.value,
+      (result) => {
+        const qrCodeValue = result?.getText();
+        if (!qrCodeValue || submittingScan) return;
 
-      submittingScan = true;
-      stopScanner();
-      void submit(qrCodeValue).finally(() => {
-        submittingScan = false;
-      });
-    });
+        submittingScan = true;
+        stopScanner();
+        void submit(qrCodeValue).finally(() => {
+          submittingScan = false;
+        });
+      },
+    );
   } catch (error) {
     stopScanner();
+    scanMessage.value =
+      error instanceof Error
+        ? error.message
+        : "Unable to start the QR scanner.";
+    scanMessageColor.value = "danger";
     showError(error, "Unable to start the QR scanner.");
   }
 }
@@ -229,7 +279,9 @@ function stopScanner() {
 async function submit(qrCodeValue: string) {
   if (!auth.employee?.id) {
     showError(
-      new Error("Your account is not linked to an employee profile. Ask Admin/HR to link app_users.employee_id before scanning."),
+      new Error(
+        "Your account is not linked to an employee profile. Ask Admin/HR to link app_users.employee_id before scanning.",
+      ),
     );
     return;
   }
@@ -242,13 +294,15 @@ async function submit(qrCodeValue: string) {
       deviceId: navigator.userAgent,
       location: "Mobile app",
     });
-    lastAction.value = selectedAction.value === "check_in" ? "Check In" : "Check Out";
+    lastAction.value =
+      selectedAction.value === "check_in" ? "Check In" : "Check Out";
     lastResult.value = data as ScanResult;
     scanMessage.value = `Scanned ${qrCodeValue}`;
     scanMessageColor.value = "success";
     showToast(lastResult.value.message || `${lastAction.value} recorded.`);
   } catch (error) {
-    scanMessage.value = "The QR code was scanned, but attendance could not be recorded.";
+    scanMessage.value =
+      "The QR code was scanned, but attendance could not be recorded.";
     scanMessageColor.value = "danger";
     showError(error, "Unable to process QR attendance.");
   } finally {
@@ -256,8 +310,24 @@ async function submit(qrCodeValue: string) {
   }
 }
 
+async function refresh(event: CustomEvent) {
+  try {
+    stopScanner();
+    scanMessage.value = "";
+    lastResult.value = null;
+    await auth.loadProfile();
+  } finally {
+    (event.target as HTMLIonRefresherElement).complete();
+  }
+}
+
 function formatTime(value?: string | null) {
-  return value ? new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--";
+  return value
+    ? new Date(value).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "--:--";
 }
 
 onBeforeUnmount(stopScanner);
@@ -268,9 +338,14 @@ onBeforeUnmount(stopScanner);
   text-align: center;
 }
 
-.scan-card ion-icon {
+.scan-hero-icon {
   color: var(--ion-color-primary);
   font-size: 72px;
+}
+
+.scan-button-icon {
+  color: currentColor;
+  font-size: 20px;
 }
 
 .scan-card p {
@@ -308,6 +383,7 @@ onBeforeUnmount(stopScanner);
   width: 72%;
 }
 
+.scan-helper,
 .scan-message {
   display: block;
   margin: 12px 0;

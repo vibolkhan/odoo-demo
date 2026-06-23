@@ -9,6 +9,7 @@ const employeeRoles = ["Manager", "Employee"];
 const routes = [
   { path: "/", redirect: "/login" },
   { path: "/login", name: "login", component: () => import("@/pages/auth/LoginPage.vue"), meta: { guestOnly: true } },
+  { path: "/register", redirect: { path: "/login", query: { notice: "registration" } } },
   {
     path: "/employee/tabs", component: EmployeeLayout, meta: { requiresAuth: true, roles: employeeRoles },
     children: [
