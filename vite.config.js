@@ -9,22 +9,9 @@ export default defineConfig({
     vue(),
     legacy()
   ],
-  server: {
-    proxy: {
-      '/odoo-api': {
-        target: 'https://mrp.staging-sourceamax.asia',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/odoo-api/, ''),
-      },
-    },
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
-  optimizeDeps: {
-    include: ['@capacitor/geolocation', '@capacitor/core']
-  }
 })

@@ -1,0 +1,1264 @@
+{
+  "testedAt": "2026-06-22T03:46:00.851Z",
+  "baseURL": "http://localhost:5173",
+  "pages": [
+    {
+      "label": "Desktop home/root redirect",
+      "url": "http://localhost:5173/login",
+      "title": "Ionic App",
+      "text": "HR Attendance Login Email Password LOGIN",
+      "buttons": [
+        "LOGIN"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Email"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "email",
+          "text": ""
+        },
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Password"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "password",
+          "text": ""
+        }
+      ],
+      "tabs": []
+    },
+    {
+      "label": "Desktop /register direct URL",
+      "url": "http://localhost:5173/login",
+      "title": "Ionic App",
+      "text": "HR Attendance Login Email Password LOGIN",
+      "buttons": [
+        "LOGIN"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Email"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "email",
+          "text": ""
+        },
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Password"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "password",
+          "text": ""
+        }
+      ],
+      "tabs": []
+    },
+    {
+      "label": "Login required-field validation attempt",
+      "url": "http://localhost:5173/login",
+      "title": "Ionic App",
+      "text": "HR Attendance Login Email Password LOGIN",
+      "buttons": [
+        "LOGIN"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Email"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "email",
+          "text": ""
+        },
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Password"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "password",
+          "text": ""
+        }
+      ],
+      "tabs": []
+    },
+    {
+      "label": "Login invalid credentials",
+      "url": "http://localhost:5173/login",
+      "title": "Ionic App",
+      "text": "HR Attendance Login Email Password Invalid login credentials LOGIN",
+      "buttons": [
+        "LOGIN"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Email"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "email",
+          "text": ""
+        },
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Password"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "password",
+          "text": ""
+        }
+      ],
+      "tabs": []
+    },
+    {
+      "label": "Admin after login",
+      "url": "http://localhost:5173/admin/tabs/dashboard",
+      "title": "Ionic App",
+      "text": "HR Dashboard 5 Total employees 0 Present today 0 Late today 0 Absent today 0 Missing checkout 0 Pending leave 0 Pending overtime 0 Pending correction Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Admin Scan",
+      "url": "http://localhost:5173/admin/tabs/scan",
+      "title": "Ionic App",
+      "text": "Scan Attendance Company QR scan Scan the official workplace QR code to record attendance. CHECK IN CHECK OUT SCAN QR CODE Development QR entry Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [
+        "SCAN QR CODE"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Admin Employees",
+      "url": "http://localhost:5173/admin/tabs/employees",
+      "title": "Ionic App",
+      "text": "Employees ADD Sok Dara EMP-0001 · Operations active DEACTIVATE Chan Sophea EMP-0002 · Human Resources active DEACTIVATE Philip Bardon EMP-0003 · Information Technology active DEACTIVATE Vibol Kim EMP-0004 · Information Technology active DEACTIVATE Srey Nita EMP-0005 · Sales active DEACTIVATE Pheak Rith EMP-0006 · Operations inactive ACTIVATE Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [
+        "ADD",
+        "Status, All",
+        "DEACTIVATE",
+        "DEACTIVATE",
+        "DEACTIVATE",
+        "DEACTIVATE",
+        "DEACTIVATE",
+        "ACTIVATE"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-SEARCHBAR",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": ""
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "Search name or employee code",
+          "type": "search",
+          "text": ""
+        },
+        {
+          "tag": "ION-SELECT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": ""
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Admin Attendance",
+      "url": "http://localhost:5173/admin/tabs/attendance",
+      "title": "Ionic App",
+      "text": "Attendance Date Date No attendance No attendance records match the filters. Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [
+        "Employee, All employees",
+        "Status, All statuses"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Date\nDate"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "date",
+          "text": ""
+        },
+        {
+          "tag": "ION-SELECT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": ""
+        },
+        {
+          "tag": "ION-SELECT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": ""
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Admin Requests",
+      "url": "http://localhost:5173/admin/tabs/requests",
+      "title": "Ionic App",
+      "text": "Requests REFRESH LEAVE OVERTIME CORRECTION 2026-06-10 to 2026-06-11 Family matter approved 2026-06-18 to 2026-06-18 Sick leave approved Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [
+        "REFRESH"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Admin Settings",
+      "url": "http://localhost:5173/admin/tabs/settings",
+      "title": "Ionic App",
+      "text": "Settings REFRESH QR DEPARTMENTS POSITIONS LEAVE TYPES ADD QR LOCATION Main Office Entrance Phnom Penh Main Office active HR_QR_MAIN_OFFICE_001 DOWNLOAD IMAGE Active Warehouse Entrance Operations Warehouse active HR_QR_WAREHOUSE_001 DOWNLOAD IMAGE Active LOGOUT Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [
+        "REFRESH",
+        "ADD QR LOCATION",
+        "DOWNLOAD IMAGE",
+        "DOWNLOAD IMAGE",
+        "LOGOUT"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Employee after login",
+      "url": "http://localhost:5173/employee/tabs/home",
+      "title": "Ionic App",
+      "text": "Good day, Vibol VK Vibol Kim EMP-0004 · Information Technology active 0 Pending requests 1 Unread notifications Today Attendance Not checked in Scan the company QR code to start your day. SCAN QR NOW VIEW ATTENDANCE Home Scan Attendance Requests Profile",
+      "buttons": [
+        "SCAN QR NOW",
+        "VIEW ATTENDANCE"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Home",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/home"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/requests"
+        },
+        {
+          "text": "Profile",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/profile"
+        }
+      ]
+    },
+    {
+      "label": "Employee Scan",
+      "url": "http://localhost:5173/employee/tabs/scan",
+      "title": "Ionic App",
+      "text": "Scan Attendance Company QR scan Scan the official workplace QR code to record attendance. CHECK IN CHECK OUT SCAN QR CODE Development QR entry Home Scan Attendance Requests Profile",
+      "buttons": [
+        "SCAN QR CODE"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Home",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/home"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/requests"
+        },
+        {
+          "text": "Profile",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/profile"
+        }
+      ]
+    },
+    {
+      "label": "Employee Attendance",
+      "url": "http://localhost:5173/employee/tabs/attendance",
+      "title": "Ionic App",
+      "text": "My Attendance Month Month 2 daily attendance records 2026-06-16 05:31 PM - 05:52 PM late 0.34h · 571m late 2026-06-15 05:18 PM - 05:38 PM late 0.33h · 558m late Home Scan Attendance Requests Profile",
+      "buttons": [],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Month\nMonth"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "month",
+          "text": ""
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Home",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/home"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/requests"
+        },
+        {
+          "text": "Profile",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/profile"
+        }
+      ]
+    },
+    {
+      "label": "Employee Requests",
+      "url": "http://localhost:5173/employee/tabs/requests",
+      "title": "Ionic App",
+      "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST 2026-06-10 to 2026-06-11 Family matter approved Home Scan Attendance Requests Profile",
+      "buttons": [
+        "CREATE LEAVE REQUEST"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Home",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/home"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/requests"
+        },
+        {
+          "text": "Profile",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/profile"
+        }
+      ]
+    },
+    {
+      "label": "Employee Profile",
+      "url": "http://localhost:5173/employee/tabs/profile",
+      "title": "Ionic App",
+      "text": "Profile VK Vibol Kim employee1@example.com active Employee code EMP-0004 Role Employee Department Information Technology Position Software Developer Phone 012333444 Hire date 2022-08-01 LOGOUT Home Scan Attendance Requests Profile",
+      "buttons": [
+        "LOGOUT"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Home",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/home"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/requests"
+        },
+        {
+          "text": "Profile",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/profile"
+        }
+      ]
+    },
+    {
+      "label": "Employee Home",
+      "url": "http://localhost:5173/employee/tabs/home",
+      "title": "Ionic App",
+      "text": "Good day, Vibol VK Vibol Kim EMP-0004 · Information Technology active 0 Pending requests 1 Unread notifications Today Attendance Not checked in Scan the company QR code to start your day. SCAN QR NOW VIEW ATTENDANCE Home Scan Attendance Requests Profile",
+      "buttons": [
+        "SCAN QR NOW",
+        "VIEW ATTENDANCE"
+      ],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Home",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/home"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/scan"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/requests"
+        },
+        {
+          "text": "Profile",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/employee/tabs/profile"
+        }
+      ]
+    },
+    {
+      "label": "Mobile login",
+      "url": "http://localhost:5173/login",
+      "title": "Ionic App",
+      "text": "HR Attendance Login Email Password Login",
+      "buttons": [
+        "Login"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Email"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "email",
+          "text": ""
+        },
+        {
+          "tag": "ION-INPUT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": "Password"
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "",
+          "type": "password",
+          "text": ""
+        }
+      ],
+      "tabs": []
+    },
+    {
+      "label": "Mobile admin dashboard",
+      "url": "http://localhost:5173/admin/tabs/dashboard",
+      "title": "Ionic App",
+      "text": "HR Dashboard 5 Total employees 0 Present today 0 Late today 0 Absent today 0 Missing checkout 0 Pending leave 0 Pending overtime 0 Pending correction Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [],
+      "inputs": [],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    },
+    {
+      "label": "Mobile admin employees",
+      "url": "http://localhost:5173/admin/tabs/employees",
+      "title": "Ionic App",
+      "text": "Employees Add Sok Dara EMP-0001 · Operations active Deactivate Chan Sophea EMP-0002 · Human Resources active Deactivate Philip Bardon EMP-0003 · Information Technology active Deactivate Vibol Kim EMP-0004 · Information Technology active Deactivate Srey Nita EMP-0005 · Sales active Deactivate Pheak Rith EMP-0006 · Operations inactive Activate Dashboard Scan Employees Attendance Requests Settings",
+      "buttons": [
+        "Add",
+        "Status, All",
+        "Deactivate",
+        "Deactivate",
+        "Deactivate",
+        "Deactivate",
+        "Deactivate",
+        "Activate"
+      ],
+      "inputs": [
+        {
+          "tag": "ION-SEARCHBAR",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": ""
+        },
+        {
+          "tag": "INPUT",
+          "label": null,
+          "placeholder": "Search name or employee code",
+          "type": "search",
+          "text": ""
+        },
+        {
+          "tag": "ION-SELECT",
+          "label": null,
+          "placeholder": null,
+          "type": null,
+          "text": ""
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Dashboard",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/dashboard"
+        },
+        {
+          "text": "Scan",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/scan"
+        },
+        {
+          "text": "Employees",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/employees"
+        },
+        {
+          "text": "Attendance",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/attendance"
+        },
+        {
+          "text": "Requests",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/requests"
+        },
+        {
+          "text": "Settings",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": "/admin/tabs/settings"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    "qa-screenshots/desktop-login.png",
+    "qa-screenshots/desktop-register-direct.png",
+    "qa-screenshots/desktop-login-invalid.png",
+    "qa-screenshots/desktop-admin-dashboard.png",
+    "qa-screenshots/desktop-admin-scan.png",
+    "qa-screenshots/desktop-admin-employees.png",
+    "qa-screenshots/desktop-admin-attendance.png",
+    "qa-screenshots/desktop-admin-requests.png",
+    "qa-screenshots/desktop-admin-settings.png",
+    "qa-screenshots/desktop-employee-home.png",
+    "qa-screenshots/desktop-employee-scan.png",
+    "qa-screenshots/desktop-employee-attendance.png",
+    "qa-screenshots/desktop-employee-requests.png",
+    "qa-screenshots/desktop-employee-profile.png",
+    "qa-screenshots/mobile-login.png",
+    "qa-screenshots/mobile-admin-dashboard.png",
+    "qa-screenshots/mobile-admin-employees.png"
+  ],
+  "logs": [
+    {
+      "type": "http400",
+      "text": "400 https://maiprxrkxgnewkzbxntp.supabase.co/auth/v1/token?grant_type=password",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 400 ()",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/employees?select=*&status=eq.active net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&employee_id=eq.4&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/notifications?select=*&user_id=eq.4&is_read=eq.false net::ERR_ABORTED",
+      "url": "http://localhost:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&employee_id=eq.4&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&employee_id=eq.4&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/employees?select=*&status=eq.active net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    }
+  ],
+  "notes": [
+    {
+      "action": "admin tab Scan",
+      "clicked": true,
+      "url": "http://localhost:5173/admin/tabs/scan"
+    },
+    {
+      "action": "admin tab Employees",
+      "clicked": true,
+      "url": "http://localhost:5173/admin/tabs/employees"
+    },
+    {
+      "action": "admin employees search zzzz-no-match",
+      "text": "Employees ADD No employees No employees match the current filters. Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "action": "admin tab Attendance",
+      "clicked": true,
+      "url": "http://localhost:5173/admin/tabs/attendance"
+    },
+    {
+      "action": "admin tab Requests",
+      "clicked": true,
+      "url": "http://localhost:5173/admin/tabs/requests"
+    },
+    {
+      "action": "admin tab Settings",
+      "clicked": true,
+      "url": "http://localhost:5173/admin/tabs/settings"
+    },
+    {
+      "action": "employee tab Scan",
+      "clicked": true,
+      "url": "http://localhost:5173/employee/tabs/scan"
+    },
+    {
+      "action": "employee tab Attendance",
+      "clicked": true,
+      "url": "http://localhost:5173/employee/tabs/attendance"
+    },
+    {
+      "action": "employee tab Requests",
+      "clicked": true,
+      "url": "http://localhost:5173/employee/tabs/requests"
+    },
+    {
+      "action": "employee tab Profile",
+      "clicked": true,
+      "url": "http://localhost:5173/employee/tabs/profile"
+    },
+    {
+      "action": "employee tab Home",
+      "clicked": true,
+      "url": "http://localhost:5173/employee/tabs/home"
+    }
+  ]
+}

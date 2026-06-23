@@ -1,0 +1,202 @@
+{
+  "testedAt": "2026-06-22T04:25:42.242Z",
+  "baseURL": "http://127.0.0.1:5173",
+  "pages": [
+    {
+      "label": "Register redirects to login with explanation",
+      "url": "http://127.0.0.1:5173/login?notice=registration",
+      "title": "HR Attendance",
+      "text": "HR Attendance Login Self-registration is not available. Ask Admin or HR to create your account. Email * Password * LOGIN"
+    },
+    {
+      "label": "Login empty validation",
+      "url": "http://127.0.0.1:5173/login",
+      "title": "HR Attendance",
+      "text": "HR Attendance Login Email * Email is required. Password * Password is required. LOGIN"
+    },
+    {
+      "label": "Admin dashboard after login",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "title": "HR Attendance",
+      "text": "HR Dashboard 6 Total employees 0 Present today 0 Late today 0 Absent today 0 Missing checkout 0 Pending leave 0 Pending overtime 0 Pending correction Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Admin Add Employee empty validation",
+      "url": "http://127.0.0.1:5173/admin/tabs/employees",
+      "title": "HR Attendance",
+      "text": "Employees ADD Sok Dara EMP-0001 - Operations active DEACTIVATE Chan Sophea EMP-0002 - Human Resources active DEACTIVATE Philip Bardon EMP-0003 - Information Technology active DEACTIVATE Vibol Kim EMP-0004 - Information Technology active DEACTIVATE Srey Nita EMP-0005 - Sales active DEACTIVATE Pheak Rith EMP-0006 - Operations inactive ACTIVATE - No department active DEACTIVATE Dashboard Scan Employees Attendance Requests Settings New employee CLOSE Fields marked with * are required. Employee code * Employee code is required. First name * First name is required. Last name * Last name is required. Email Hire date * CREATE EMPLOYEE"
+    },
+    {
+      "label": "Admin Scan fallback messaging",
+      "url": "http://127.0.0.1:5173/admin/tabs/scan",
+      "title": "HR Attendance",
+      "text": "Scan Attendance Company QR scan Scan the official workplace QR code to record attendance. If camera access is denied or unavailable, open Development QR entry and submit the QR value manually. CHECK IN CHECK OUT Not supported SCAN QR CODE Development QR entry Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Admin Employees",
+      "url": "http://127.0.0.1:5173/admin/tabs/employees",
+      "title": "HR Attendance",
+      "text": "Employees ADD Sok Dara EMP-0001 - Operations active DEACTIVATE Chan Sophea EMP-0002 - Human Resources active DEACTIVATE Philip Bardon EMP-0003 - Information Technology active DEACTIVATE Vibol Kim EMP-0004 - Information Technology active DEACTIVATE Srey Nita EMP-0005 - Sales active DEACTIVATE Pheak Rith EMP-0006 - Operations inactive ACTIVATE - No department active DEACTIVATE Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Admin Attendance",
+      "url": "http://127.0.0.1:5173/admin/tabs/attendance",
+      "title": "HR Attendance",
+      "text": "Attendance Date Date No attendance No attendance records match the filters. Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Admin Requests",
+      "url": "http://127.0.0.1:5173/admin/tabs/requests",
+      "title": "HR Attendance",
+      "text": "Requests REFRESH LEAVE OVERTIME CORRECTION 2026-06-10 to 2026-06-11 Family matter approved 2026-06-18 to 2026-06-18 Sick leave approved Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Admin Settings",
+      "url": "http://127.0.0.1:5173/admin/tabs/settings",
+      "title": "HR Attendance",
+      "text": "Settings REFRESH QR DEPARTMENTS POSITIONS LEAVE TYPES ADD QR LOCATION Main Office Entrance Phnom Penh Main Office active HR_QR_MAIN_OFFICE_001 DOWNLOAD IMAGE Active Warehouse Entrance Operations Warehouse active HR_QR_WAREHOUSE_001 DOWNLOAD IMAGE Active LOGOUT Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Employee home after login",
+      "url": "http://127.0.0.1:5173/employee/tabs/home",
+      "title": "HR Attendance",
+      "text": "Good day, Vibol VK Vibol Kim EMP-0004 · Information Technology active 0 Pending requests 1 Unread notifications Today Attendance Not checked in Scan the company QR code to start your day. SCAN QR NOW VIEW ATTENDANCE Home Scan Attendance Requests Profile"
+    },
+    {
+      "label": "Employee Scan",
+      "url": "http://127.0.0.1:5173/employee/tabs/scan",
+      "title": "HR Attendance",
+      "text": "Scan Attendance Company QR scan Scan the official workplace QR code to record attendance. If camera access is denied or unavailable, open Development QR entry and submit the QR value manually. CHECK IN CHECK OUT SCAN QR CODE Development QR entry Home Scan Attendance Requests Profile"
+    },
+    {
+      "label": "Employee Attendance",
+      "url": "http://127.0.0.1:5173/employee/tabs/attendance",
+      "title": "HR Attendance",
+      "text": "My Attendance Month Month 2 daily attendance records 2026-06-16 05:31 PM - 05:52 PM late 0.34h · 571m late 2026-06-15 05:18 PM - 05:38 PM late 0.33h · 558m late Home Scan Attendance Requests Profile"
+    },
+    {
+      "label": "Employee Requests",
+      "url": "http://127.0.0.1:5173/employee/tabs/requests",
+      "title": "HR Attendance",
+      "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST 2026-06-10 to 2026-06-11 Family matter approved Home Scan Attendance Requests Profile"
+    },
+    {
+      "label": "Employee Profile",
+      "url": "http://127.0.0.1:5173/employee/tabs/profile",
+      "title": "HR Attendance",
+      "text": "Profile VK Vibol Kim employee1@example.com active Employee code EMP-0004 Role Employee Department Information Technology Position Software Developer Phone 012333444 Hire date 2022-08-01 LOGOUT Home Scan Attendance Requests Profile"
+    },
+    {
+      "label": "Employee Request empty validation",
+      "url": "http://127.0.0.1:5173/employee/tabs/requests",
+      "title": "HR Attendance",
+      "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST 2026-06-10 to 2026-06-11 Family matter approved Home Scan Attendance Requests Profile New leave request CLOSE Fields marked with * are required. Leave type * Start date * Start date is required. End date Reason * Reason is required. SUBMIT REQUEST"
+    },
+    {
+      "label": "Mobile admin dashboard",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard",
+      "title": "HR Attendance",
+      "text": "HR Dashboard 6 Total employees 0 Present today 0 Late today 0 Absent today 0 Missing checkout 0 Pending leave 0 Pending overtime 0 Pending correction Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Mobile admin employees",
+      "url": "http://127.0.0.1:5173/admin/tabs/employees",
+      "title": "HR Attendance",
+      "text": "Employees Add Sok Dara EMP-0001 - Operations active Deactivate Chan Sophea EMP-0002 - Human Resources active Deactivate Philip Bardon EMP-0003 - Information Technology active Deactivate Vibol Kim EMP-0004 - Information Technology active Deactivate Srey Nita EMP-0005 - Sales active Deactivate Pheak Rith EMP-0006 - Operations inactive Activate - No department active Deactivate Dashboard Scan Employees Attendance Requests Settings"
+    }
+  ],
+  "screenshots": [
+    "qa-fix-screenshots/fix-register-login-note.png",
+    "qa-fix-screenshots/fix-login-empty-validation.png",
+    "qa-fix-screenshots/fix-admin-dashboard.png",
+    "qa-fix-screenshots/fix-admin-add-employee-empty-validation.png",
+    "qa-fix-screenshots/fix-admin-scan-fallback.png",
+    "qa-fix-screenshots/fix-employee-request-empty-validation.png",
+    "qa-fix-screenshots/fix-mobile-admin-dashboard.png",
+    "qa-fix-screenshots/fix-mobile-admin-employees.png"
+  ],
+  "logs": [
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/employees?select=*&status=eq.active net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&employee_id=eq.4&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&employee_id=eq.4&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/notifications?select=*&user_id=eq.4&is_read=eq.false net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&employee_id=eq.4&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/employee/tabs/home"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/employees?select=*&status=eq.active net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://127.0.0.1:5173/admin/tabs/dashboard"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "login empty validation visible",
+      "pass": true,
+      "text": "HR Attendance Login Email * Email is required. Password * Password is required. LOGIN"
+    },
+    {
+      "name": "admin employee empty submit stays in modal with field errors",
+      "pass": true,
+      "text": "Employees ADD Sok Dara EMP-0001 - Operations active DEACTIVATE Chan Sophea EMP-0002 - Human Resources active DEACTIVATE Philip Bardon EMP-0003 - Information Technology active DEACTIVATE Vibol Kim EMP-0004 - Information Technology active DEACTIVATE Srey Nita EMP-0005 - Sales active DEACTIVATE Pheak Rith EMP-0006 - Operations inactive ACTIVATE - No department active DEACTIVATE Dashboard Scan Employees Attendance Requests Settings New employee CLOSE Fields marked with * are required. Employee code * Employee code is required. First name * First name is required. Last name * Last name is required. Email Hire date * CREATE EMPLOYEE"
+    },
+    {
+      "name": "scan has manual fallback guidance",
+      "pass": true,
+      "text": "Scan Attendance Company QR scan Scan the official workplace QR code to record attendance. If camera access is denied or unavailable, open Development QR entry and submit the QR value manually. CHECK IN CHECK OUT Not supported SCAN QR CODE Development QR entry Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "name": "employee request empty submit shows field errors and user-facing labels",
+      "pass": true,
+      "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST 2026-06-10 to 2026-06-11 Family matter approved Home Scan Attendance Requests Profile New leave request CLOSE Fields marked with * are required. Leave type * Start date * Start date is required. End date Reason * Reason is required. SUBMIT REQUEST"
+    }
+  ]
+}

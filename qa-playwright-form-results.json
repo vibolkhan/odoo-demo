@@ -1,0 +1,88 @@
+{
+  "pages": [
+    {
+      "label": "Admin add employee modal",
+      "url": "http://localhost:5173/admin/tabs/employees",
+      "text": "Employees ADD Sok Dara EMP-0001 · Operations active DEACTIVATE Chan Sophea EMP-0002 · Human Resources active DEACTIVATE Philip Bardon EMP-0003 · Information Technology active DEACTIVATE Vibol Kim EMP-0004 · Information Technology active DEACTIVATE Srey Nita EMP-0005 · Sales active DEACTIVATE Pheak Rith EMP-0006 · Operations inactive ACTIVATE Dashboard Scan Employees Attendance Requests Settings New employee CLOSE Employee code First name Last name Email Hire date CREATE EMPLOYEE"
+    },
+    {
+      "label": "Admin add employee empty submit",
+      "url": "http://localhost:5173/admin/tabs/employees",
+      "text": "Employees ADD Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Admin scan button click",
+      "url": "http://localhost:5173/admin/tabs/scan",
+      "text": "Scan Attendance Company QR scan Scan the official workplace QR code to record attendance. CHECK IN CHECK OUT Allow camera access, then point the camera at the workplace QR code. SCAN QR CODE Development QR entry Dashboard Scan Employees Attendance Requests Settings"
+    },
+    {
+      "label": "Employee create request modal",
+      "url": "http://localhost:5173/employee/tabs/requests",
+      "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST Home Scan Attendance Requests Profile New leave request CLOSE Leave type ID Start / requested check-in End / requested check-out Reason SUBMIT REQUEST"
+    },
+    {
+      "label": "Employee create request empty submit",
+      "url": "http://localhost:5173/employee/tabs/requests",
+      "text": "My Requests LEAVE OVERTIME CORRECTION CREATE LEAVE REQUEST Home Scan Attendance Requests Profile New leave request CLOSE Leave type ID Start / requested check-in End / requested check-out Reason SUBMIT REQUEST"
+    }
+  ],
+  "screenshots": [
+    "qa-screenshots/desktop-admin-add-employee-modal.png",
+    "qa-screenshots/desktop-admin-add-employee-empty-submit.png",
+    "qa-screenshots/desktop-admin-scan-after-click.png",
+    "qa-screenshots/desktop-employee-create-request-modal.png",
+    "qa-screenshots/desktop-employee-create-request-empty-submit.png"
+  ],
+  "logs": [
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/leave_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/employees?select=*&status=eq.active net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/attendance_corrections?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "requestfailed",
+      "text": "HEAD https://maiprxrkxgnewkzbxntp.supabase.co/rest/v1/overtime_requests?select=*&status=eq.pending net::ERR_ABORTED",
+      "url": "http://localhost:5173/admin/tabs/dashboard"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Unhandled error during execution of component update \n  at <IonContent> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <EmployeesPage ref=Ref< Proxy(Object) > key=\"/admin/tabs/employees\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonTabs> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <AdminLayout ref=Ref< Proxy(Object) > key=\"/admin/tabs/employees\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonApp> \n  at <App>",
+      "url": "http://localhost:5173/admin/tabs/employees"
+    },
+    {
+      "type": "pageerror",
+      "text": "Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.",
+      "url": "http://localhost:5173/admin/tabs/employees"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Unhandled error during execution of component update \n  at <IonContent> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <EmployeesPage ref=Ref< Proxy(Object) > key=\"/admin/tabs/employees\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonTabs> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <AdminLayout ref=Ref< Proxy(Object) > key=\"/admin/tabs/employees\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonApp> \n  at <App>",
+      "url": "http://localhost:5173/admin/tabs/employees"
+    },
+    {
+      "type": "pageerror",
+      "text": "Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.",
+      "url": "http://localhost:5173/admin/tabs/employees"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Unhandled error during execution of component update \n  at <IonContent> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <RequestsPage ref=Ref< Proxy(Object) > key=\"/employee/tabs/requests\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonTabs> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <EmployeeLayout ref=Ref< Proxy(Object) > key=\"/employee/tabs/requests\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonApp> \n  at <App>",
+      "url": "http://localhost:5173/employee/tabs/requests"
+    },
+    {
+      "type": "warning",
+      "text": "[Vue warn]: Unhandled error during execution of component update \n  at <IonContent> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <RequestsPage ref=Ref< Proxy(Object) > key=\"/employee/tabs/requests\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonTabs> \n  at <IonPage registerIonPage=fn<registerIonPage> > \n  at <EmployeeLayout ref=Ref< Proxy(Object) > key=\"/employee/tabs/requests\" registerIonPage=fn<registerIonPage> > \n  at <IonRouterOutlet> \n  at <IonApp> \n  at <App>",
+      "url": "http://localhost:5173/employee/tabs/requests"
+    }
+  ]
+}

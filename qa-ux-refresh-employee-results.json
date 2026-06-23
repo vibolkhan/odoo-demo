@@ -1,0 +1,122 @@
+{
+  "refresh": {
+    "desktop-employee-home-refresh": {
+      "ok": true,
+      "hasContent": true
+    },
+    "desktop-employee-attendance-refresh": {
+      "ok": true,
+      "hasContent": true
+    },
+    "mobile-employee-home-refresh": {
+      "ok": true,
+      "hasContent": true
+    }
+  },
+  "forms": {
+    "desktop-employee-attendance-filter": {
+      "left": 303,
+      "width": 760,
+      "center": 683,
+      "viewport": 1366,
+      "centeredDelta": 0
+    },
+    "desktop-employee-request-modal": {
+      "width": 460,
+      "center": 683,
+      "viewport": 1366,
+      "centeredDelta": 0
+    },
+    "mobile-employee-attendance-filter": {
+      "left": 0,
+      "width": 390,
+      "center": 195,
+      "viewport": 390,
+      "centeredDelta": 0
+    }
+  },
+  "icons": {
+    "desktop-employee-home-icons": [
+      {
+        "visible": false,
+        "width": 0,
+        "height": 0
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "visible": true,
+        "width": 24,
+        "height": 24
+      },
+      {
+        "visible": true,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22
+      },
+      {
+        "visible": true,
+        "width": 22,
+        "height": 22
+      }
+    ]
+  },
+  "pages": {
+    "login-employee1@example.com": {
+      "url": "http://127.0.0.1:5173/employee/tabs/home",
+      "text": "Good day, Vibol\nVK\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\n0\nPending requests\n1\nUnread notifications\nTODAY\nAttendance\nNot checked in\n\nScan the company QR code to start your day.\n\nScan QR now\nView attendance\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "desktop-employee-home-refresh": {
+      "url": "http://127.0.0.1:5173/employee/tabs/home",
+      "text": "Good day, Vibol\nVK\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\n0\nPending requests\n1\nUnread notifications\nToday\nAttendance\nNot checked in\n\nScan the company QR code to start your day.\n\nSCAN QR NOW\nVIEW ATTENDANCE\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "desktop-employee-attendance-refresh": {
+      "url": "http://127.0.0.1:5173/employee/tabs/attendance",
+      "text": "My Attendance\nMonth\nMonth\n\n2 daily attendance records\n\n2026-06-16\n\n05:31 PM - 05:52 PM\n\nlate\n\n0.34h · 571m late\n\n2026-06-15\n\n05:18 PM - 05:38 PM\n\nlate\n\n0.33h · 558m late\n\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "desktop-employee-attendance-filter": {
+      "url": "http://127.0.0.1:5173/employee/tabs/attendance",
+      "text": "My Attendance\nMonth\nMonth\n\n2 daily attendance records\n\n2026-06-16\n\n05:31 PM - 05:52 PM\n\nlate\n\n0.34h · 571m late\n\n2026-06-15\n\n05:18 PM - 05:38 PM\n\nlate\n\n0.33h · 558m late\n\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "desktop-employee-requests": {
+      "url": "http://127.0.0.1:5173/employee/tabs/requests",
+      "text": "My Requests\nLEAVE\nOVERTIME\nCORRECTION\nCREATE LEAVE REQUEST\n2026-06-10 to 2026-06-11\n\nFamily matter\n\napproved\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "desktop-employee-home-icons": {
+      "url": "http://127.0.0.1:5173/employee/tabs/home",
+      "text": "Good day, Vibol\nVK\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\n0\nPending requests\n1\nUnread notifications\nToday\nAttendance\nNot checked in\n\nScan the company QR code to start your day.\n\nSCAN QR NOW\nVIEW ATTENDANCE\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "mobile-employee-home-refresh": {
+      "url": "http://127.0.0.1:5173/employee/tabs/home",
+      "text": "Good day, Vibol\nVK\nVibol Kim\n\nEMP-0004 - Information Technology\n\nactive\n0\nPending requests\n1\nUnread notifications\nTODAY\nAttendance\nNot checked in\n\nScan the company QR code to start your day.\n\nScan QR now\nView attendance\nHome\nScan\nAttendance\nRequests\nProfile"
+    },
+    "mobile-employee-attendance-filter": {
+      "url": "http://127.0.0.1:5173/employee/tabs/attendance",
+      "text": "My Attendance\nMonth\n\n2 daily attendance records\n\n2026-06-16\n\n05:31 PM - 05:52 PM\n\nlate\n\n0.34h · 571m late\n\n2026-06-15\n\n05:18 PM - 05:38 PM\n\nlate\n\n0.33h · 558m late\n\nHome\nScan\nAttendance\nRequests\nProfile"
+    }
+  },
+  "notes": []
+}
